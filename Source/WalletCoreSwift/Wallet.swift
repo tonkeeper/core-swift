@@ -52,17 +52,6 @@ struct SecuritySettings {
     // hidden balances
 }
 
-
-/// Specifies whitelisted/blacklisted tokens, issuers, collections.
-struct AssetsPolicy {
-    /// TODO: revise these
-    /// we need to remember issues/collections instead of individual tokens.
-    /// change to `Address`
-    let hiddenJettons: [String]?
-    let shownJettons: [String]?
-    let orderJettons: [String]?
-}
-
 struct NotificationSettings {
     
 }
