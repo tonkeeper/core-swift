@@ -1,9 +1,9 @@
 import Foundation
 
 public struct AppManifest {
-    let url: String
+    let url: URL
     let name: String
-    let iconUrl: String
-    let termsOfUseUrl: String?
-    let privacyPolicyUrl: String?
+    let iconUrl: URL
+    let termsOfUseUrl: URL?
+    let privacyPolicyUrl: URL?
 }
