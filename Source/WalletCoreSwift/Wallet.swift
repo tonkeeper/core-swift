@@ -85,7 +85,7 @@ public struct WalletIdentity {
 enum WalletKind {
     case Regular(PublicKey)
     case Lockup(PublicKey, LockupConfig)
-    case Watchonly(TonSwift.Address)
+    case Watchonly(ResolvableAddress)
 }
 
 struct LockupConfig {
@@ -109,7 +109,7 @@ public struct Wallet {
     let currency: Currency = Currency.TON
     
     /// List of remembered favorite addresses
-    let favorites: [FavoriteAddress] = []
+    let addressBook: [AddressBookEntry] = []
     
     /// Preferred version out of `availableWalletVersions`.
     /// `nil` if the standard versions do not apply (lockup and watchonly wallets)
@@ -174,8 +174,8 @@ enum ResolvableAddress: Hashable {
     case Domain(String)
 }
 
-struct FavoriteAddress {
-    let addr: ResolvableAddress
+struct AddressBookEntry {
+    let address: ResolvableAddress
     let label: String
 }
 

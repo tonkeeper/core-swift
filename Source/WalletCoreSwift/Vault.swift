@@ -1,11 +1,11 @@
 import Foundation
 import TonSwift
 
-struct VaultPublicKey {
+public struct VaultPublicKey {
     let pubkey: Data // TODO: change for statically-sized type from Ton Swift
 }
 
-struct VaultPrivateKey {
+public struct VaultSecretKey {
     let privkey: Data // TODO: change for statically-sized type from Ton Swift
 }
 
