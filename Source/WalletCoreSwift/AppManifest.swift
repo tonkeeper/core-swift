@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DAppManifest {
+public struct AppManifest {
     let url: String
     let name: String
     let iconUrl: String
