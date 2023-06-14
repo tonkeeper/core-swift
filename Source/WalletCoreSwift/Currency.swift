@@ -17,7 +17,7 @@ public enum Currency: String {
     case INR = "INR"
     
     func formatter(locale: Locale = Locale.current) -> NumberFormatter {
-        var f = NumberFormatter()
+        let f = NumberFormatter()
         f.locale = locale
         f.currencyCode = self.rawValue
         // TODO: customize TON representation to fit our needs.
