@@ -19,7 +19,7 @@ final class ConfigurationLoaderTests: XCTestCase {
     
     func testConfigurationLoaderStartLoading() async throws {
         // GIVEN
-        mockAPI.entity = .empty
+        mockAPI.entity = .configuration()
         let loader = ConfigurationLoader(api: mockAPI)
         
         // WHEN
@@ -31,7 +31,7 @@ final class ConfigurationLoaderTests: XCTestCase {
     
     func testConfigurationLoaderDoesntStartLoadingIfAlreadyLoading() async throws {
         // GIVEN
-        mockAPI.entity = .empty
+        mockAPI.entity = .configuration()
         let loader = ConfigurationLoader(api: mockAPI)
 
         // WHEN
@@ -47,7 +47,7 @@ final class ConfigurationLoaderTests: XCTestCase {
     
     func testConfigurationLoaderStartLoadingAfterFinishedLoading() async throws {
         // GIVEN
-        mockAPI.entity = .empty
+        mockAPI.entity = .configuration()
         let loader = ConfigurationLoader(api: mockAPI)
 
         // WHEN
@@ -57,28 +57,63 @@ final class ConfigurationLoaderTests: XCTestCase {
         // THEN
         XCTAssertEqual(mockAPI.sendMethodCalledTimes, 2)
     }
+    
+    func testConfigurationLoaderStartSecondLoadingIfFirstFailed() async throws {
+        // GIVEN
+        mockAPI.entity = .configuration()
+        mockAPI.errors = [NSError(domain: "", code: 0)]
+        let loader = ConfigurationLoader(api: mockAPI)
+
+        // WHEN
+        do {
+            _ = try await loader.fetch()
+            XCTFail("Error needs to be thrown.")
+        } catch {}
+        _ = try await loader.fetch()
+
+        // THEN
+        XCTAssertEqual(mockAPI.sendMethodCalledTimes, 2)
+    }
 }
 
-fileprivate extension RemoteConfiguration {
-    static var empty: RemoteConfiguration {
-        RemoteConfiguration(
-            amplitudeKey: "",
-            neocryptoWebView: "",
-            supportLink: "",
-            isExchangeEnabled: "",
-            exchangePostUrl: "",
-            nftOnExplorerUrl: "",
-            transactionExplorer: "",
-            accountExplorer: "",
-            mercuryoSecret: "",
-            tonNFTsMarketplaceEndpoint: "",
-            tonapiV2Endpoint: "",
-            tonapiTestnetHost: "",
-            tonNFTsAPIEndpoint: "",
-            tonApiV2Key: "",
-            appsflyerDevKey: "",
-            appsflyerAppId: "",
-            directSupportUrl: "",
-            stonfiUrl: "")
+extension RemoteConfiguration {
+    static func configuration(
+        amplitudeKey: String = "",
+        neocryptoWebView: String = "",
+        supportLink: String = "",
+        isExchangeEnabled: String = "",
+        exchangePostUrl: String = "",
+        nftOnExplorerUrl: String = "",
+        transactionExplorer: String = "",
+        accountExplorer: String = "",
+        mercuryoSecret: String = "",
+        tonNFTsMarketplaceEndpoint: String = "",
+        tonapiV2Endpoint: String = "",
+        tonapiTestnetHost: String = "",
+        tonNFTsAPIEndpoint: String = "",
+        tonApiV2Key: String = "",
+        appsflyerDevKey: String = "",
+        appsflyerAppId: String = "",
+        directSupportUrl: String = "",
+        stonfiUrl: String = ""
+    ) -> RemoteConfiguration {
+        return RemoteConfiguration(amplitudeKey: amplitudeKey,
+                                   neocryptoWebView: neocryptoWebView,
+                                   supportLink: supportLink,
+                                   isExchangeEnabled: isExchangeEnabled,
+                                   exchangePostUrl: exchangePostUrl,
+                                   nftOnExplorerUrl: nftOnExplorerUrl,
+                                   transactionExplorer: transactionExplorer,
+                                   accountExplorer: accountExplorer,
+                                   mercuryoSecret: mercuryoSecret,
+                                   tonNFTsMarketplaceEndpoint: tonNFTsMarketplaceEndpoint,
+                                   tonapiV2Endpoint: tonapiV2Endpoint,
+                                   tonapiTestnetHost: tonapiTestnetHost,
+                                   tonNFTsAPIEndpoint: tonNFTsAPIEndpoint,
+                                   tonApiV2Key: tonApiV2Key,
+                                   appsflyerDevKey: appsflyerDevKey,
+                                   appsflyerAppId: appsflyerAppId,
+                                   directSupportUrl: directSupportUrl,
+                                   stonfiUrl: stonfiUrl)
     }
 }

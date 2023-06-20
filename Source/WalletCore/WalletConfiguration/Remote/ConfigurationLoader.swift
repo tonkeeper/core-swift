@@ -9,7 +9,7 @@ import Foundation
 import TonAPI
 
 actor ConfigurationLoader {
-    enum Status {
+    enum State {
         case none
         case isLoading(Task<RemoteConfiguration, Swift.Error>)
     }
@@ -20,7 +20,7 @@ actor ConfigurationLoader {
     
     // MARK: - State
     
-    private var status: Status = .none
+    private var state: State = .none
     
     // MARK: - Init
     
@@ -31,13 +31,18 @@ actor ConfigurationLoader {
     // MARK: - Fetch
     
     func fetch() async throws -> RemoteConfiguration {
-        switch status {
+        switch state {
         case .none:
             let task = loadConfigurationTask()
-            status = .isLoading(task)
-            let value = try await task.value
-            status = .none
-            return value
+            state = .isLoading(task)
+            do {
+                let value = try await task.value
+                state = .none
+                return value
+            } catch {
+                state = .none
+                throw error
+            }
         case .isLoading(let task):
             let configuration = try await task.value
             return configuration

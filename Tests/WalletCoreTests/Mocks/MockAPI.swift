@@ -13,6 +13,7 @@ final class MockAPI<T: Codable>: API {
     typealias Entity = T
     
     var entity: Entity?
+    var errors = [Swift.Error]()
     var delay: TimeInterval = 0
     var sendMethodCalledTimes = 0
     
@@ -26,6 +27,10 @@ final class MockAPI<T: Codable>: API {
     ) async throws -> APIResponse<Entity> {
         increateSendMethodCalledTimes()
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        if let error = errors.first {
+            _ = errors.removeFirst()
+            throw error
+        }
         guard let entity = entity else { throw NSError() }
         return APIResponse(
             response: Response(

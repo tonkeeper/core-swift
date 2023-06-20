@@ -8,7 +8,7 @@
 import Foundation
 import TonAPI
 
-struct RemoteConfiguration: Codable {
+struct RemoteConfiguration {
     struct Flags: Codable {
         let disableSwap: Bool
         let disableExchangeMethods: Bool
@@ -71,5 +71,31 @@ struct RemoteConfiguration: Codable {
         case appsflyerAppId
         case directSupportUrl
         case stonfiUrl
+    }
+}
+
+extension RemoteConfiguration: Codable {}
+
+extension RemoteConfiguration {
+    static var empty: RemoteConfiguration {
+        RemoteConfiguration(
+            amplitudeKey: "",
+            neocryptoWebView: "",
+            supportLink: "",
+            isExchangeEnabled: "",
+            exchangePostUrl: "",
+            nftOnExplorerUrl: "",
+            transactionExplorer: "",
+            accountExplorer: "",
+            mercuryoSecret: "",
+            tonNFTsMarketplaceEndpoint: "",
+            tonapiV2Endpoint: "",
+            tonapiTestnetHost: "",
+            tonNFTsAPIEndpoint: "",
+            tonApiV2Key: "",
+            appsflyerDevKey: "",
+            appsflyerAppId: "",
+            directSupportUrl: "",
+            stonfiUrl: "")
     }
 }
