@@ -12,10 +12,10 @@
       },
       {
         "package": "TonAPI",
-        "repositoryURL": "https://github.com/tonkeeper/ton-api-swift.git",
+        "repositoryURL": "https://github.com/tonkeeper/ton-api-swift",
         "state": {
           "branch": null,
-          "revision": "72601c0b15e4637447b158995fb6a41e7ba93fc4",
+          "revision": "b3fb5e1a9ffa9dc8fb3c3c847888e9fae1561c09",
           "version": "0.0.1"
         }
       },

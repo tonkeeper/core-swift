@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "WalletCore",
     platforms: [
-        .iOS(.v13)
+        .macOS(.v12), .iOS(.v13)
     ],
     products: [
         .library(name: "WalletCore", targets: ["WalletCore"]),
