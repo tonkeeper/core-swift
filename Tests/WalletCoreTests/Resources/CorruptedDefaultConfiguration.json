@@ -1,0 +1,18 @@
+{
+  "amplitudeKey":"y": "FtLLvi4MV7hYJDN8Q6KU5m",
+  "appsflyerAppId": "1587742107",
+  "cachedMediaEndpoint": "https://cache.tonapi.io/imgproxy",
+  "cachedMediaKey": "bd03f42aa324a265bc66c9192b29ae71cdb110245e32259b03ed57d901729afb",
+  "cachedMediaSalt": "9bd38ff86794264af85aed9384692a573c6a52bb7cd2c7bdaf3ee35392cefbd6",
+  "directSupportUrl": "https://t.me/tonkeeper_supportbot",
+  "flags": {
+    "disable_swap": false,
+    "disable_exchange_methods": false,
+    "disable_feedback_button": false,
+    "disable_support_button": false,
+    "disable_nft_markets": false,
+    "disable_apperance": false,
+    "disable_dapps": false
+  },
+  "stonfiUrl": "https://tonkeeper.ston.fi/swap"
+}
