@@ -20,7 +20,7 @@ actor ConfigurationLoader {
     
     // MARK: - State
     
-    private var state: State = .none
+    var state: State = .none
     
     // MARK: - Init
     

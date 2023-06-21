@@ -146,6 +146,27 @@ final class ConfigurationControllerTests: XCTestCase {
         XCTAssertNoThrow(try mockCacheConfigurationProvider.configuration)
         XCTAssertEqual(mockCacheConfigurationProvider._configuration, configuration)
     }
+    
+    func testConfigurationControllerWaitUntilLoadingFinishedIfLoadingInProgress() async throws {
+        let controller = ConfigurationController(
+            loader: loader,
+            defaultConfigurationProvider: mockDefaultConfigurationProvider,
+            cacheConfigurationProvider: mockCacheConfigurationProvider
+        )
+        let configuration = RemoteConfiguration.configuration(amplitudeKey: "LoadedAmplitudeKey")
+        mockAPI.entity = configuration
+        mockAPI.delay = 0.5
+        
+        mockCacheConfigurationProvider._configuration = RemoteConfiguration.configuration(amplitudeKey: "DefaultAmplitudeKey")
+        
+        async let loadConfigurationTask = controller.loadConfiguration()
+        async let getConfigurationTask = controller.configuration
+        
+        let loadConfiguration = await loadConfigurationTask
+        let getConfiguration = await getConfigurationTask
+
+        XCTAssertEqual(getConfiguration, loadConfiguration)
+    }
 }
 
 private final class MockConfigurationControllerObserver: ConfigurationControllerObserver {

@@ -15,7 +15,7 @@ protocol ConfigurationControllerObserver: AnyObject {
 actor ConfigurationController {
     enum State {
         case none
-        case cached
+        case isLoading
     }
     
     private class WeakObserver {
@@ -34,12 +34,24 @@ actor ConfigurationController {
     // MARK: - State
     
     var configuration: RemoteConfiguration {
-        get {
-            guard let _configuration = _configuration else {
-                do { return try defaultConfigurationProvider.configuration }
-                catch { return .empty }
+        get async {
+            func defaultOrCachedConfiguration() async -> RemoteConfiguration {
+                guard let _configuration = _configuration else {
+                    do { return try defaultConfigurationProvider.configuration }
+                    catch { return .empty }
+                }
+                return _configuration
             }
-            return _configuration
+            switch await loader.state {
+            case .isLoading(let task):
+                do {
+                    return try await task.value
+                } catch {
+                    return await defaultOrCachedConfiguration()
+                }
+            case .none:
+                return await defaultOrCachedConfiguration()
+            }
         }
     }
         
@@ -69,7 +81,7 @@ actor ConfigurationController {
         } catch {
             attemptNumber += 1
             guard attemptNumber < .maxLoadConfigurationAttempt else {
-                return configuration
+                return await configuration
             }
             return await loadConfiguration()
         }
