@@ -29,6 +29,7 @@ actor ConfigurationController {
     
     private let loader: ConfigurationLoader
     private let defaultConfigurationProvider: ConfigurationProvider
+    private let cacheConfigurationProvider: CacheConfigurationProvider
     
     // MARK: - State
     
@@ -46,23 +47,24 @@ actor ConfigurationController {
     private var observers = [WeakObserver]()
     private var attemptNumber = 0
     private var _configuration: RemoteConfiguration? {
-        didSet {
-            notify()
-        }
+        try? cacheConfigurationProvider.configuration
     }
     
     // MARK: - Init
     
     init(loader: ConfigurationLoader,
-         defaultConfigurationProvider: ConfigurationProvider = DefaultConfigurationProvider()) {
+         defaultConfigurationProvider: ConfigurationProvider,
+         cacheConfigurationProvider: CacheConfigurationProvider) {
         self.loader = loader
         self.defaultConfigurationProvider = defaultConfigurationProvider
+        self.cacheConfigurationProvider = cacheConfigurationProvider
     }
     
     func loadConfiguration() async -> RemoteConfiguration {
         do {
             let configuration = try await loader.fetch()
-            self._configuration = configuration
+            try? cacheConfigurationProvider.saveConfiguration(configuration)
+            notify()
             return configuration
         } catch {
             attemptNumber += 1

@@ -10,6 +10,8 @@ import XCTest
 
 final class ConfigurationControllerTests: XCTestCase {
     let mockAPI = MockAPI<RemoteConfiguration>()
+    let mockDefaultConfigurationProvider = MockDefaultConfigurationProvider()
+    let mockCacheConfigurationProvider = MockCacheConfigurationProvider()
     lazy var loader = ConfigurationLoader(api: mockAPI)
     
     override func setUp() {
@@ -21,7 +23,11 @@ final class ConfigurationControllerTests: XCTestCase {
         // GIVEN
         let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
         mockAPI.entity = configuration
-        let controller = ConfigurationController(loader: loader)
+        let controller = ConfigurationController(
+            loader: loader,
+            defaultConfigurationProvider: mockDefaultConfigurationProvider,
+            cacheConfigurationProvider: mockCacheConfigurationProvider
+        )
         
         // WHEN
         let loadedConfiguration = await controller.loadConfiguration()
@@ -36,7 +42,11 @@ final class ConfigurationControllerTests: XCTestCase {
         let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
         mockAPI.entity = configuration
         mockAPI.errors = [NSError(domain: "", code: 0), NSError(domain: "", code: 0)]
-        let controller = ConfigurationController(loader: loader)
+        let controller = ConfigurationController(
+            loader: loader,
+            defaultConfigurationProvider: mockDefaultConfigurationProvider,
+            cacheConfigurationProvider: mockCacheConfigurationProvider
+        )
         
         // WHEN
         let loadedConfiguration = await controller.loadConfiguration()
@@ -57,7 +67,8 @@ final class ConfigurationControllerTests: XCTestCase {
         )
         let controller = ConfigurationController(
             loader: loader,
-            defaultConfigurationProvider: defaultConfigurationProvider
+            defaultConfigurationProvider: defaultConfigurationProvider,
+            cacheConfigurationProvider: mockCacheConfigurationProvider
         )
         
         // WHEN
@@ -75,7 +86,11 @@ final class ConfigurationControllerTests: XCTestCase {
         mockAPI.entity = configuration
         let mockObserverOne = MockConfigurationControllerObserver()
         let mockObserverTwo = MockConfigurationControllerObserver()
-        let controller = ConfigurationController(loader: loader)
+        let controller = ConfigurationController(
+            loader: loader,
+            defaultConfigurationProvider: mockDefaultConfigurationProvider,
+            cacheConfigurationProvider: mockCacheConfigurationProvider
+        )
         await controller.addObserver(mockObserverOne)
         await controller.addObserver(mockObserverTwo)
         
@@ -93,7 +108,11 @@ final class ConfigurationControllerTests: XCTestCase {
         mockAPI.entity = configuration
         let mockObserverOne = MockConfigurationControllerObserver()
         let mockObserverTwo = MockConfigurationControllerObserver()
-        let controller = ConfigurationController(loader: loader)
+        let controller = ConfigurationController(
+            loader: loader,
+            defaultConfigurationProvider: mockDefaultConfigurationProvider,
+            cacheConfigurationProvider: mockCacheConfigurationProvider
+        )
         await controller.addObserver(mockObserverOne)
         await controller.addObserver(mockObserverTwo)
         
@@ -104,6 +123,28 @@ final class ConfigurationControllerTests: XCTestCase {
         // THEN
         XCTAssertEqual(mockObserverOne.notifyCount, 2)
         XCTAssertEqual(mockObserverTwo.notifyCount, 2)
+    }
+    
+    func testConfigurationControllerSaveToCacheAfterLoading() async throws {
+        // GIVEN
+        let controller = ConfigurationController(
+            loader: loader,
+            defaultConfigurationProvider: mockDefaultConfigurationProvider,
+            cacheConfigurationProvider: mockCacheConfigurationProvider
+        )
+        let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
+        mockAPI.entity = configuration
+        
+        // WHEN
+        // THEN
+        XCTAssertNil(mockCacheConfigurationProvider._configuration)
+        XCTAssertThrowsError(try mockCacheConfigurationProvider.configuration)
+        
+        _ = await controller.loadConfiguration()
+        
+        XCTAssertNotNil(mockCacheConfigurationProvider._configuration)
+        XCTAssertNoThrow(try mockCacheConfigurationProvider.configuration)
+        XCTAssertEqual(mockCacheConfigurationProvider._configuration, configuration)
     }
 }
 
