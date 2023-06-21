@@ -28,13 +28,24 @@ actor ConfigurationController {
     // MARK: - Dependencies
     
     private let loader: ConfigurationLoader
+    private let defaultConfigurationProvider: ConfigurationProvider
     
     // MARK: - State
     
+    var configuration: RemoteConfiguration {
+        get {
+            guard let _configuration = _configuration else {
+                do { return try defaultConfigurationProvider.configuration }
+                catch { return .empty }
+            }
+            return _configuration
+        }
+    }
+        
     private var state: State = .none
     private var observers = [WeakObserver]()
     private var attemptNumber = 0
-    private(set) var configuration: RemoteConfiguration {
+    private var _configuration: RemoteConfiguration? {
         didSet {
             notify()
         }
@@ -42,22 +53,23 @@ actor ConfigurationController {
     
     // MARK: - Init
     
-    init(loader: ConfigurationLoader) {
+    init(loader: ConfigurationLoader,
+         defaultConfigurationProvider: ConfigurationProvider = DefaultConfigurationProvider()) {
         self.loader = loader
-        self.configuration = .empty
+        self.defaultConfigurationProvider = defaultConfigurationProvider
     }
     
     func loadConfiguration() async -> RemoteConfiguration {
         do {
             let configuration = try await loader.fetch()
-            self.configuration = configuration
+            self._configuration = configuration
             return configuration
         } catch {
             attemptNumber += 1
-            if attemptNumber < .maxLoadConfigurationAttempt {
-                return await loadConfiguration()
+            guard attemptNumber < .maxLoadConfigurationAttempt else {
+                return configuration
             }
-            return configuration
+            return await loadConfiguration()
         }
     }
     

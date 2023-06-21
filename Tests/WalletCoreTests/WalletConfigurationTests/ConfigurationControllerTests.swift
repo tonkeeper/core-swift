@@ -51,12 +51,18 @@ final class ConfigurationControllerTests: XCTestCase {
         let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
         mockAPI.entity = configuration
         mockAPI.errors = [NSError(domain: "", code: 0), NSError(domain: "", code: 0), NSError(domain: "", code: 0)]
-        let controller = ConfigurationController(loader: loader)
-        // TBD - use mock default configuration provider to provide default configuration to ConfigurationController
-        let defaultConfiguration = RemoteConfiguration.configuration()
+        let defaultConfigurationProvider = DefaultConfigurationProvider(
+            defaultConfigurationFileName: "TestsDefaultConfiguration.json",
+            bundle: .module
+        )
+        let controller = ConfigurationController(
+            loader: loader,
+            defaultConfigurationProvider: defaultConfigurationProvider
+        )
         
         // WHEN
         let loadedConfiguration = await controller.loadConfiguration()
+        let defaultConfiguration = try defaultConfigurationProvider.configuration
         
         // THEN
         XCTAssertEqual(loadedConfiguration.amplitudeKey, defaultConfiguration.amplitudeKey)
