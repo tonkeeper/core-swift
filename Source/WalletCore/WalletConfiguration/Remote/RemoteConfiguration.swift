@@ -8,7 +8,7 @@
 import Foundation
 import TonAPI
 
-struct RemoteConfiguration {
+struct RemoteConfiguration: Equatable {
     struct Flags: Codable {
         let disableSwap: Bool
         let disableExchangeMethods: Bool
