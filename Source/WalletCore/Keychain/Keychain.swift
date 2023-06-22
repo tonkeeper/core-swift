@@ -7,51 +7,140 @@
 
 import Foundation
 
-enum KeychainResult {
-    case success
-    case failed
+enum KeychainResultCode {
+    case success                      // 0
+    case errSecParam                  // -50
+    case errSecAllocate               // -108
+    case errSecNotAvailable           // -25291
+    case errSecAuthFailed             // -25293
+    case errSecDuplicateItem          // -25299
+    case errSecItemNotFound           // -25300
+    case errSecDecode                 // -26275
+    case other(OSStatus)
+    
+    init(status: OSStatus) {
+        switch status {
+        case 0: self = .success
+        case -50: self = .errSecParam
+        case -108: self = .errSecAllocate
+        case -25291: self = .errSecNotAvailable
+        case -25293: self = .errSecAuthFailed
+        case -25299: self = .errSecDuplicateItem
+        case -25300: self = .errSecItemNotFound
+        case -26275: self = .errSecDecode
+        default:
+            self = .other(status)
+        }
+    }
 }
 
-enum KeychainGetResult<AnyObject> {
-    case success(object: AnyObject)
-    case failed
+struct KeychainQuery {
+    enum Accessible {
+        case whenUnlocked
+        case afterFirstUnlock
+        case whenPasscodeSetThisDeviceOnly
+        case whenUnlockedThisDeviceOnly
+        case afterFirstUnlockThisDeviceOnly
+        
+        var keychainKey: CFString {
+            switch self {
+            case .afterFirstUnlock:
+                return kSecAttrAccessibleAfterFirstUnlock
+            case .afterFirstUnlockThisDeviceOnly:
+                return kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            case .whenPasscodeSetThisDeviceOnly:
+                return kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly
+            case .whenUnlocked:
+                return kSecAttrAccessibleWhenUnlocked
+            case .whenUnlockedThisDeviceOnly:
+                return kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            }
+        }
+    }
+    
+    enum Class {
+        case genericPassword(service: String, account: String?)
+        case none(account: String)
+        
+        var queryItems: [String: AnyObject] {
+            switch self {
+            case let .genericPassword(service, account):
+                var result = [KeychainKeys.class: kSecClassGenericPassword,
+                              KeychainKeys.attrService: service as AnyObject]
+                if let account = account {
+                    result[KeychainKeys.attrAccount] = account as AnyObject
+                }
+                return result
+            case .none(let account):
+                return [KeychainKeys.attrAccount: account as AnyObject]
+            }
+        }
+    }
+    
+    var accessible: Accessible
+    var `class`: Class
+    var data: Data?
+    
+    init(class: Class, accessible: Accessible) {
+        self.class = `class`
+        self.accessible = accessible
+    }
+    
+    var query: CFDictionary {
+        var result = [String: AnyObject]()
+        result[KeychainKeys.attrAccessible] = accessible.keychainKey
+        result.merge(`class`.queryItems, uniquingKeysWith: { (_, new) in new })
+        result[KeychainKeys.valueData] = data as AnyObject
+        result[KeychainKeys.returnData] = true as AnyObject
+        return result as CFDictionary
+    }
+}
+
+enum KeychainGetResult<T> {
+    case success(T)
+    case failed(KeychainResultCode)
 }
 
 protocol Keychain {
-    typealias Query = [String: AnyObject]
     typealias Attributes = [String: AnyObject]
-    func save(query: Query) -> KeychainResult
-    func get(query: Query) -> KeychainGetResult<AnyObject>
-    func update(query: Query, attributes: Attributes) -> KeychainResult
-    func delete(query: Query) -> KeychainResult
+    func save(query: KeychainQuery) -> KeychainResultCode
+    func get(query: KeychainQuery) -> KeychainGetResult<Data?>
+    func update(query: KeychainQuery, attributes: Attributes) -> KeychainResultCode
+    func delete(query: KeychainQuery) -> KeychainResultCode
 }
 
-final class KeychainImplementation: Keychain {
-    func save(query: Query) -> KeychainResult {
-        let resultCode = SecItemAdd(query as CFDictionary, nil)
-        return resultCode == noErr ? .success : .failed
+protocol KeychainQueryable {
+    var query: KeychainQuery { get }
+}
+
+final class KeychainImplementation {
+    func save(query: KeychainQuery) -> KeychainResultCode {
+        let resultCode = SecItemAdd(query.query as CFDictionary, nil)
+        return KeychainResultCode(status: resultCode)
     }
-    
-    func get(query: Query) -> KeychainGetResult<AnyObject> {
+
+    func get(query: KeychainQuery) -> KeychainGetResult<Data?> {
         var resultValue: AnyObject?
         let resultCode = withUnsafeMutablePointer(to: &resultValue) {
-            SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
+            SecItemCopyMatching(query.query, UnsafeMutablePointer($0))
         }
         
-        guard resultCode == noErr, let resultValue = resultValue else {
-            return .failed
+        let result = KeychainResultCode(status: resultCode)
+        switch result {
+        case .success:
+            return .success(resultValue as? Data)
+        default:
+            return .failed(result)
         }
-        
-        return .success(object: resultValue)
     }
-    
-    func update(query: Query, attributes: Attributes) -> KeychainResult {
-        let resultCode = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
-        return resultCode == noErr ? .success : .failed
+
+    func update(query: KeychainQuery, attributes: Keychain.Attributes) -> KeychainResultCode {
+        let resultCode = SecItemUpdate(query.query, attributes as CFDictionary)
+        return KeychainResultCode(status: resultCode)
     }
-    
-    func delete(query: Query) -> KeychainResult {
-        let resultCode = SecItemDelete(query as CFDictionary)
-        return resultCode == noErr ? .success : .failed
+
+    func delete(query: KeychainQuery) -> KeychainResultCode {
+        let resultCode = SecItemDelete(query.query)
+        return KeychainResultCode(status: resultCode)
     }
 }
