@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum KeychainResultCode {
+enum KeychainResultCode: Equatable {
     case success                      // 0
     case errSecParam                  // -50
     case errSecAllocate               // -108
@@ -60,7 +60,6 @@ struct KeychainQuery {
     
     enum Class {
         case genericPassword(service: String, account: String?)
-        case none(account: String)
         
         var queryItems: [String: AnyObject] {
             switch self {
@@ -71,8 +70,6 @@ struct KeychainQuery {
                     result[KeychainKeys.attrAccount] = account as AnyObject
                 }
                 return result
-            case .none(let account):
-                return [KeychainKeys.attrAccount: account as AnyObject]
             }
         }
     }
@@ -86,13 +83,13 @@ struct KeychainQuery {
         self.accessible = accessible
     }
     
-    var query: CFDictionary {
+    var query: [String: AnyObject] {
         var result = [String: AnyObject]()
-        result[KeychainKeys.attrAccessible] = accessible.keychainKey
+        result[KeychainKeys.attrAccessible] = accessible.keychainKey as AnyObject
         result.merge(`class`.queryItems, uniquingKeysWith: { (_, new) in new })
-        result[KeychainKeys.valueData] = data as AnyObject
         result[KeychainKeys.returnData] = true as AnyObject
-        return result as CFDictionary
+        result[KeychainKeys.valueData] = data as AnyObject
+        return result
     }
 }
 
@@ -113,7 +110,7 @@ protocol KeychainQueryable {
     var query: KeychainQuery { get }
 }
 
-final class KeychainImplementation {
+final class KeychainImplementation: Keychain {
     func save(query: KeychainQuery) -> KeychainResultCode {
         let resultCode = SecItemAdd(query.query as CFDictionary, nil)
         return KeychainResultCode(status: resultCode)
@@ -122,7 +119,7 @@ final class KeychainImplementation {
     func get(query: KeychainQuery) -> KeychainGetResult<Data?> {
         var resultValue: AnyObject?
         let resultCode = withUnsafeMutablePointer(to: &resultValue) {
-            SecItemCopyMatching(query.query, UnsafeMutablePointer($0))
+            SecItemCopyMatching(query.query as CFDictionary, UnsafeMutablePointer($0))
         }
         
         let result = KeychainResultCode(status: resultCode)
@@ -135,12 +132,12 @@ final class KeychainImplementation {
     }
 
     func update(query: KeychainQuery, attributes: Keychain.Attributes) -> KeychainResultCode {
-        let resultCode = SecItemUpdate(query.query, attributes as CFDictionary)
+        let resultCode = SecItemUpdate(query.query as CFDictionary, attributes as CFDictionary)
         return KeychainResultCode(status: resultCode)
     }
 
     func delete(query: KeychainQuery) -> KeychainResultCode {
-        let resultCode = SecItemDelete(query.query)
+        let resultCode = SecItemDelete(query.query as CFDictionary)
         return KeychainResultCode(status: resultCode)
     }
 }
