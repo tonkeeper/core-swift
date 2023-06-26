@@ -68,20 +68,20 @@ public struct WalletIdentity {
     let network: Network
     let kind: WalletKind
     
-    func id() -> WalletID {
-        // TBD: hash the contents to produce deterministic wallet id
-        // Use TL-B cell's representationHash()
-        return WalletID(hash: Data())
+    func id() throws -> WalletID {
+        let builder = Builder()
+        try builder.store(self)
+        return WalletID(hash: try builder.endCell().representationHash())
     }
 }
 
 enum WalletKind {
-    case Regular(PublicKey)
-    case Lockup(PublicKey, LockupConfig)
+    case Regular(TonSwift.PublicKey)
+    case Lockup(TonSwift.PublicKey, LockupConfig)
     case Watchonly(ResolvableAddress)
 }
 
-struct LockupConfig {
+struct LockupConfig: Equatable {
     // TBD: lockup-1.0 config
 }
 
@@ -131,7 +131,7 @@ public enum WalletContractVersion: String {
     case v3R1, v3R2, v4R1, v4R2
 }
 
-enum Network: Int {
+enum Network: Int16 {
     case mainnet = -239
     case testnet = -3
 }

@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/tonkeeper/ton-swift",
         "state": {
           "branch": null,
-          "revision": "51666f42c06dd9c473261b9540dbe5ea7e8da82d",
-          "version": "1.0.2"
+          "revision": "eb8c6b8a70308ff1d43109282c6244934eefbb84",
+          "version": "1.0.3"
         }
       },
       {
