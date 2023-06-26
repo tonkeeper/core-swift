@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/tonkeeper/ton-api-swift",
         "state": {
           "branch": null,
-          "revision": "b3fb5e1a9ffa9dc8fb3c3c847888e9fae1561c09",
+          "revision": "cd4427536d6b7436faccc08b0d1cb1d026992716",
           "version": "0.0.1"
         }
       },
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/tonkeeper/ton-swift",
         "state": {
           "branch": null,
-          "revision": "f0948814b12d3d0f48e52f89dd30ec6d7160248e",
-          "version": "1.0.0"
+          "revision": "51666f42c06dd9c473261b9540dbe5ea7e8da82d",
+          "version": "1.0.2"
         }
       },
       {
