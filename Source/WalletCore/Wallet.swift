@@ -57,6 +57,10 @@ struct NotificationSettings {
 }
 
 struct WalletID: Hashable { // TBD: Comparable
+    var string: String {
+        hash.hexString()
+    }
+    
     let hash: Data
 }
 
