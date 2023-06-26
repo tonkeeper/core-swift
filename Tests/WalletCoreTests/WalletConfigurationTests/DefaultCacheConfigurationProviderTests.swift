@@ -36,8 +36,8 @@ final class DefaultCacheConfigurationProviderTests: XCTestCase {
         let configuration = RemoteConfiguration.configuration()
         XCTAssertNoThrow(try provider.saveConfiguration(configuration))
         let otherConfiguration = RemoteConfiguration.configuration(
-            amplitudeKey: "ApmlitudeKey",
-            accountExplorer: "AccountExplorer"
+            tonapiV2Endpoint: "TonapiV2Endpoint",
+            tonapiTestnetHost: "TonapiTestnetHost"
         )
         XCTAssertNoThrow(try provider.saveConfiguration(otherConfiguration))
         XCTAssertNoThrow(try provider.configuration)

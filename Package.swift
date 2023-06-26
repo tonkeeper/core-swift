@@ -11,7 +11,7 @@ let package = Package(
         .library(name: "WalletCore", targets: ["WalletCore"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/tonkeeper/ton-swift", .exact("1.0.0")),
+        .package(url: "https://github.com/tonkeeper/ton-swift", .upToNextMinor(from: "1.0.1")),
         .package(url: "https://github.com/tonkeeper/ton-api-swift", from: "0.0.1")
     ],
     targets: [
@@ -20,11 +20,13 @@ let package = Package(
             dependencies: [
                 .product(name: "TonSwift", package: "ton-swift"),
                 .product(name: "TonAPI", package: "ton-api-swift"),
-            ]),
+            ],
+            resources: [.copy("PackageResources")]),
         .testTarget(
             name: "WalletCoreTests",
             dependencies: [
                 .byName(name: "WalletCore"),
-            ]),
+            ],
+            resources: [.copy("PackageResources")])
     ]
 )

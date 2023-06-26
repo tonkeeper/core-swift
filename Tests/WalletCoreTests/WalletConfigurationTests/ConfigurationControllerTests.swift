@@ -21,7 +21,7 @@ final class ConfigurationControllerTests: XCTestCase {
     
     func testConfigurationControllerLoadSuccess() async throws {
         // GIVEN
-        let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
+        let configuration = RemoteConfiguration.configuration(tonapiV2Endpoint: "123456")
         mockAPI.entity = configuration
         let controller = ConfigurationController(
             loader: loader,
@@ -33,13 +33,13 @@ final class ConfigurationControllerTests: XCTestCase {
         let loadedConfiguration = await controller.loadConfiguration()
         
         // THEN
-        XCTAssertEqual(loadedConfiguration.amplitudeKey, configuration.amplitudeKey)
+        XCTAssertEqual(loadedConfiguration.tonapiV2Endpoint, configuration.tonapiV2Endpoint)
         XCTAssertEqual(mockAPI.sendMethodCalledTimes, 1)
     }
     
     func testConfigurationControllerFailedTwoTimes() async throws {
         // GIVEN
-        let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
+        let configuration = RemoteConfiguration.configuration(tonapiV2Endpoint: "123456")
         mockAPI.entity = configuration
         mockAPI.errors = [NSError(domain: "", code: 0), NSError(domain: "", code: 0)]
         let controller = ConfigurationController(
@@ -52,13 +52,13 @@ final class ConfigurationControllerTests: XCTestCase {
         let loadedConfiguration = await controller.loadConfiguration()
         
         // THEN
-        XCTAssertEqual(loadedConfiguration.amplitudeKey, configuration.amplitudeKey)
+        XCTAssertEqual(loadedConfiguration.tonapiV2Endpoint, configuration.tonapiV2Endpoint)
         XCTAssertEqual(mockAPI.sendMethodCalledTimes, 3)
     }
     
     func testConfigurationControllerFailedThreeTimes() async throws {
         // GIVEN
-        let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
+        let configuration = RemoteConfiguration.configuration(tonapiV2Endpoint: "123456")
         mockAPI.entity = configuration
         mockAPI.errors = [NSError(domain: "", code: 0), NSError(domain: "", code: 0), NSError(domain: "", code: 0)]
         let defaultConfigurationProvider = DefaultConfigurationProvider(
@@ -76,13 +76,13 @@ final class ConfigurationControllerTests: XCTestCase {
         let defaultConfiguration = try defaultConfigurationProvider.configuration
         
         // THEN
-        XCTAssertEqual(loadedConfiguration.amplitudeKey, defaultConfiguration.amplitudeKey)
+        XCTAssertEqual(loadedConfiguration.tonapiV2Endpoint, defaultConfiguration.tonapiV2Endpoint)
         XCTAssertEqual(mockAPI.sendMethodCalledTimes, 3)
     }
     
     func testConfigurationControllerNotifyObserversWhenLoadedConfiguration() async throws {
         // GIVEN
-        let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
+        let configuration = RemoteConfiguration.configuration(tonapiV2Endpoint: "123456")
         mockAPI.entity = configuration
         let mockObserverOne = MockConfigurationControllerObserver()
         let mockObserverTwo = MockConfigurationControllerObserver()
@@ -104,7 +104,7 @@ final class ConfigurationControllerTests: XCTestCase {
     
     func testConfigurationControllerNotifyObserversTwiceWhenLoadedConfigurationTwice() async throws {
         // GIVEN
-        let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
+        let configuration = RemoteConfiguration.configuration(tonapiV2Endpoint: "123456")
         mockAPI.entity = configuration
         let mockObserverOne = MockConfigurationControllerObserver()
         let mockObserverTwo = MockConfigurationControllerObserver()
@@ -132,7 +132,7 @@ final class ConfigurationControllerTests: XCTestCase {
             defaultConfigurationProvider: mockDefaultConfigurationProvider,
             cacheConfigurationProvider: mockCacheConfigurationProvider
         )
-        let configuration = RemoteConfiguration.configuration(amplitudeKey: "123456")
+        let configuration = RemoteConfiguration.configuration(tonapiV2Endpoint: "123456")
         mockAPI.entity = configuration
         
         // WHEN
@@ -153,13 +153,15 @@ final class ConfigurationControllerTests: XCTestCase {
             defaultConfigurationProvider: mockDefaultConfigurationProvider,
             cacheConfigurationProvider: mockCacheConfigurationProvider
         )
-        let configuration = RemoteConfiguration.configuration(amplitudeKey: "LoadedAmplitudeKey")
+        let configuration = RemoteConfiguration.configuration(tonapiV2Endpoint: "LoadedtonapiV2Endpoint")
         mockAPI.entity = configuration
-        mockAPI.delay = 0.5
         
-        mockCacheConfigurationProvider._configuration = RemoteConfiguration.configuration(amplitudeKey: "DefaultAmplitudeKey")
+        mockCacheConfigurationProvider._configuration = RemoteConfiguration.configuration(
+            tonapiV2Endpoint: "DefaulttonapiV2Endpoint"
+        )
         
         async let loadConfigurationTask = controller.loadConfiguration()
+        try await Task.sleep(nanoseconds: 500_000)
         async let getConfigurationTask = controller.configuration
         
         let loadConfiguration = await loadConfigurationTask

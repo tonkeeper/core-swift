@@ -18,8 +18,8 @@ final class DefaultConfigurationProviderTests: XCTestCase {
         XCTAssertNoThrow(try provider.configuration)
         let configuration = try provider.configuration
         
-        XCTAssertEqual(configuration.amplitudeKey, "testd3f88d166cd4f4718125ec8bc0bcedf6")
-        XCTAssertEqual(configuration.accountExplorer, "testhttps://tonviewer.com/%s")
+        XCTAssertEqual(configuration.tonapiV2Endpoint, "https://unit-test.tonapi.io")
+        XCTAssertEqual(configuration.tonapiTestnetHost, "https:/unit-test.testnet.tonapi.io")
     }
     
     func testConfigurationProviderThrowErrorIfCantLoadConfigurationFromDisk() throws {
