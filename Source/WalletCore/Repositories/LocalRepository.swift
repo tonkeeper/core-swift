@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol LocalRepository {
+protocol LocalRepository<T> {
     associatedtype T: LocalStorable
     
     func save(item: T) throws

@@ -18,9 +18,9 @@ enum KeeperServiceError: Swift.Error {
 
 final class KeeperInfoServiceImplementation: KeeperInfoService {
     
-    private let localRepository: LocalDiskRepository<KeeperInfo>
+    private let localRepository: any LocalRepository<KeeperInfo>
 
-    init(localRepository: LocalDiskRepository<KeeperInfo>) {
+    init(localRepository: any LocalRepository<KeeperInfo>) {
         self.localRepository = localRepository
     }
 

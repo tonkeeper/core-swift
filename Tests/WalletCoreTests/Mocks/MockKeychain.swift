@@ -38,6 +38,7 @@ final class MockKeychain: Keychain {
     }
     
     func reset() {
+        getResult = .failed(.other(-1))
         data = nil
         resultCode = .other(-1)
         updateAttributes = [:]

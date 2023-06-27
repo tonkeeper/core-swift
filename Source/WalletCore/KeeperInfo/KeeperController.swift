@@ -10,25 +10,26 @@ import TonSwift
 
 final class KeeperController {
     private let keeperService: KeeperInfoService
-    private let mnemonicVault: KeychainMnemonicVault
+    private let keychainManager: KeychainManager
     
     var hasWallets: Bool {
         checkIfKeeperHasValidWallets()
     }
     
     init(keeperService: KeeperInfoService,
-         mnemonicVault: KeychainMnemonicVault) {
+         keychainManager: KeychainManager) {
         self.keeperService = keeperService
-        self.mnemonicVault = mnemonicVault
+        self.keychainManager = keychainManager
     }
     
     func addWallet(with mnemonic: [String]) throws {
         let keyPair = try Mnemonic.mnemonicToPrivateKey(mnemonicArray: mnemonic)
-        try mnemonicVault.save(value: mnemonic, for: keyPair.publicKey)
         let wallet = Wallet(identity: WalletIdentity(network: .mainnet,
                                                           kind: .Regular(keyPair.publicKey)),
                             notificationSettings: .init(),
                             backupSettings: .init(enabled: true, revision: 1, voucher: nil))
+        let mnemonicVault = KeychainMnemonicVault(keychainManager: keychainManager, walletID: try wallet.identity.id())
+        try mnemonicVault.save(value: mnemonic, for: keyPair.publicKey)
         try updateKeeperInfo(with: wallet)
     }
 }
@@ -54,21 +55,22 @@ private extension KeeperController {
         do {
             let keeperInfo = try keeperService.getKeeperInfo()
             guard !keeperInfo.wallets.isEmpty else { return false }
-            let isWalletsValid = keeperInfo.wallets.map {
-                guard case .Regular(let publicKey) = $0.identity.kind else {
+            let validWallets = keeperInfo.wallets.filter { wallet in
+                // TBD: check Lockup walletkind
+                guard case .Regular(let publicKey) = wallet.identity.kind else {
                     return true
                 }
-                // TBD: check Lockup walletkind
-                return checkIfMnenomicExists(publicKey: publicKey)
-            }.allSatisfy { $0 }
-            return isWalletsValid
+                return checkIfMnenomicExists(publicKey: publicKey, wallet: wallet)
+            }
+            return !validWallets.isEmpty
         } catch {
             return false
         }
     }
     
-    func checkIfMnenomicExists(publicKey: TonSwift.PublicKey) -> Bool {
+    func checkIfMnenomicExists(publicKey: TonSwift.PublicKey, wallet: Wallet) -> Bool {
         do {
+            let mnemonicVault = KeychainMnemonicVault(keychainManager: keychainManager, walletID: try wallet.identity.id())
             let mnemonic = try mnemonicVault.loadValue(key: publicKey)
             return Mnemonic.mnemonicValidate(mnemonicArray: mnemonic)
         } catch {
