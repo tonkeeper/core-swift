@@ -12,7 +12,7 @@ enum AssetExternalPolicy {
 }
 
 /// User-specified status for the asset.
-enum AssetUserPolicy {
+enum AssetUserPolicy: Codable {
     /// Asset is not sorted explicitly by the user
     case Undecided
     /// Asset is approved by the user
@@ -46,7 +46,7 @@ enum AssetResolvedPolicy {
 }
 
 /// Specifies whitelisted/blacklisted tokens, issuers, collections.
-struct AssetsPolicy {
+struct AssetsPolicy: Codable {
     /// Policies for each token address (minter / collection / issuer)
     var policies: [TonSwift.Address: AssetUserPolicy]
     

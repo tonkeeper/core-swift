@@ -12,7 +12,7 @@ import TonSwift
 
 
 /// Represents the entire state of the application install
-public struct KeeperInfo {
+public struct KeeperInfo: Codable {
     /// Keeper contains multiple wallets
     let wallets: [Wallet]
     
@@ -27,14 +27,14 @@ public struct KeeperInfo {
     let appCollection: AppCollection
 }
 
-struct AppCollection {
+struct AppCollection: Codable {
     let connected: [WalletID: AppConnection]
     let recent: [AppID]
     let pinned: [AppID]
 }
 
 typealias AppID = String
-struct AppConnection {
+struct AppConnection: Codable {
     let id: AppID
     // TBD: a bunch of ton connect stuff
     let sessionID: Data
@@ -45,18 +45,18 @@ struct AppConnection {
 
 
 /// Shared security settings for all wallets in the app
-struct SecuritySettings {
+struct SecuritySettings: Codable {
     // biometrics
     // passcode
     // lock screen
     // hidden balances
 }
 
-struct NotificationSettings {
+struct NotificationSettings: Codable {
     
 }
 
-struct WalletID: Hashable { // TBD: Comparable
+struct WalletID: Hashable, Codable { // TBD: Comparable
     var string: String {
         hash.hexString()
     }
@@ -75,6 +75,21 @@ public struct WalletIdentity {
     }
 }
 
+extension WalletIdentity: Codable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let identityBinaryString = try container.decode(String.self)
+        let identityBitstring = try Bitstring(binaryString: identityBinaryString)
+        self = try Slice(bits: identityBitstring).loadType()
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        let identityBinaryString = try Builder().store(self).bitstring().toBinary()
+        try container.encode(identityBinaryString)
+    }
+}
+
 enum WalletKind {
     case Regular(TonSwift.PublicKey)
     case Lockup(TonSwift.PublicKey, LockupConfig)
@@ -85,12 +100,12 @@ struct LockupConfig: Equatable {
     // TBD: lockup-1.0 config
 }
 
-public struct Wallet {
+public struct Wallet: Codable {
     /// Unique internal ID for this wallet
     let identity: WalletIdentity
     
     /// Human-readable label. If empty, then it's rendered with a default title.
-    let label: String = ""
+    let label: String
     
     /// Per-wallet notifications: maybe filters by assets, amounts, dapps etc.
     let notificationSettings: NotificationSettings
@@ -99,18 +114,18 @@ public struct Wallet {
     let backupSettings: WalletBackupSettings
     
     /// Preferred currency for all asset prices : TON, USD, EUR etc.
-    let currency: Currency = Currency.TON
+    let currency: Currency
     
     /// List of remembered favorite addresses
-    let addressBook: [AddressBookEntry] = []
+    let addressBook: [AddressBookEntry]
     
     /// Preferred version out of `availableWalletVersions`.
     /// `nil` if the standard versions do not apply (lockup and watchonly wallets)
-    let contractVersion: WalletContractVersion = .NA
+    let contractVersion: WalletContractVersion
     
     /// Store your app-specific configuration here. Such as theme settings and other preferences.
     /// TODO: make this codeable so it can be backed up and sycned.
-    let userInfo: [String:AnyObject]
+//    let userInfo: [String:AnyObject]
     
     /// If the wallet has potential sibling wallets, these are enumerated here.
     /// If the list has zero or 1 item, then UI should allow set `preferredVersion`
@@ -122,9 +137,25 @@ public struct Wallet {
 //        // TBD: construct wallet with the given settings and version and return its address
 //
 //    }
+    
+    init(identity: WalletIdentity,
+         label: String = "",
+         notificationSettings: NotificationSettings,
+         backupSettings: WalletBackupSettings,
+         currency: Currency = .TON,
+         addressBook: [AddressBookEntry] = [],
+         contractVersion: WalletContractVersion = .NA) {
+        self.identity = identity
+        self.label = label
+        self.notificationSettings = notificationSettings
+        self.backupSettings = backupSettings
+        self.currency = currency
+        self.addressBook = addressBook
+        self.contractVersion = contractVersion
+    }
 }
 
-public enum WalletContractVersion: String {
+public enum WalletContractVersion: String, Codable {
     /// Wallet version is not applicable to this contract
     case NA
     /// Regular wallets 
@@ -143,7 +174,7 @@ public typealias SecretKey = String
 public typealias SharedKey = String
 
 // TODO: revise
-public struct WalletVoucher {
+public struct WalletVoucher: Codable {
     let publicKey: PublicKey
     let secretKey: SecretKey
     let sharedKey: SharedKey
@@ -151,7 +182,7 @@ public struct WalletVoucher {
 }
 
 // TODO: revise
-public struct WalletBackupSettings {
+public struct WalletBackupSettings: Codable {
     // TBD: revisit these
     let enabled: Bool
     let revision: Int
@@ -160,14 +191,14 @@ public struct WalletBackupSettings {
 
 
 /// Human-visible address that can be resolved dynamically
-enum ResolvableAddress: Hashable {
+enum ResolvableAddress: Hashable, Codable {
     /// Raw TON address (e.g. "EQf85gAj...")
     case Resolved(TonSwift.Address)
     /// TON.DNS name (e.g. "oleganza.ton")
     case Domain(String)
 }
 
-struct AddressBookEntry {
+struct AddressBookEntry: Codable {
     let address: ResolvableAddress
     let label: String
 }

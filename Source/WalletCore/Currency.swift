@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Currency: String {
+public enum Currency: String, Codable {
     case TON = "TON"
     case JPY = "JPY"
     case USD = "USD"
