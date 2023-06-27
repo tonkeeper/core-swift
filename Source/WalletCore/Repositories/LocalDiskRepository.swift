@@ -8,6 +8,11 @@
 import Foundation
 
 struct LocalDiskRepository<T: Codable & LocalStorable>: LocalRepository {
+    enum Error: Swift.Error {
+        case noItemInRepository
+        case corruptedData(DecodingError)
+    }
+    
     private let fileManager: FileManager
     private let directory: URL
     private let encoder: JSONEncoder
@@ -36,9 +41,17 @@ struct LocalDiskRepository<T: Codable & LocalStorable>: LocalRepository {
     
     func load() throws -> T {
         let path = itemPath(itemType: T.self)
-        let data = try Data(contentsOf: path)
-        let item = try decoder.decode(T.self, from: data)
-        return item
+        do {
+            let data = try Data(contentsOf: path)
+            let item = try decoder.decode(T.self, from: data)
+            return item
+        } catch CocoaError.fileReadNoSuchFile {
+            throw Error.noItemInRepository
+        } catch let decodingError as DecodingError {
+            throw Error.corruptedData(decodingError)
+        } catch {
+            throw error
+        }
     }
 }
 

@@ -12,6 +12,10 @@ protocol KeeperInfoService {
     func saveKeeperInfo(_ keeperInfo: KeeperInfo) throws
 }
 
+enum KeeperServiceError: Swift.Error {
+    case failedToGetKeeperInfo(Swift.Error)
+}
+
 final class KeeperInfoServiceImplementation: KeeperInfoService {
     
     private let localRepository: LocalDiskRepository<KeeperInfo>
@@ -21,7 +25,11 @@ final class KeeperInfoServiceImplementation: KeeperInfoService {
     }
 
     func getKeeperInfo() throws -> KeeperInfo {
-        try localRepository.load()
+        do {
+            return try localRepository.load()
+        } catch {
+            throw KeeperServiceError.failedToGetKeeperInfo(error)
+        }
     }
 
     func saveKeeperInfo(_ keeperInfo: KeeperInfo) throws {
