@@ -1,14 +1,17 @@
 //
-//  KeychainVault.swift
+//  KeychainKeysVault.swift
 //  
 //
-//  Created by Grigory on 22.6.23..
+//  Created by Grigory on 27.6.23..
 //
 
 import Foundation
 import TonSwift
 
-struct KeychainVault: Vault, StorableVault {
+struct KeychainKeysVault: StorableVault {
+    typealias StoreValue = TonSwift.PrivateKey
+    typealias StoreKey = TonSwift.PublicKey
+    
     private let keychainManager: KeychainManager
     private let walletID: WalletID
     
@@ -18,18 +21,18 @@ struct KeychainVault: Vault, StorableVault {
         self.walletID = walletID
     }
     
-    func loadKey(publicKey: TonSwift.PublicKey) throws -> TonSwift.PrivateKey {
+    func loadValue(key: TonSwift.PublicKey) throws -> TonSwift.PrivateKey {
         let query = KeychainQuery(class: .genericPassword(service: walletID.string,
-                                                          account: publicKey.hexString),
+                                                          account: key.hexString),
                                   accessible: .whenUnlockedThisDeviceOnly)
         let privateKeyData = try keychainManager.get(query: query)
         return .init(data: privateKeyData)
     }
     
-    func saveKeyPair(_ keyPair: TonSwift.KeyPair) throws {
+    func save(value: TonSwift.PrivateKey, for key: TonSwift.PublicKey) throws {
         let query = KeychainQuery(class: .genericPassword(service: walletID.string,
-                                                          account: keyPair.publicKey.hexString),
+                                                          account: key.hexString),
                                   accessible: .whenUnlockedThisDeviceOnly)
-        try keychainManager.save(data: keyPair.privateKey.data, query: query)
+        try keychainManager.save(data: value.data, query: query)
     }
 }
