@@ -8,11 +8,11 @@
 import Foundation
 import TonSwift
 
-final class KeeperController {
+public final class KeeperController {
     private let keeperService: KeeperInfoService
     private let keychainManager: KeychainManager
     
-    var hasWallets: Bool {
+    public var hasWallets: Bool {
         checkIfKeeperHasValidWallets()
     }
     
@@ -22,10 +22,10 @@ final class KeeperController {
         self.keychainManager = keychainManager
     }
     
-    func addWallet(with mnemonic: [String]) throws {
+    public func addWallet(with mnemonic: [String]) throws {
         let keyPair = try Mnemonic.mnemonicToPrivateKey(mnemonicArray: mnemonic)
         let wallet = Wallet(identity: WalletIdentity(network: .mainnet,
-                                                          kind: .Regular(keyPair.publicKey)),
+                                                     kind: .Regular(keyPair.publicKey)),
                             notificationSettings: .init(),
                             backupSettings: .init(enabled: true, revision: 1, voucher: nil))
         let mnemonicVault = KeychainMnemonicVault(keychainManager: keychainManager, walletID: try wallet.identity.id())
