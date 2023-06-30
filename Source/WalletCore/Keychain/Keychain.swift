@@ -76,18 +76,22 @@ struct KeychainQuery {
     
     var accessible: Accessible
     var `class`: Class
+    var returnData: Bool
     var data: Data?
     
-    init(class: Class, accessible: Accessible) {
+    init(class: Class, accessible: Accessible, returnData: Bool = true) {
         self.class = `class`
         self.accessible = accessible
+        self.returnData = returnData
     }
     
     var query: [String: AnyObject] {
         var result = [String: AnyObject]()
         result[KeychainKeys.attrAccessible] = accessible.keychainKey as AnyObject
         result.merge(`class`.queryItems, uniquingKeysWith: { (_, new) in new })
-        result[KeychainKeys.returnData] = true as AnyObject
+        if returnData {
+            result[KeychainKeys.returnData] = true as AnyObject
+        }
         if let data = data {
             result[KeychainKeys.valueData] = data as AnyObject
         }

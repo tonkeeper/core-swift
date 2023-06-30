@@ -41,6 +41,8 @@ final class KeychainManager {
     func save(data: Data, query: KeychainQuery) throws {
         do {
             _ = try get(query: query)
+            var query = query
+            query.returnData = false
             
             let updateResult = keychain.update(query: query,
                                                attributes: [KeychainKeys.valueData: data as AnyObject])
