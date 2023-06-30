@@ -88,7 +88,9 @@ struct KeychainQuery {
         result[KeychainKeys.attrAccessible] = accessible.keychainKey as AnyObject
         result.merge(`class`.queryItems, uniquingKeysWith: { (_, new) in new })
         result[KeychainKeys.returnData] = true as AnyObject
-        result[KeychainKeys.valueData] = data as AnyObject
+        if let data = data {
+            result[KeychainKeys.valueData] = data as AnyObject
+        }
         return result
     }
 }

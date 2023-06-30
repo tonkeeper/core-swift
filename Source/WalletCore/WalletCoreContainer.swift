@@ -16,4 +16,8 @@ public struct WalletCoreContainer {
     public func keeperController(url: URL) -> KeeperController {
         walletCoreAssembly.keeperController(url: url)
     }
+    
+    public func passcodeController() -> PasscodeController {
+        walletCoreAssembly.passcodeController()
+    }
 }

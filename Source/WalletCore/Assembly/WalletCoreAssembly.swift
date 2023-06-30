@@ -14,6 +14,10 @@ struct WalletCoreAssembly {
         KeeperController(keeperService: keeperInfoService(url: url),
                          keychainManager: keychainManager)
     }
+    
+    func passcodeController() -> PasscodeController {
+        PasscodeController(passcodeVault: keychainPasscodeVault)
+    }
 }
 
 private extension WalletCoreAssembly {
@@ -23,6 +27,10 @@ private extension WalletCoreAssembly {
     
     var keychain: Keychain {
         KeychainImplementation()
+    }
+    
+    var keychainPasscodeVault: KeychainPasscodeVault {
+        KeychainPasscodeVault(keychainManager: keychainManager)
     }
     
     func keeperInfoService(url: URL) -> KeeperInfoService {
