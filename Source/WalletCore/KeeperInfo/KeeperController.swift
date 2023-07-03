@@ -22,12 +22,19 @@ public final class KeeperController {
         self.keychainManager = keychainManager
     }
     
+    public var activeWallet: Wallet {
+        get throws {
+            let keeperInfo = try keeperService.getKeeperInfo()
+            return keeperInfo.currentWallet
+        }
+    }
+    
     public func addWallet(with mnemonic: [String]) throws {
         let keyPair = try Mnemonic.mnemonicToPrivateKey(mnemonicArray: mnemonic)
         let wallet = Wallet(identity: WalletIdentity(network: .mainnet,
                                                      kind: .Regular(keyPair.publicKey)),
                             notificationSettings: .init(),
-                            backupSettings: .init(enabled: true, revision: 1, voucher: nil))
+                            backupSettings: .init(enabled: true, revision: 1, voucher: nil), contractVersion: .v4R2)
         let mnemonicVault = KeychainMnemonicVault(keychainManager: keychainManager, walletID: try wallet.identity.id())
         try mnemonicVault.save(value: mnemonic, for: keyPair.publicKey)
         try updateKeeperInfo(with: wallet)
