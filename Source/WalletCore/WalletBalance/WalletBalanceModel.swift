@@ -22,8 +22,15 @@ public struct WalletBalanceModel {
         public let bottomAmount: String?
     }
     
+    public struct Collectible {
+        public let title: String?
+        public let subtitle: String?
+        public let imageURL: URL?
+    }
+    
     public enum Section {
         case token([Token])
+        case collectibles([Collectible])
     }
     
     public struct Page {

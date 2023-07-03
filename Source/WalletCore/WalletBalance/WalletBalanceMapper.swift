@@ -64,8 +64,10 @@ struct WalletBalanceMapper {
         
         let tokenSection = WalletBalanceModel.Section.token(tokens)
         
+        let collectibles = mapCollectibles(walletBalance.collectibles)
+        let collectiblesSection = WalletBalanceModel.Section.collectibles(collectibles)
         
-        let page = WalletBalanceModel.Page(title: "", sections: [tokenSection])
+        let page = WalletBalanceModel.Page(title: "", sections: [tokenSection, collectiblesSection])
         
         
         let walletState = WalletBalanceModel(header: header,
@@ -223,5 +225,18 @@ private extension WalletBalanceMapper {
             }
         }
         return (sum, maximumFractionLength)
+    }
+    
+    func mapCollectibles(_ collectibles: [Collectible]) -> [WalletBalanceModel.Collectible] {
+        return collectibles.map { collectible in
+            var subtitle: String?
+            if let collection = collectible.collection {
+                subtitle = collection.name
+            }
+            
+            return WalletBalanceModel.Collectible(title: collectible.name,
+                                                  subtitle: subtitle,
+                                                  imageURL: collectible.imageURL)
+        }
     }
 }

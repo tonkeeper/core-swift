@@ -22,6 +22,7 @@ final class WalletBalanceAssembly {
         WalletBalanceServiceImplementation(
             tonBalanceService: tonBalanceService(api: api),
             tokensBalanceService: tokensBalanceService(api: api),
+            collectiblesBalanceService: collectiblesBalanceService(api: api),
             walletContractBuilder: walletContractBuilder(),
             localRepository: localRepository(cacheURL: cacheURL))
     }
@@ -48,6 +49,10 @@ private extension WalletBalanceAssembly {
     
     func tokensBalanceService(api: API) -> AccountTokensBalanceService {
         AccountTokensBalanceServiceImplementation(api: api)
+    }
+    
+    func collectiblesBalanceService(api: API) -> AccountCollectiblesBalanceService {
+        AccountCollectiblesBalanceServiceImplementation(api: api)
     }
     
     func walletContractBuilder() -> WalletContractBuilder {

@@ -14,6 +14,7 @@ struct WalletBalance: Codable, LocalStorable {
     let tonBalance: TonBalance
     let tokensBalance: [TokenBalance]
     let previousRevisionsBalances: [TonBalance]
+    let collectibles: [Collectible]
     
     var fileName: String {
         return walletAddress.toString()
@@ -86,4 +87,29 @@ struct AppAmount {
 enum AppTokenAmount {
     case ton(TonBalance)
     case token(TokenBalance)
+}
+
+struct Collectible: Codable {
+    let address: Address
+    let name: String?
+    let imageURL: URL?
+    let description: String?
+    let collection: Collection?
+    
+    struct Marketplace {
+        let name: String
+        let url: URL?
+    }
+    
+    enum Trust {
+        struct Approval {
+            let name: String
+        }
+        case approvedBy([Approval])
+    }
+}
+
+struct Collection: Codable {
+    let address: Address
+    let name: String?
 }

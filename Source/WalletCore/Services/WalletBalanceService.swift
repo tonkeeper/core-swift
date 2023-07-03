@@ -16,15 +16,18 @@ protocol WalletBalanceService {
 final class WalletBalanceServiceImplementation: WalletBalanceService {
     private let tonBalanceService: AccountTonBalanceService
     private let tokensBalanceService: AccountTokensBalanceService
+    private let collectiblesBalanceService: AccountCollectiblesBalanceService
     private let walletContractBuilder: WalletContractBuilder
     private let localRepository: any LocalRepository<WalletBalance>
     
     init(tonBalanceService: AccountTonBalanceService,
          tokensBalanceService: AccountTokensBalanceService,
+         collectiblesBalanceService: AccountCollectiblesBalanceService,
          walletContractBuilder: WalletContractBuilder,
          localRepository: any LocalRepository<WalletBalance>) {
         self.tonBalanceService = tonBalanceService
         self.tokensBalanceService = tokensBalanceService
+        self.collectiblesBalanceService = collectiblesBalanceService
         self.walletContractBuilder = walletContractBuilder
         self.localRepository = localRepository
     }
@@ -53,16 +56,19 @@ final class WalletBalanceServiceImplementation: WalletBalanceService {
             contractVersion: wallet.contractVersion,
             publicKey: publicKey
         )
+        async let collectiblesBalancesTask = loadCollectiblesBalance(address: address)
         
         let tonBalance = try await tonBalanceTask
         let tokensBalance = try? await tokensTask
+        let collectiblesBalance = try? await collectiblesBalancesTask
         let previousRevisionsBalances = try? await previousRevisionsBalancesTask
-
+        
         let walletBalance = WalletBalance(
             walletAddress: address,
             tonBalance: tonBalance,
             tokensBalance: tokensBalance ?? [],
-            previousRevisionsBalances: previousRevisionsBalances ?? []
+            previousRevisionsBalances: previousRevisionsBalances ?? [],
+            collectibles: collectiblesBalance ?? []
         )
         
         try? localRepository.save(item: walletBalance)
@@ -78,6 +84,13 @@ private extension WalletBalanceServiceImplementation {
     
     func loadTokensBalance(address: Address) async throws -> [TokenBalance] {
         return try await tokensBalanceService.loadTokensBalance(address: address)
+    }
+    
+    func loadCollectiblesBalance(address: Address) async throws -> [Collectible] {
+        return try await collectiblesBalanceService.loadCollectibles(address: address,
+                                                                     collectionAddress: nil,
+                                                                     limit: 1000, offset: 0,
+                                                                     isIndirectOwnership: true)
     }
     
     func loadPreviousRevisionsTonBalances(contractVersion: WalletContractVersion,
