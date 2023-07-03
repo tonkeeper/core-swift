@@ -21,20 +21,10 @@ public enum Currency: String, Codable, CaseIterable {
     }
     
     var symbol: String? {
-        let localeIds = Locale.availableIdentifiers
-        for localeId in localeIds {
-            let locale = Locale(identifier: localeId)
-            let localeCurrencyCode: String
-            if #available(iOS 16, *) {
-                localeCurrencyCode = locale.currency?.identifier ?? ""
-            } else {
-                localeCurrencyCode = locale.currencyCode ?? ""
-            }
-            if localeCurrencyCode == self.code {
-                return locale.currencySymbol
-            }
+        switch self {
+        case .USD: return "$"
+        default: return nil
         }
-        return nil
     }
     
     func formatter(locale: Locale = Locale.current) -> NumberFormatter {
