@@ -7,17 +7,25 @@
 
 import Foundation
 
-public struct WalletCoreContainer {
+public final class WalletCoreContainer {
     
-    let walletCoreAssembly = WalletCoreAssembly()
+    private let cacheURL: URL
     
-    public init() {}
+    lazy var walletCoreAssembly = WalletCoreAssembly(cacheURL: cacheURL)
     
-    public func keeperController(url: URL) -> KeeperController {
-        walletCoreAssembly.keeperController(url: url)
+    public init(cacheURL: URL) {
+        self.cacheURL = cacheURL
+    }
+    
+    public func keeperController() -> KeeperController {
+        walletCoreAssembly.keeperController
     }
     
     public func passcodeController() -> PasscodeController {
         walletCoreAssembly.passcodeController()
+    }
+    
+    public func walletBalanceController() -> WalletBalanceController {
+        walletCoreAssembly.walletBalanceController()
     }
 }

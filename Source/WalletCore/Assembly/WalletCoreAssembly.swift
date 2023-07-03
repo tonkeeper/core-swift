@@ -6,53 +6,44 @@
 //
 
 import Foundation
+import TonAPI
 
-struct WalletCoreAssembly {
-    init() {}
+final class WalletCoreAssembly {
     
-    func keeperController(url: URL) -> KeeperController {
-        KeeperController(keeperService: keeperInfoService(url: url),
-                         keychainManager: keychainManager)
+    private let formattersAssembly = FormattersAssembly()
+    private let coreAssembly = CoreAssembly()
+    private lazy var ratesAssembly = RatesAssembly(coreAssembly: coreAssembly)
+    private lazy var apiAssembly = APIAssembly(coreAssembly: coreAssembly)
+    private lazy var walletBalanceAssembly = WalletBalanceAssembly(coreAssembly: coreAssembly,
+                                                                   formattersAssembly: formattersAssembly)
+    private lazy var keeperInfoAssembly = KeeperInfoAssembly(coreAssembly: coreAssembly)
+    private lazy var confifurationAssembly = ConfigurationAssembly(coreAssembly: coreAssembly)
+    
+    private lazy var apiV2: API = apiAssembly.apiV2(requestInterceptors: [accessTokenProvider])
+    private lazy var apiV1: API = apiAssembly.apiV1()
+    
+    lazy var keeperController: KeeperController = keeperInfoAssembly.keeperController(cacheURL: cacheURL)
+    
+    private let cacheURL: URL
+    init(cacheURL: URL) {
+        self.cacheURL = cacheURL
     }
     
     func passcodeController() -> PasscodeController {
-        PasscodeController(passcodeVault: keychainPasscodeVault)
+        PasscodeController(passcodeVault: coreAssembly.keychainPasscodeVault)
+    }
+    
+    func walletBalanceController() -> WalletBalanceController {
+        WalletBalanceController(
+            balanceService: walletBalanceAssembly.walletBalanceService(api: apiV2, cacheURL: cacheURL),
+            ratesService: ratesAssembly.ratesService(api: apiV2, cacheURL: cacheURL),
+            walletProvider: keeperController,
+            walletBalanceMapper: walletBalanceAssembly.walletBalanceMapper())
     }
 }
 
 private extension WalletCoreAssembly {
-    var keychainManager: KeychainManager {
-        KeychainManager(keychain: keychain)
-    }
-    
-    var keychain: Keychain {
-        KeychainImplementation()
-    }
-    
-    var keychainPasscodeVault: KeychainPasscodeVault {
-        KeychainPasscodeVault(keychainManager: keychainManager)
-    }
-    
-    func keeperInfoService(url: URL) -> KeeperInfoService {
-        KeeperInfoServiceImplementation(localRepository: keeperInfoLocalRepository(url: url))
-    }
-    
-    func keeperInfoLocalRepository(url: URL) -> any LocalRepository<KeeperInfo> {
-        LocalDiskRepository(fileManager: self.fileManager,
-                            directory: url,
-                            encoder: self.encoder,
-                            decoder: self.decoder)
-    }
-    
-    var fileManager: FileManager {
-        .default
-    }
-    
-    var encoder: JSONEncoder {
-        JSONEncoder()
-    }
-    
-    var decoder: JSONDecoder {
-        JSONDecoder()
+    var accessTokenProvider: AccessTokenProvider {
+        AccessTokenProvider(configurationController: confifurationAssembly.configurationController(api: apiV1, cacheURL: cacheURL))
     }
 }

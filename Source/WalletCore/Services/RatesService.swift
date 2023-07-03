@@ -9,12 +9,12 @@ import Foundation
 import TonSwift
 import TonAPI
 
-protocol RatesServiceService {
+protocol RatesService {
     func loadRates(tonInfo: TonInfo, tokens: [TokenInfo], currencies: [Currency]) async throws -> Rates
     func getRates() throws -> Rates
 }
 
-final class RatesServiceServiceImplementation: RatesServiceService {
+final class RatesServiceImplementation: RatesService {
     
     private let api: API
     private let localRepository: any LocalRepository<Rates>
