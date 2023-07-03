@@ -34,7 +34,8 @@ final class AccountTokensBalanceServiceImplementation: AccountTokensBalanceServi
                 let tokenInfo = TokenInfo(address: tokenAddress,
                                           fractionDigits: jetton.jetton.decimals,
                                           name: jetton.jetton.name,
-                                          symbol: jetton.jetton.symbol)
+                                          symbol: jetton.jetton.symbol,
+                                          imageURL: URL(string: jetton.jetton.image))
                 let tokenAmount = TokenAmount(tokenInfo: tokenInfo,
                                               quantity: quantity)
                 let tokenBalance = TokenBalance(walletAddress: walletAddress, amount: tokenAmount)

@@ -57,6 +57,7 @@ struct TokenInfo: Codable, Equatable {
     var name: String
     var symbol: String?
     var description: String?
+    var imageURL: URL?
 }
 
 struct AppBalance {

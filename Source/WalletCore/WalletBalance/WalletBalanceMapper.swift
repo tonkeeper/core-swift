@@ -48,7 +48,8 @@ struct WalletBalanceMapper {
         let tonBalanceToken = mapTonBalance(
             walletBalance.tonBalance,
             tonRates: rates.ton,
-            title: walletBalance.tonBalance.amount.tonInfo.name)
+            title: walletBalance.tonBalance.amount.tonInfo.name,
+            image: .ton)
         let previousRevisionsTokens = mapPreviousRevisionBalances(
             walletBalance.previousRevisionsBalances,
             tonRates: rates.ton
@@ -80,7 +81,8 @@ struct WalletBalanceMapper {
 private extension WalletBalanceMapper {
     func mapTonBalance(_ tonBalance: TonBalance,
                        tonRates: [Rates.Rate],
-                       title: String) -> WalletBalanceModel.Token {
+                       title: String,
+                       image: Image) -> WalletBalanceModel.Token {
         var topAmount: String?
         var price: String?
         var bottomAmount: String?
@@ -110,14 +112,15 @@ private extension WalletBalanceMapper {
                                         price: price,
                                         priceDiff: nil,
                                         topAmount: topAmount,
-                                        bottomAmount: bottomAmount)
+                                        bottomAmount: bottomAmount,
+                                        image: image)
     }
     
     func mapPreviousRevisionBalances(_ balances: [TonBalance], tonRates: [Rates.Rate]) -> [WalletBalanceModel.Token] {
         balances
             .filter { $0.amount.quantity > 0 }
             .map { tonBalance in
-                return mapTonBalance(tonBalance, tonRates: tonRates, title: "Old wallet")
+                return mapTonBalance(tonBalance, tonRates: tonRates, title: "Old wallet", image: .oldWallet)
             }
     }
     
@@ -174,7 +177,8 @@ private extension WalletBalanceMapper {
                                             price: price,
                                             priceDiff: nil,
                                             topAmount: topAmount,
-                                            bottomAmount: bottomAmount)
+                                            bottomAmount: bottomAmount,
+                                            image: .url(token.amount.tokenInfo.imageURL))
         }
     }
     

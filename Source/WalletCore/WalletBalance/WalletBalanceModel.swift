@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 public struct WalletBalanceModel {
     public struct Header {
@@ -20,6 +21,7 @@ public struct WalletBalanceModel {
         public let priceDiff: String?
         public let topAmount: String?
         public let bottomAmount: String?
+        public let image: Image
     }
     
     public struct Collectible {
@@ -40,4 +42,10 @@ public struct WalletBalanceModel {
     
     public let header: Header
     public let pages: [Page]
+}
+
+public enum Image: Equatable, Hashable {
+    case url(URL?)
+    case ton
+    case oldWallet
 }
