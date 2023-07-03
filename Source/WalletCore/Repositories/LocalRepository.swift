@@ -11,5 +11,5 @@ protocol LocalRepository<T> {
     associatedtype T: LocalStorable
     
     func save(item: T) throws
-    func load() throws -> T
+    func load(fileName: String) throws -> T
 }

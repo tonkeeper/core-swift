@@ -11,4 +11,8 @@ extension KeeperInfo: LocalStorable {
     static var fileName: String {
         String(describing: self)
     }
+    
+    var fileName: String {
+        String(describing: type(of: self))
+    }
 }

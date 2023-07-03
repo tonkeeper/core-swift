@@ -26,7 +26,7 @@ final class KeeperInfoServiceImplementation: KeeperInfoService {
 
     func getKeeperInfo() throws -> KeeperInfo {
         do {
-            return try localRepository.load()
+            return try localRepository.load(fileName: KeeperInfo.fileName)
         } catch {
             throw KeeperServiceError.failedToGetKeeperInfo(error)
         }

@@ -29,7 +29,7 @@ struct LocalDiskRepository<T: Codable & LocalStorable>: LocalRepository {
     }
     
     func save(item: T) throws {
-        let path = itemPath(itemType: type(of: item))
+        let path = folderPath().appendingPathComponent(item.fileName)
         try createFolderIfNeeded(url: path)
         if fileManager.fileExists(atPath: path.path) {
             try fileManager.removeItem(at: path)
@@ -39,8 +39,8 @@ struct LocalDiskRepository<T: Codable & LocalStorable>: LocalRepository {
         try data.write(to: path, options: .atomic)
     }
     
-    func load() throws -> T {
-        let path = itemPath(itemType: T.self)
+    func load(fileName: String) throws -> T {
+        let path = folderPath().appendingPathComponent(fileName)
         do {
             let data = try Data(contentsOf: path)
             let item = try decoder.decode(T.self, from: data)
