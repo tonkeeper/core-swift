@@ -8,5 +8,6 @@
 import Foundation
 
 protocol LocalStorable: Codable {
+    var fileName: String { get }
     static var fileName: String { get }
 }

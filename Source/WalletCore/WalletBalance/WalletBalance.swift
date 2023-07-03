@@ -9,40 +9,51 @@ import Foundation
 import TonSwift
 import BigInt
 
-enum Balance {
-    case ton(TonBalance)
-    case token(TokenBalance)
-    case app
+struct WalletBalance: Codable, LocalStorable {
+    let walletAddress: Address
+    let tonBalance: TonBalance
+    let tokensBalance: [TokenBalance]
+    let previousRevisionsBalances: [TonBalance]
+    
+    var fileName: String {
+        return walletAddress.toString()
+    }
+    
+    static var fileName: String {
+        ""
+    }
 }
 
-struct TonBalance {
+struct TonBalance: Codable {
+    let walletAddress: Address
     let amount: TonAmount
 }
 
-struct TokenBalance {
+struct TokenBalance: Codable {
+    let walletAddress: Address
     let amount: TokenAmount
 }
 
-struct TonAmount {
-    let tonInfo: TonInfo
-    let quantity: BigInt
+struct TonAmount: Codable {
+    private(set) var tonInfo = TonInfo()
+    let quantity: Int64
 }
 
-struct TokenAmount {
+struct TokenAmount: Codable {
     let tokenInfo: TokenInfo
     let quantity: BigInt
 }
 
-struct TonInfo {
-    let name = "Toncoin"
-    let symbol = "TON"
-    let decimals = 9
+struct TonInfo: Codable {
+    private(set) var name = "Toncoin"
+    private(set) var symbol = "TON"
+    private(set) var fractionDigits = 9
 }
 
-struct TokenInfo {
+struct TokenInfo: Codable, Equatable {
     var address: Address
-    var decimals: Int
-    var name: String?
+    var fractionDigits: Int
+    var name: String
     var symbol: String?
     var description: String?
 }
