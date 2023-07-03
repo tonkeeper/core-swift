@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Currency: String, Codable {
+public enum Currency: String, Codable, CaseIterable {
     case TON = "TON"
     case JPY = "JPY"
     case USD = "USD"
@@ -15,6 +15,27 @@ public enum Currency: String, Codable {
     case KRW = "KRW"
     case IDR = "IDR"
     case INR = "INR"
+    
+    var code: String {
+        self.rawValue
+    }
+    
+    var symbol: String? {
+        let localeIds = Locale.availableIdentifiers
+        for localeId in localeIds {
+            let locale = Locale(identifier: localeId)
+            let localeCurrencyCode: String
+            if #available(iOS 16, *) {
+                localeCurrencyCode = locale.currency?.identifier ?? ""
+            } else {
+                localeCurrencyCode = locale.currencyCode ?? ""
+            }
+            if localeCurrencyCode == self.code {
+                return locale.currencySymbol
+            }
+        }
+        return nil
+    }
     
     func formatter(locale: Locale = Locale.current) -> NumberFormatter {
         let f = NumberFormatter()
