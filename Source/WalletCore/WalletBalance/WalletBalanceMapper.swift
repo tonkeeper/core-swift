@@ -68,11 +68,10 @@ struct WalletBalanceMapper {
         let collectibles = mapCollectibles(walletBalance.collectibles)
         let collectiblesSection = WalletBalanceModel.Section.collectibles(collectibles)
         
-        let page = WalletBalanceModel.Page(title: "", sections: [tokenSection, collectiblesSection])
-        
+        let pages = mapToPages(tokens: tokens, collectibles: collectibles)
         
         let walletState = WalletBalanceModel(header: header,
-                                             pages: [page])
+                                             pages: pages)
         
         return walletState
     }
@@ -243,4 +242,50 @@ private extension WalletBalanceMapper {
                                                   imageURL: collectible.imageURL)
         }
     }
+    
+    func mapToPages(tokens: [WalletBalanceModel.Token],
+                    collectibles: [WalletBalanceModel.Collectible]) -> [WalletBalanceModel.Page] {
+        var pages = [WalletBalanceModel.Page]()
+        let tokensCount = tokens.count
+        let collectiblesCount = Int(ceil(CGFloat(collectibles.count) / 3)) * 2
+        
+        let tokensSection = WalletBalanceModel.Section.token(tokens)
+        let collectiblesSection = WalletBalanceModel.Section.collectibles(collectibles)
+        
+        if tokensCount + collectiblesCount <= 10 {
+            var sections = [WalletBalanceModel.Section]()
+            if tokensCount > 0 {
+                sections.append(tokensSection)
+            }
+            if collectiblesCount > 0 {
+                sections.append(collectiblesSection)
+            }
+            pages.append(.init(title: "", sections: sections))
+            return pages
+        }
+        
+        if tokensCount + collectiblesCount > 10 && collectiblesCount != 0 {
+            let collectiblesPage = WalletBalanceModel.Page(
+                title: .collectiblesTabTitle,
+                sections: [collectiblesSection])
+            pages.append(collectiblesPage)
+        }
+        
+        var sections = [WalletBalanceModel.Section]()
+        if tokensCount > 0 { sections.append(tokensSection)}
+        
+        let page = WalletBalanceModel.Page(
+            title: .tokensTabTitle,
+            sections: sections
+        )
+        
+        pages.insert(page, at: 0)
+        
+        return pages
+    }
+}
+
+private extension String {
+    static let collectiblesTabTitle = "Collectibles"
+    static let tokensTabTitle = "Tokens"
 }
