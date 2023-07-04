@@ -11,7 +11,8 @@ import UIKit
 public struct WalletBalanceModel {
     public struct Header {
         public let amount: String
-        public let address: String
+        public let fullAddress: String
+        public let shortAddress: String
     }
     
     public struct Token {
