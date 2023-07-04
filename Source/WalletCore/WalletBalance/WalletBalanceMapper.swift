@@ -75,6 +75,35 @@ struct WalletBalanceMapper {
         
         return walletState
     }
+    
+    func emptyBalanceModel(wallet: Wallet) throws -> WalletBalanceModel {
+        let contractBuilder = WalletContractBuilder()
+        let contract = try contractBuilder.walletContract(
+            with: wallet.publicKey,
+            contractVersion: wallet.contractVersion
+        )
+        let address = try contract.address().toString()
+        let leftPart = address.prefix(4)
+        let rightPart = address.suffix(4)
+        let shortAddress = "\(leftPart)...\(rightPart)"
+        
+        let token = WalletBalanceModel.Token(title: TonInfo().name,
+                                             shortTitle: nil,
+                                             price: nil,
+                                             priceDiff: nil,
+                                             topAmount: nil,
+                                             bottomAmount: nil,
+                                             image: .ton)
+        let section = WalletBalanceModel.Section.token([token])
+        let page = WalletBalanceModel.Page(title: "",
+                                           sections: [section])
+        
+        return WalletBalanceModel(
+            header: .init(amount: "\(Currency.USD.symbol ?? "")0",
+                          fullAddress: address,
+                          shortAddress: shortAddress),
+            pages: [page])
+    }
 }
 
 private extension WalletBalanceMapper {

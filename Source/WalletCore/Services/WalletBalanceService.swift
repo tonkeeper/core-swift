@@ -152,7 +152,7 @@ private extension WalletContractVersion {
     }
 }
 
-private extension Wallet {
+extension Wallet {
     enum Error: Swift.Error {
         case notAvailableWalletKind
     }

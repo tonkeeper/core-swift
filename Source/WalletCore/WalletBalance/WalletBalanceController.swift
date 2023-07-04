@@ -42,6 +42,11 @@ public class WalletBalanceController {
         let walletState = walletBalanceMapper.mapWalletBalance(walletBalance, rates: rates)
         return walletState
     }
+    
+    public func emptyWalletBalance() throws -> WalletBalanceModel {
+        let wallet = try walletProvider.wallet
+        return try walletBalanceMapper.emptyBalanceModel(wallet: wallet)
+    }
 }
 
 private extension WalletBalanceController {
