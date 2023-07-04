@@ -141,7 +141,7 @@ private extension WalletBalanceMapper {
         let rightPart = address.suffix(4)
         let shortAddress = "\(leftPart)...\(rightPart)"
         
-        return .init(amount: totalBalanceFormatted, address: shortAddress)
+        return .init(amount: totalBalanceFormatted, fullAddress: address, shortAddress: shortAddress)
     }
     
     func mapTokens(_ tokens: [TokenBalance], tokenRates: [Rates.TokenRate]) -> [WalletBalanceModel.Token] {

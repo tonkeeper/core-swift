@@ -28,4 +28,12 @@ public final class WalletCoreContainer {
     public func walletBalanceController() -> WalletBalanceController {
         walletCoreAssembly.walletBalanceController()
     }
+    
+    public func deeplinkParser() -> DeeplinkParser {
+        walletCoreAssembly.deeplinkParser()
+    }
+    
+    public func deeplinkGenerator() -> DeeplinkGenerator {
+        walletCoreAssembly.deeplinkGenerator()
+    }
 }
