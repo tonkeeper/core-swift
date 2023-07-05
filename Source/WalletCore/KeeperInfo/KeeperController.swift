@@ -8,7 +8,11 @@
 import Foundation
 import TonSwift
 
-public final class KeeperController {
+protocol WalletProvider {
+    var activeWallet: Wallet { get throws }
+}
+
+public final class KeeperController: WalletProvider {
     private let keeperService: KeeperInfoService
     private let keychainManager: KeychainManager
     

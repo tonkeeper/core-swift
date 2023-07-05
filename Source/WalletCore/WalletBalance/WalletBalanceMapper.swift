@@ -63,10 +63,7 @@ struct WalletBalanceMapper {
         tokens.append(contentsOf: previousRevisionsTokens)
         tokens.append(contentsOf: tokensTokens)
         
-        let tokenSection = WalletBalanceModel.Section.token(tokens)
-        
         let collectibles = mapCollectibles(walletBalance.collectibles)
-        let collectiblesSection = WalletBalanceModel.Section.collectibles(collectibles)
         
         let pages = mapToPages(tokens: tokens, collectibles: collectibles)
         
@@ -104,9 +101,7 @@ struct WalletBalanceMapper {
                           shortAddress: shortAddress),
             pages: [page])
     }
-}
-
-private extension WalletBalanceMapper {
+    
     func mapTonBalance(_ tonBalance: TonBalance,
                        tonRates: [Rates.Rate],
                        title: String,
@@ -143,7 +138,9 @@ private extension WalletBalanceMapper {
                                         bottomAmount: bottomAmount,
                                         image: image)
     }
-    
+}
+
+private extension WalletBalanceMapper {
     func mapPreviousRevisionBalances(_ balances: [TonBalance], tonRates: [Rates.Rate]) -> [WalletBalanceModel.Token] {
         balances
             .filter { $0.amount.quantity > 0 }

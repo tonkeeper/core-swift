@@ -28,8 +28,8 @@ struct RateConverter {
             .multiplying(byPowerOf10: rateFractionLength)
         let rateBigInt = BigInt(stringLiteral: ratePlain.stringValue)
         
-        let converted = amount * rateBigInt
         let fractionLength = Int(rateFractionLength) + amountFractionLength
+        let converted = amount * rateBigInt
         return (amount: converted, fractionLength: fractionLength)
     }
 }

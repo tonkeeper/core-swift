@@ -17,6 +17,9 @@ final class WalletCoreAssembly {
     private lazy var apiAssembly = APIAssembly(coreAssembly: coreAssembly)
     private lazy var walletBalanceAssembly = WalletBalanceAssembly(coreAssembly: coreAssembly,
                                                                    formattersAssembly: formattersAssembly)
+    private lazy var sendAssembly = SendAssembly(formattersAssembly: formattersAssembly,
+                                                 ratesAssembly: ratesAssembly,
+                                                 balanceAssembly: walletBalanceAssembly)
     private lazy var keeperInfoAssembly = KeeperInfoAssembly(coreAssembly: coreAssembly)
     private lazy var confifurationAssembly = ConfigurationAssembly(coreAssembly: coreAssembly)
     
@@ -40,6 +43,10 @@ final class WalletCoreAssembly {
             ratesService: ratesAssembly.ratesService(api: apiV2, cacheURL: cacheURL),
             walletProvider: keeperController,
             walletBalanceMapper: walletBalanceAssembly.walletBalanceMapper())
+    }
+    
+    func sendInputController(walletProvider: WalletProvider) -> SendInputController {
+        sendAssembly.sendInputController(api: apiV2, cacheURL: cacheURL, walletProvider: walletProvider)
     }
     
     func deeplinkParser() -> DeeplinkParser {
