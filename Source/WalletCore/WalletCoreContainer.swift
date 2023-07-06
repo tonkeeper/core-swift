@@ -40,4 +40,8 @@ public final class WalletCoreContainer {
     public func deeplinkGenerator() -> DeeplinkGenerator {
         walletCoreAssembly.deeplinkGenerator()
     }
+    
+    public func addressValidator() -> AddressValidator {
+        walletCoreAssembly.addressValidator()
+    }
 }
