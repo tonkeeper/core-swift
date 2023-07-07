@@ -12,7 +12,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/tonkeeper/ton-swift", branch: "feature/wallet_transfer_signing"),
-        .package(url: "https://github.com/tonkeeper/ton-api-swift", branch: "feature/send_message")
+        .package(url: "https://github.com/tonkeeper/ton-api-swift", from: "0.0.3")
     ],
     targets: [
         .target(
