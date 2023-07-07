@@ -111,6 +111,10 @@ public final class SendInputController {
         didUpdateActiveAmount?("0", state.tokenState.token.code)
     }
     
+    public var tokenAmount: BigInt {
+        state.tokenState.amount
+    }
+    
     public func setInitialState() {
         update()
     }

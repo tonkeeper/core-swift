@@ -16,15 +16,15 @@ final class APIAssembly {
         self.coreAssembly = coreAssembly
     }
     
-    func apiV2(requestInterceptors: [RequestInterceptor]) -> API {
+    func tonAPI(requestInterceptors: [RequestInterceptor]) -> API {
         DefaultAPI(transport: transport(requestInterceptors: requestInterceptors),
-                   baseURL: apiV2URL,
+                   baseURL: tonAPIURL,
                    responseDecoder: responseDecoder)
     }
     
-    func apiV1() -> API {
+    func configurationAPI() -> API {
         DefaultAPI(transport: transport(requestInterceptors: []),
-                   baseURL: apiV1URL,
+                   baseURL: configurationAPIURL,
                    responseDecoder: responseDecoder)
     }
 }
@@ -52,11 +52,11 @@ private extension APIAssembly {
         APIResponseDecoder(jsonDecoder: coreAssembly.decoder)
     }
     
-    var apiV2URL: URL {
+    var tonAPIURL: URL {
         URL(string: "https://tonapi.io")!
     }
     
-    var apiV1URL: URL {
+    var configurationAPIURL: URL {
         URL(string: "https://api.tonkeeper.com/keys")!
     }
 }

@@ -33,6 +33,10 @@ public final class WalletCoreContainer {
         walletCoreAssembly.sendInputController(walletProvider: keeperController())
     }
     
+    public func sendController() -> SendController {
+        walletCoreAssembly.sendController(walletProvider: keeperController())
+    }
+    
     public func deeplinkParser() -> DeeplinkParser {
         walletCoreAssembly.deeplinkParser()
     }
