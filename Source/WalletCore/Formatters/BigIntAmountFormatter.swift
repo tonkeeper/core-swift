@@ -9,19 +9,47 @@ import Foundation
 import BigInt
 
 struct BigIntAmountFormatter {
+    
+    enum Error: Swift.Error {
+        case invalidInput(_ input: String)
+    }
+    
     func format(amount: BigInt,
                 fractionDigits: Int,
                 maximumFractionDigits: Int,
                 symbol: String?) -> String {
         let symbolString = symbol ?? ""
-        guard amount > 0 else { return symbolString + " 0"  }
-        let initialString = amount.description
+        var initialString = amount.description
+        if initialString.count < fractionDigits {
+            initialString = String(repeating: "0", count: fractionDigits - initialString.count) + initialString
+        }
         let fractional = String(initialString.suffix(fractionDigits))
         let fractionalLength = min(fractionDigits, maximumFractionDigits)
         let fractionalResult = String(fractional[fractional.startIndex..<fractional.index(fractional.startIndex, offsetBy: fractionalLength)])
+            .replacingOccurrences(of: "0+$", with: "", options: .regularExpression)
         let integer = String(initialString.prefix(initialString.count - fractional.count))
-        let separatedInteger = groups(string: integer, size: .groupSize).joined(separator: .groupSeparator)
-        return symbolString + separatedInteger + (.fractionalSeparator ?? ".") + fractionalResult
+        let separatedInteger = groups(string: integer.isEmpty ? "0" : integer, size: .groupSize).joined(separator: .groupSeparator)
+        var result = symbolString + separatedInteger
+        if fractionalResult.count > 0 {
+            result += (.fractionalSeparator ?? ".") + fractionalResult
+        }
+        return result
+    }
+    
+    func bigInt(string: String, targetFractionalDigits: Int) throws -> (amount: BigInt, fractionalDigits: Int) {
+        guard !string.isEmpty else { throw Error.invalidInput(string) }
+        let fractionalSeparator: String = .fractionalSeparator ?? ""
+        let components = string.components(separatedBy: fractionalSeparator)
+        guard components.count < 3 else { throw Error.invalidInput(string) }
+        
+        var fractionalDigits = 0
+        if components.count == 2 {
+            let fractionalString = components[1]
+            fractionalDigits = fractionalString.count
+        }
+        let zeroString = String(repeating: "0", count: max(0, targetFractionalDigits - fractionalDigits))
+        let bigIntValue = BigInt(stringLiteral: components.joined() + zeroString)
+        return (bigIntValue, targetFractionalDigits)
     }
 }
 

@@ -7,19 +7,15 @@
 
 import Foundation
 
-protocol WalletBalanceControllerWalletProvider {
-    var wallet: Wallet { get throws }
-}
-
 public class WalletBalanceController {
     private let balanceService: WalletBalanceService
     private let ratesService: RatesService
-    private let walletProvider: WalletBalanceControllerWalletProvider
+    private let walletProvider: WalletProvider
     private let walletBalanceMapper: WalletBalanceMapper
     
     init(balanceService: WalletBalanceService,
          ratesService: RatesService,
-         walletProvider: WalletBalanceControllerWalletProvider,
+         walletProvider: WalletProvider,
          walletBalanceMapper: WalletBalanceMapper) {
         self.balanceService = balanceService
         self.ratesService = ratesService
@@ -28,7 +24,7 @@ public class WalletBalanceController {
     }
     
     public func getWalletBalance() throws -> WalletBalanceModel {
-        let wallet = try walletProvider.wallet
+        let wallet = try walletProvider.activeWallet
         let walletBalance = try balanceService.getWalletBalance(wallet: wallet)
         let rates = try ratesService.getRates()
         let walletState = walletBalanceMapper.mapWalletBalance(walletBalance, rates: rates)
@@ -36,7 +32,7 @@ public class WalletBalanceController {
     }
     
     public func reloadWalletBalance() async throws -> WalletBalanceModel {
-        let wallet = try walletProvider.wallet
+        let wallet = try walletProvider.activeWallet
         let walletBalance = try await balanceService.loadWalletBalance(wallet: wallet)
         let rates = try await loadRates(walletBalance: walletBalance)
         let walletState = walletBalanceMapper.mapWalletBalance(walletBalance, rates: rates)
@@ -44,7 +40,7 @@ public class WalletBalanceController {
     }
     
     public func emptyWalletBalance() throws -> WalletBalanceModel {
-        let wallet = try walletProvider.wallet
+        let wallet = try walletProvider.activeWallet
         return try walletBalanceMapper.emptyBalanceModel(wallet: wallet)
     }
 }

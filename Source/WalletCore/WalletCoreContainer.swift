@@ -29,11 +29,23 @@ public final class WalletCoreContainer {
         walletCoreAssembly.walletBalanceController()
     }
     
+    public func sendInputController() -> SendInputController {
+        walletCoreAssembly.sendInputController(walletProvider: keeperController())
+    }
+    
+    public func sendController() -> SendController {
+        walletCoreAssembly.sendController(walletProvider: keeperController())
+    }
+    
     public func deeplinkParser() -> DeeplinkParser {
         walletCoreAssembly.deeplinkParser()
     }
     
     public func deeplinkGenerator() -> DeeplinkGenerator {
         walletCoreAssembly.deeplinkGenerator()
+    }
+    
+    public func addressValidator() -> AddressValidator {
+        walletCoreAssembly.addressValidator()
     }
 }
