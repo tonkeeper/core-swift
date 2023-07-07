@@ -79,10 +79,7 @@ struct WalletBalanceMapper {
             with: wallet.publicKey,
             contractVersion: wallet.contractVersion
         )
-        let address = try contract.address().toString()
-        let leftPart = address.prefix(4)
-        let rightPart = address.suffix(4)
-        let shortAddress = "\(leftPart)...\(rightPart)"
+        let address = try contract.address()
         
         let token = WalletBalanceModel.Token(title: TonInfo().name,
                                              shortTitle: nil,
@@ -97,8 +94,8 @@ struct WalletBalanceMapper {
         
         return WalletBalanceModel(
             header: .init(amount: "\(Currency.USD.symbol ?? "")0",
-                          fullAddress: address,
-                          shortAddress: shortAddress),
+                          fullAddress: address.toString(),
+                          shortAddress: address.shortString),
             pages: [page])
     }
     
@@ -161,12 +158,9 @@ private extension WalletBalanceMapper {
             maximumFractionDigits: 2,
             symbol: Currency.USD.symbol
         )
-        let address = walletBalance.walletAddress.toString()
-        let leftPart = address.prefix(4)
-        let rightPart = address.suffix(4)
-        let shortAddress = "\(leftPart)...\(rightPart)"
-        
-        return .init(amount: totalBalanceFormatted, fullAddress: address, shortAddress: shortAddress)
+        let address = walletBalance.walletAddress
+    
+        return .init(amount: totalBalanceFormatted, fullAddress: address.toString(), shortAddress: address.shortString)
     }
     
     func mapTokens(_ tokens: [TokenBalance], tokenRates: [Rates.TokenRate]) -> [WalletBalanceModel.Token] {

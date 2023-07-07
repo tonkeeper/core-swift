@@ -75,12 +75,7 @@ public final class SendController {
     public func loadTransactionInformation(transactionBoc: String) async throws -> SendTransactionModel {
         let transactionInfo = try await sendService.loadTransactionInfo(boc: transactionBoc)
         guard let action = transactionInfo.actions.first else { throw NSError(domain: "", code: 1) }
-        
-        let address = action.recipient.toString()
-        let leftPart = address.prefix(4)
-        let rightPart = address.suffix(4)
-        let shortAddress = "\(leftPart)...\(rightPart)"
-        
+
         let tonInfo = TonInfo()
         let amountToken = bigIntAmountFormatter.format(amount: action.amount,
                                                        fractionDigits: tonInfo.fractionDigits,
@@ -114,7 +109,7 @@ public final class SendController {
         
         
         return SendTransactionModel(title: action.name,
-                                    address: shortAddress,
+                                    address: action.recipient.shortString,
                                     amountToken: "\(amountToken) \(tonInfo.symbol)",
                                     amountFiat: amountFiatString,
                                     feeTon: "≈\(feeTon) \(tonInfo.symbol)",
