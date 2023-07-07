@@ -30,53 +30,30 @@ final class RatesServiceImplementation: RatesService {
     }
     
     func loadRates(tonInfo: TonInfo, tokens: [TokenInfo], currencies: [Currency]) async throws -> Rates {
-        let requestTokens: [String] = tokens.map { $0.address.toString() }
+        let requestTokens: [String] = [tonInfo.symbol.lowercased()] + tokens.map { $0.address.toString() }
         let requestCurrencies = currencies.map { $0.code }
         
-        let tokensRates: [Rates.TokenRate] = try await withThrowingTaskGroup(of: [Rates.TokenRate].self) { [weak self] group in
-            guard let self = self else { throw NSError(domain: "", code: 1) }
-            for token in requestTokens {
-                group.addTask {
-                    let request = RatesRequest(tokens: [token], currencies: requestCurrencies)
-                    let response = try? await self.api.send(request: request)
-                    
-                    guard let responseRates = response?.entity.tokensRates else { return [] }
-                    
-                    var tokensRates = [Rates.TokenRate]()
-                    for responseRate in responseRates {
-                        guard let tokenInfo = tokens.first(where: { $0.address.toString() == responseRate.key }) else { continue }
-                        guard !responseRate.rates.isEmpty else { continue }
-                        let rates: [Rates.Rate] = responseRate.rates.compactMap {
-                            guard let currrency = Currency(rawValue: $0.code) else { return nil }
-                            return Rates.Rate(currency: currrency, rate: $0.rate)
-                        }
-                        tokensRates.append(.init(tokenInfo: tokenInfo, rates: rates))
-                    }
-                    return tokensRates
-                }
-            }
-            
-            var tokensRates = [Rates.TokenRate]()
-            for try await rate in group {
-                tokensRates.append(contentsOf: rate)
-            }
-            
-            return tokensRates
-        }
+        let request = RatesRequest(tokens: requestTokens, currencies: requestCurrencies)
+        let response = try await api.send(request: request)
         
-        let request = RatesRequest(tokens: ["ton"], currencies: requestCurrencies)
-        let response = try await self.api.send(request: request)
+        let responseRates = response.entity.tokensRates
         
         var tonRates = [Rates.Rate]()
-        for tokenRate in response.entity.tokensRates {
-            if tokenRate.key.lowercased() == tonInfo.symbol.lowercased() {
-                tonRates = tokenRate.rates.compactMap {
+        var tokensRates = [Rates.TokenRate]()
+        for responseRate in responseRates {
+            if responseRate.key.lowercased() == tonInfo.symbol.lowercased() {
+                tonRates = responseRate.rates.compactMap {
                     guard let currrency = Currency(rawValue: $0.code) else { return nil }
                     return Rates.Rate(currency: currrency, rate: $0.rate)
                 }
                 continue
             }
-
+            guard let tokenInfo = tokens.first(where: { $0.address.toString() == responseRate.key }) else { continue }
+            let rates: [Rates.Rate] = responseRate.rates.compactMap {
+                guard let currrency = Currency(rawValue: $0.code) else { return nil }
+                return Rates.Rate(currency: currrency, rate: $0.rate)
+            }
+            tokensRates.append(.init(tokenInfo: tokenInfo, rates: rates))
         }
         
         let rates = Rates(ton: tonRates, tokens: tokensRates)
