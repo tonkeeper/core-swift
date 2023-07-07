@@ -114,10 +114,15 @@ public final class SendController {
         
         
         return SendTransactionModel(title: action.name,
-                         address: shortAddress,
-                         amountToken: "\(amountToken) \(tonInfo.symbol)",
-                         amountFiat: amountFiatString,
-                         feeTon: "≈\(feeTon) \(tonInfo.symbol)",
-                         feeFiat: feeFiatString)
+                                    address: shortAddress,
+                                    amountToken: "\(amountToken) \(tonInfo.symbol)",
+                                    amountFiat: amountFiatString,
+                                    feeTon: "≈\(feeTon) \(tonInfo.symbol)",
+                                    feeFiat: feeFiatString,
+                                    boc: transactionBoc)
+    }
+    
+    public func sendTransaction(boc: String) async throws {
+        try await sendService.sendTransaction(boc: boc)
     }
 }

@@ -14,4 +14,5 @@ public struct SendTransactionModel {
     public let amountFiat: String?
     public let feeTon: String
     public let feeFiat: String?
+    public let boc: String
 }

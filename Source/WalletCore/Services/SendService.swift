@@ -13,6 +13,7 @@ import BigInt
 protocol SendService {
     func loadSeqno(address: Address) async throws -> UInt64
     func loadTransactionInfo(boc: String) async throws -> EstimateTx
+    func sendTransaction(boc: String) async throws
 }
 
 final class SendServiceImplementation: SendService {
@@ -32,6 +33,11 @@ final class SendServiceImplementation: SendService {
         let request = EstimateTxRequest(boc: boc)
         let response = try await api.send(request: request)
         return response.entity
+    }
+    
+    func sendTransaction(boc: String) async throws {
+        let request = BlockchainMessageRequest(boc: boc)
+        _ = try await api.send(request: request)
     }
 }
 
