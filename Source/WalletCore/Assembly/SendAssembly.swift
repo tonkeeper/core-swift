@@ -31,7 +31,7 @@ final class SendAssembly {
         return SendInputController(bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter,
                                    ratesService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
                                    balanceService: balanceAssembly.walletBalanceService(api: api, cacheURL: cacheURL),
-                                   balanceMapper: balanceAssembly.walletBalanceMapper(),
+                                   tokenMapper: sendTokenMapper(),
                                    walletProvider: walletProvider,
                                    rateConverter: RateConverter())
     }
@@ -51,5 +51,11 @@ final class SendAssembly {
 private extension SendAssembly {
     func sendService(api: API) -> SendService {
         SendServiceImplementation(api: api)
+    }
+    
+    func sendTokenMapper() -> SendTokenMapper {
+        SendTokenMapper(intAmountFormatter: formattersAssembly.intAmountFormatter,
+                        decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
+                        bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
 }
