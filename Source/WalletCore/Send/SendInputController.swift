@@ -11,6 +11,7 @@ import BigInt
 
 public struct TokenListModel {
     public struct TokenModel {
+        public let icon: Image
         public let code: String?
         public let amount: String?
     }

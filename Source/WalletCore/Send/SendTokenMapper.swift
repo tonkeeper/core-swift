@@ -26,7 +26,8 @@ struct SendTokenMapper {
         let amount = intAmountFormatter.format(
             amount: tonBalance.amount.quantity,
             fractionDigits: tonBalance.amount.tonInfo.fractionDigits)
-        return TokenListModel.TokenModel(code: tonBalance.amount.tonInfo.symbol,
+        return TokenListModel.TokenModel(icon: .ton,
+                                         code: tonBalance.amount.tonInfo.symbol,
                                          amount: amount)
     }
     
@@ -37,7 +38,8 @@ struct SendTokenMapper {
             maximumFractionDigits: 16,
             symbol: nil
         )
-        return TokenListModel.TokenModel(code: tokenBalance.amount.tokenInfo.symbol,
+        return TokenListModel.TokenModel(icon:.url(tokenBalance.amount.tokenInfo.imageURL),
+                                         code: tokenBalance.amount.tokenInfo.symbol,
                                          amount: amount)
     }
 }
