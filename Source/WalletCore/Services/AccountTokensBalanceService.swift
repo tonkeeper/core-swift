@@ -28,14 +28,9 @@ final class AccountTokensBalanceServiceImplementation: AccountTokensBalanceServi
                 
         let balances = response.entity.balances.compactMap { jetton in
             do {
-                let tokenAddress = try Address.parse(jetton.jetton.address)
                 let quantity = BigInt(stringLiteral: jetton.balance)
                 let walletAddress = try Address.parse(jetton.walletAddress.address)
-                let tokenInfo = TokenInfo(address: tokenAddress,
-                                          fractionDigits: jetton.jetton.decimals,
-                                          name: jetton.jetton.name,
-                                          symbol: jetton.jetton.symbol,
-                                          imageURL: URL(string: jetton.jetton.image))
+                let tokenInfo = try TokenInfo(jettonPreview: jetton.jetton)
                 let tokenAmount = TokenAmount(tokenInfo: tokenInfo,
                                               quantity: quantity)
                 let tokenBalance = TokenBalance(walletAddress: walletAddress, amount: tokenAmount)

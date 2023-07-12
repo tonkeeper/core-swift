@@ -1,0 +1,45 @@
+//
+//  SendTokenMapper.swift
+//  
+//
+//  Created by Grigory on 11.7.23..
+//
+
+import Foundation
+import TonSwift
+import BigInt
+
+struct SendTokenMapper {
+    private let intAmountFormatter: IntAmountFormatter
+    private let decimalAmountFormatter: DecimalAmountFormatter
+    private let bigIntAmountFormatter: BigIntAmountFormatter
+    
+    init(intAmountFormatter: IntAmountFormatter,
+         decimalAmountFormatter: DecimalAmountFormatter,
+         bigIntAmountFormatter: BigIntAmountFormatter) {
+        self.intAmountFormatter = intAmountFormatter
+        self.decimalAmountFormatter = decimalAmountFormatter
+        self.bigIntAmountFormatter = bigIntAmountFormatter
+    }
+    
+    func mapTon(tonBalance: TonBalance) -> TokenListModel.TokenModel {
+        let amount = intAmountFormatter.format(
+            amount: tonBalance.amount.quantity,
+            fractionDigits: tonBalance.amount.tonInfo.fractionDigits)
+        return TokenListModel.TokenModel(icon: .ton,
+                                         code: tonBalance.amount.tonInfo.symbol,
+                                         amount: amount)
+    }
+    
+    func mapToken(tokenBalance: TokenBalance) -> TokenListModel.TokenModel {
+        let amount = bigIntAmountFormatter.format(
+            amount: tokenBalance.amount.quantity,
+            fractionDigits: tokenBalance.amount.tokenInfo.fractionDigits,
+            maximumFractionDigits: 16,
+            symbol: nil
+        )
+        return TokenListModel.TokenModel(icon:.url(tokenBalance.amount.tokenInfo.imageURL),
+                                         code: tokenBalance.amount.tokenInfo.symbol,
+                                         amount: amount)
+    }
+}

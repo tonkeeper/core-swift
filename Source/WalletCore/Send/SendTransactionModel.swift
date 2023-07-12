@@ -8,11 +8,16 @@
 import Foundation
 
 public struct SendTransactionModel {
-    public let title: String
-    public let address: String
-    public let amountToken: String
-    public let amountFiat: String?
-    public let feeTon: String
-    public let feeFiat: String?
+    public struct TokenTransactionModel {
+        public let title: String
+        public let image: Image
+        public let address: String
+        public let amountToken: String
+        public let amountFiat: String?
+        public let feeTon: String
+        public let feeFiat: String?
+        public let comment: String?
+    }
+    public let tokenModel: TokenTransactionModel
     public let boc: String
 }

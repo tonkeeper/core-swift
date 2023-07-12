@@ -100,13 +100,21 @@ private struct EstimateTxRequest: APIRequest {
 struct EstimateTx: Codable {
     enum ActionType: String {
         case tonTransfer = "TonTransfer"
+        case jettonTransfer = "JettonTransfer"
+    }
+    
+    enum Transfer {
+        case ton
+        case token(tokenInfo: TokenInfo)
     }
     
     struct Action {
         let type: ActionType
+        let transfer: Transfer
         let amount: BigInt
         let recipient: Address
         let name: String
+        let comment: String?
     }
     
     let actions: [Action]
@@ -121,22 +129,40 @@ struct EstimateTx: Codable {
             let actionContainer = try actionsContainer.nestedContainer(keyedBy: StringCodingKey.self)
             
             let type = try actionContainer.decode(String.self, forKey: "type")
+            guard let actionType = ActionType(rawValue: type) else {
+                continue
+            }
+
+            let transferContainer = try actionContainer.nestedContainer(keyedBy: StringCodingKey.self, forKey: .init(string: type))
             
-            let tonTransfer = try actionContainer.nestedContainer(keyedBy: StringCodingKey.self, forKey: .init(string: type))
-            let amount = try tonTransfer.decode(Int64.self, forKey: "amount")
-            let recipient = try tonTransfer.nestedContainer(keyedBy: StringCodingKey.self, forKey: "recipient")
+            let transfer: Transfer
+            let amount: BigInt
+            if actionType == .jettonTransfer {
+                let jettonInfo = try transferContainer.decode(JettonPreview.self, forKey: "jetton")
+                let tokenInfo = try TokenInfo(jettonPreview: jettonInfo)
+                transfer = .token(tokenInfo: tokenInfo)
+                amount = BigInt(stringLiteral: try transferContainer.decode(String.self, forKey: "amount"))
+            } else {
+                transfer = .ton
+                amount = BigInt(try transferContainer.decode(Int64.self, forKey: "amount"))
+            }
+
+            let recipient = try transferContainer.nestedContainer(keyedBy: StringCodingKey.self, forKey: "recipient")
             let recipientAddress = try recipient.decode(String.self, forKey: "address")
             
             let preview = try actionContainer.nestedContainer(keyedBy: StringCodingKey.self, forKey: "simple_preview")
             let name = try preview.decode(String.self, forKey: "name")
             
-            guard let actionType = ActionType(rawValue: type),
-                  let address = try? Address.parse(recipientAddress) else { continue }
+            let comment = try transferContainer.decodeIfPresent(String.self, forKey: "comment")
+            
+            guard let address = try? Address.parse(recipientAddress) else { continue }
             
             let action = Action(type: actionType,
+                                transfer: transfer,
                                 amount: BigInt(amount),
                                 recipient: address,
-                                name: name)
+                                name: name,
+                                comment: comment)
             actions.append(action)
         }
         
