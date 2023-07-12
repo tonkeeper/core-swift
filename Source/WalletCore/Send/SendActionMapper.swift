@@ -22,16 +22,20 @@ struct SendActionMapper {
                    tonRate: Rates.Rate?) -> SendTransactionModel.TokenTransactionModel {
         let name: String
         let token: FormatterTokenInfo
+        let image: Image
         switch action.transfer {
         case .token(let tokenInfo):
             name = "Token Transfer"
             token = tokenInfo
+            image = .url(tokenInfo.imageURL)
         case .ton:
             name = action.name
             token = TonInfo()
+            image = .ton
         }
         
         return map(name: name,
+                   image: image,
                    recipient: action.recipient.shortString,
                    token: token,
                    amount: action.amount,
@@ -44,6 +48,7 @@ struct SendActionMapper {
 
 private extension SendActionMapper {
     func map(name: String,
+             image: Image,
              recipient: String,
              token: FormatterTokenInfo,
              amount: BigInt,
@@ -81,6 +86,7 @@ private extension SendActionMapper {
             feeFiatString = "≈\(feeFiatFormatted)"
         }
         return SendTransactionModel.TokenTransactionModel(title: name,
+                                                          image: image,
                                                           address: recipient,
                                                           amountToken: "\(amountFormatted) \(token.tokenSymbol ?? "")",
                                                           amountFiat: amountFiatString,
