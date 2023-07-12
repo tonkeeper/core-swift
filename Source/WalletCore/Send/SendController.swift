@@ -11,6 +11,10 @@ import BigInt
 
 public final class SendController {
     
+    enum Error: Swift.Error {
+        case noValidActionInTransactionInfo
+    }
+    
     private let walletProvider: WalletProvider
     private let keychainManager: KeychainManager
     private let sendService: SendService
@@ -32,9 +36,58 @@ public final class SendController {
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
     
-    public func prepareTransaction(value: BigInt,
-                                   address: String,
-                                   comment: String?) async throws -> String {
+    public func prepareSendTonTransaction(value: BigInt,
+                                          address: String,
+                                          comment: String?) async throws -> String {
+        return try await sendExternalMessage { sender in
+            let recipient = try Address.parse(address)
+            
+            let internalMessage: MessageRelaxed
+            if let comment = comment {
+                internalMessage = try MessageRelaxed.internal(to: recipient,
+                                                              value: value.magnitude,
+                                                              textPayload: comment)
+            } else {
+                internalMessage = MessageRelaxed.internal(to: recipient,
+                                                          value: value.magnitude)
+            }
+            return internalMessage
+        }
+    }
+    
+    public func prepareSendTokenTransaction(tokenAddress: String, value: BigInt, address: String, comment: String?) async throws -> String {
+        return try await sendExternalMessage { sender in
+            let recipient = try Address.parse(address)
+            
+            let internalMessage = try JettonTransferMessage.internalMessage(jettonAddress: try Address.parse(tokenAddress),
+                                                                            amount: value,
+                                                                            to: recipient,
+                                                                            from: sender,
+                                                                            comment: comment)
+            return internalMessage
+        }
+    }
+    
+    public func loadTransactionInformation(transactionBoc: String) async throws -> SendTransactionModel {
+        let transactionInfo = try await sendService.loadTransactionInfo(boc: transactionBoc)
+        let action = try getAction(transactionInfo: transactionInfo)
+        let rates = await getRates(action: action)
+        let mapper = SendActionMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let tokenModel = mapper.mapAction(action: action,
+                                          fee: transactionInfo.fee,
+                                          comment: action.comment,
+                                          rate: rates.tokenRates,
+                                          tonRate: rates.tonRates)
+        return .init(tokenModel: tokenModel, boc: transactionBoc)
+    }
+    
+    public func sendTransaction(boc: String) async throws {
+        try await sendService.sendTransaction(boc: boc)
+    }
+}
+
+private extension SendController {
+    func sendExternalMessage(internalMessage: (_ sender: Address) throws -> MessageRelaxed) async throws -> String {
         let wallet = try walletProvider.activeWallet
         let walletPublicKey = try wallet.publicKey
         let mnemonicVault = try KeychainMnemonicVault(keychainManager: keychainManager, walletID: wallet.identity.id())
@@ -45,17 +98,8 @@ public final class SendController {
         let keyPair = try Mnemonic.mnemonicToPrivateKey(mnemonicArray: mnemonic)
         
         let senderAddress = try contract.address()
-        let destinationAddress = try Address.parse(address)
         
-        let internalMessage: MessageRelaxed
-        if let comment = comment {
-            internalMessage = try MessageRelaxed.internal(to: destinationAddress,
-                                                          value: value.magnitude,
-                                                          textPayload: comment)
-        } else {
-            internalMessage = MessageRelaxed.internal(to: destinationAddress,
-                                                          value: value.magnitude)
-        }
+        let internalMessage = try internalMessage(senderAddress)
         
         let seqno = try await sendService.loadSeqno(address: senderAddress)
         let transferData = WalletTransferData(
@@ -72,52 +116,37 @@ public final class SendController {
         return try cell.toBoc().base64EncodedString()
     }
     
-    public func loadTransactionInformation(transactionBoc: String) async throws -> SendTransactionModel {
-        let transactionInfo = try await sendService.loadTransactionInfo(boc: transactionBoc)
-        guard let action = transactionInfo.actions.first else { throw NSError(domain: "", code: 1) }
-
-        let tonInfo = TonInfo()
-        let amountToken = bigIntAmountFormatter.format(amount: action.amount,
-                                                       fractionDigits: tonInfo.fractionDigits,
-                                                       maximumFractionDigits: tonInfo.fractionDigits,
-                                                       symbol: nil)
-        
-        let feeTon = bigIntAmountFormatter.format(amount: BigInt(transactionInfo.fee),
-                                                  fractionDigits: tonInfo.fractionDigits,
-                                                  maximumFractionDigits: tonInfo.fractionDigits,
-                                                  symbol: nil)
-        
-        var amountFiatString: String?
-        var feeFiatString: String?
-        let rates = try await rateService.loadRates(tonInfo: tonInfo, tokens: [], currencies: [.USD])
-        let rateConverter = RateConverter()
-        if let tonRate = rates.ton.first(where: { $0.currency == .USD }) {
-            let fiat = rateConverter.convert(amount: action.amount, amountFractionLength: tonInfo.fractionDigits, rate: tonRate)
-            let fiatFormatted = bigIntAmountFormatter.format(amount: fiat.amount,
-                                                             fractionDigits: fiat.fractionLength,
-                                                             maximumFractionDigits: 2,
-                                                             symbol: tonRate.currency.symbol)
-            
-            let feeFiat = rateConverter.convert(amount: BigInt(transactionInfo.fee), amountFractionLength: tonInfo.fractionDigits, rate: tonRate)
-            let feeFiatFormatted = bigIntAmountFormatter.format(amount: feeFiat.amount,
-                                                                fractionDigits: feeFiat.fractionLength,
-                                                                maximumFractionDigits: 2,
-                                                                symbol: tonRate.currency.symbol)
-            amountFiatString = "≈\(fiatFormatted)"
-            feeFiatString = "≈\(feeFiatFormatted)"
+    func getAction(transactionInfo: EstimateTx) throws -> EstimateTx.Action {
+        if let jettonTransferAction = transactionInfo.actions.first(where: { $0.type == .jettonTransfer }) {
+            return jettonTransferAction
         }
         
+        if let tonTransfer = transactionInfo.actions.last {
+            return tonTransfer
+        }
         
-        return SendTransactionModel(title: action.name,
-                                    address: action.recipient.shortString,
-                                    amountToken: "\(amountToken) \(tonInfo.symbol)",
-                                    amountFiat: amountFiatString,
-                                    feeTon: "≈\(feeTon) \(tonInfo.symbol)",
-                                    feeFiat: feeFiatString,
-                                    boc: transactionBoc)
+        throw Error.noValidActionInTransactionInfo
     }
     
-    public func sendTransaction(boc: String) async throws {
-        try await sendService.sendTransaction(boc: boc)
+    func getRates(action: EstimateTx.Action) async -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {
+        do {
+            switch action.transfer {
+            case .ton:
+                let rates = try await rateService.loadRates(tonInfo: TonInfo(), tokens: [], currencies: [.USD])
+                let tonRates = rates.ton.first(where: { $0.currency == .USD })
+                return (tonRates, tonRates)
+            case .token(let tokenInfo):
+                let rates = try await rateService.loadRates(tonInfo: TonInfo(), tokens: [tokenInfo], currencies: [.USD])
+                let tokenRates = rates.tokens
+                    .first(where: { $0.tokenInfo == tokenInfo })?
+                    .rates
+                    .first(where: { $0.currency == .USD })
+                let tonRates = rates.ton.first(where: { $0.currency == .USD })
+                return (tokenRates, tonRates)
+                
+            }
+        } catch {
+            return (nil, nil)
+        }
     }
 }

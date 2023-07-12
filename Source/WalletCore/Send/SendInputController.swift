@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TonSwift
 import BigInt
 
 public struct TokenListModel {
@@ -15,6 +16,16 @@ public struct TokenListModel {
     }
     public let tokens: [TokenModel]
     public let selectedIndex: Int
+}
+
+public struct TokenTransfer {
+    public enum Token {
+        case ton
+        case token(Address)
+    }
+    
+    public let token: Token
+    public let amount: BigInt
 }
 
 public final class SendInputController {
@@ -134,8 +145,18 @@ public final class SendInputController {
         self.rateConverter = rateConverter
     }
     
-    public var tokenAmount: BigInt {
-        state.tokenState.amount
+    public var tokenTransferData: TokenTransfer? {
+        switch state.tokenState.token {
+        case .ton:
+            return TokenTransfer(token: .ton, amount: state.tokenState.amount)
+        case .token(let tokenInfo):
+            guard let wallet = try? walletProvider.activeWallet,
+                  let walletBalance = try? balanceService.getWalletBalance(wallet: wallet),
+                  let tokenBalance = walletBalance.tokensBalance.first(where: { $0.amount.tokenInfo == tokenInfo }) else {
+                return nil
+            }
+            return TokenTransfer(token: .token(tokenBalance.walletAddress), amount: state.tokenState.amount)
+        }
     }
     
     public func setInitialState() {

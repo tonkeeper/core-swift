@@ -11,7 +11,7 @@ let package = Package(
         .library(name: "WalletCore", targets: ["WalletCore"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/tonkeeper/ton-swift", branch: "feature/wallet_transfer_signing"),
+        .package(url: "https://github.com/tonkeeper/ton-swift", branch: "feature/jetton_transfer"),
         .package(url: "https://github.com/tonkeeper/ton-api-swift", from: "0.0.3")
     ],
     targets: [
