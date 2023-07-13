@@ -51,7 +51,7 @@ struct TonInfo: Codable {
     private(set) var fractionDigits = 9
 }
 
-struct TokenInfo: Codable, Equatable {
+public struct TokenInfo: Codable, Equatable {
     var address: Address
     var fractionDigits: Int
     var name: String

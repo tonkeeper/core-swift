@@ -49,7 +49,8 @@ struct WalletBalanceMapper {
             walletBalance.tonBalance,
             tonRates: rates.ton,
             title: walletBalance.tonBalance.amount.tonInfo.name,
-            image: .ton)
+            image: .ton,
+            type: .ton)
         let previousRevisionsTokens = mapPreviousRevisionBalances(
             walletBalance.previousRevisionsBalances,
             tonRates: rates.ton
@@ -87,7 +88,8 @@ struct WalletBalanceMapper {
                                              priceDiff: nil,
                                              topAmount: nil,
                                              bottomAmount: nil,
-                                             image: .ton)
+                                             image: .ton,
+                                             type: .ton)
         let section = WalletBalanceModel.Section.token([token])
         let page = WalletBalanceModel.Page(title: "",
                                            sections: [section])
@@ -102,7 +104,8 @@ struct WalletBalanceMapper {
     func mapTonBalance(_ tonBalance: TonBalance,
                        tonRates: [Rates.Rate],
                        title: String,
-                       image: Image) -> WalletBalanceModel.Token {
+                       image: Image,
+                       type: WalletBalanceModel.Token.TokenType) -> WalletBalanceModel.Token {
         var topAmount: String?
         var price: String?
         var bottomAmount: String?
@@ -133,7 +136,8 @@ struct WalletBalanceMapper {
                                         priceDiff: nil,
                                         topAmount: topAmount,
                                         bottomAmount: bottomAmount,
-                                        image: image)
+                                        image: image,
+                                        type: type)
     }
 }
 
@@ -142,7 +146,7 @@ private extension WalletBalanceMapper {
         balances
             .filter { $0.amount.quantity > 0 }
             .map { tonBalance in
-                return mapTonBalance(tonBalance, tonRates: tonRates, title: "Old wallet", image: .oldWallet)
+                return mapTonBalance(tonBalance, tonRates: tonRates, title: "Old wallet", image: .oldWallet, type: .oldWallet)
             }
     }
     
@@ -197,7 +201,8 @@ private extension WalletBalanceMapper {
                                             priceDiff: nil,
                                             topAmount: topAmount,
                                             bottomAmount: bottomAmount,
-                                            image: .url(token.amount.tokenInfo.imageURL))
+                                            image: .url(token.amount.tokenInfo.imageURL),
+                                            type: .token(token.amount.tokenInfo))
         }
     }
     

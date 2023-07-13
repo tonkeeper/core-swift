@@ -16,6 +16,11 @@ public struct WalletBalanceModel {
     }
     
     public struct Token {
+        public enum TokenType {
+            case ton
+            case oldWallet
+            case token(TokenInfo)
+        }
         public let title: String
         public let shortTitle: String?
         public let price: String?
@@ -23,6 +28,7 @@ public struct WalletBalanceModel {
         public let topAmount: String?
         public let bottomAmount: String?
         public let image: Image
+        public let type: TokenType
     }
     
     public struct Collectible {
