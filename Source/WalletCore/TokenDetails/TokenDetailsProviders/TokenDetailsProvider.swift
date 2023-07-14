@@ -8,5 +8,7 @@
 import Foundation
 
 protocol TokenDetailsProvider {
-    func getHeader() -> TokenDetailsController.TokenDetailsHeader
+    func getHeader(walletBalance: WalletBalance,
+                   currency: Currency) -> TokenDetailsController.TokenDetailsHeader
+    func reloadRate(currency: Currency) async throws
 }

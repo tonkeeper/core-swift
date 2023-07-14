@@ -49,7 +49,7 @@ struct WalletItemMapper {
             currency: currency,
             title: "Old wallet",
             image: .oldWallet,
-            type: .ton)
+            type: .old)
     }
     
     func mapToken(amount: BigInt,

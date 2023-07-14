@@ -6,16 +6,46 @@
 //
 
 import Foundation
+import BigInt
 
 struct TokenDetailsTokenProvider: TokenDetailsProvider {
     
     private let tokenInfo: TokenInfo
+    private let walletItemMapper: WalletItemMapper
+    private let ratesService: RatesService
     
-    init(tokenInfo: TokenInfo) {
+    init(tokenInfo: TokenInfo,
+         walletItemMapper: WalletItemMapper,
+         ratesService: RatesService) {
         self.tokenInfo = tokenInfo
+        self.walletItemMapper = walletItemMapper
+        self.ratesService = ratesService
     }
     
-    func getHeader() -> TokenDetailsController.TokenDetailsHeader {
-        return .init(name: "", amount: "", fiatAmount: "", price: "", image: .ton, buttons: [.send, .receive, .swap])
+    func getHeader(walletBalance: WalletBalance,
+                   currency: Currency) -> TokenDetailsController.TokenDetailsHeader {
+        let tokenBalance = walletBalance.tokensBalance.first(where: { $0.amount.tokenInfo == tokenInfo })?.amount.quantity ?? BigInt("0")
+        let tokenRates = (try? ratesService.getRates().tokens.first(where: { $0.tokenInfo == tokenInfo })?.rates) ?? []
+        let itemViewModel = walletItemMapper.mapToken(amount: tokenBalance,
+                                                      rates: tokenRates,
+                                                      tokenInfo: tokenInfo,
+                                                      currency: currency,
+                                                      maximumFractionDigits: tokenInfo.fractionDigits)
+        
+        var price: String?
+        if let priceValue = itemViewModel.leftSubtitle {
+            price = "Price: \(priceValue)"
+        }
+        
+        return TokenDetailsController.TokenDetailsHeader(name: tokenInfo.name,
+                                                         amount: itemViewModel.rightValue ?? "", 
+                                                         fiatAmount: itemViewModel.rightSubvalue,
+                                                         price: price,
+                                                         image: .url(tokenInfo.imageURL),
+                                                         buttons: [.send, .receive, .swap])
+    }
+    
+    func reloadRate(currency: Currency) async throws {
+        try await _ = ratesService.loadRates(tonInfo: TonInfo(), tokens: [tokenInfo], currencies: [currency])
     }
 }

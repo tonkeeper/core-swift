@@ -14,7 +14,7 @@ final class WalletCoreAssembly {
     private let coreAssembly = CoreAssembly()
     private let deeplinkAssembly = DeeplinkAssembly()
     private let validatorsAssembly = ValidatorsAssembly()
-    private let tokenDetailsAssembly = TokenDetailsAssembly()
+    private lazy var tokenDetailsAssembly = TokenDetailsAssembly(formattersAssembly: formattersAssembly)
     private lazy var ratesAssembly = RatesAssembly(coreAssembly: coreAssembly)
     private lazy var apiAssembly = APIAssembly(coreAssembly: coreAssembly)
     private lazy var walletBalanceAssembly = WalletBalanceAssembly(coreAssembly: coreAssembly,
@@ -60,12 +60,22 @@ final class WalletCoreAssembly {
         )
     }
     
-    func tokenDetailsTonController() -> TokenDetailsController {
-        tokenDetailsAssembly.tokenDetailsTonController()
+    func tokenDetailsTonController(walletProvider: WalletProvider) -> TokenDetailsController {
+        tokenDetailsAssembly.tokenDetailsTonController(
+            ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: cacheURL),
+            balaceService: walletBalanceAssembly.walletBalanceService(api: tonAPI, cacheURL: cacheURL),
+            walletProvider: walletProvider
+        )
     }
     
-    func tokenDetailsTokenController(tokenInfo: TokenInfo) -> TokenDetailsController {
-        tokenDetailsAssembly.tokenDetailsTokenController(tokenInfo)
+    func tokenDetailsTokenController(tokenInfo: TokenInfo,
+                                     walletProvider: WalletProvider) -> TokenDetailsController {
+        tokenDetailsAssembly.tokenDetailsTokenController(
+            tokenInfo,
+            ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: cacheURL),
+            balaceService: walletBalanceAssembly.walletBalanceService(api: tonAPI, cacheURL: cacheURL),
+            walletProvider: walletProvider
+        )
     }
     
     func deeplinkParser() -> DeeplinkParser {

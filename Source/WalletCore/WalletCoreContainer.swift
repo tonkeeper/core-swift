@@ -38,11 +38,11 @@ public final class WalletCoreContainer {
     }
     
     public func tokenDetailsTonController() -> TokenDetailsController {
-        walletCoreAssembly.tokenDetailsTonController()
+        walletCoreAssembly.tokenDetailsTonController(walletProvider: keeperController())
     }
     
     public func tokenDetailsTokenController(tokenInfo: TokenInfo) -> TokenDetailsController {
-        walletCoreAssembly.tokenDetailsTokenController(tokenInfo: tokenInfo)
+        walletCoreAssembly.tokenDetailsTokenController(tokenInfo: tokenInfo, walletProvider: keeperController())
     }
     
     public func deeplinkParser() -> DeeplinkParser {

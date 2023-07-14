@@ -9,28 +9,42 @@ import Foundation
 
 public final class TokenDetailsController {
     public struct TokenDetailsHeader {
-        enum Button {
+        public enum Button {
             case send
             case receive
             case buy
             case swap
         }
         
-        let name: String?
-        let amount: String?
-        let fiatAmount: String?
-        let price: String?
-        let image: Image
-        let buttons: [Button]
+        public let name: String
+        public let amount: String
+        public let fiatAmount: String?
+        public let price: String?
+        public let image: Image
+        public let buttons: [Button]
     }
     
     private let tokenDetailsProvider: TokenDetailsProvider
+    private let walletProvider: WalletProvider
+    private let balanceService: WalletBalanceService
     
-    init(tokenDetailsProvider: TokenDetailsProvider) {
+    init(tokenDetailsProvider: TokenDetailsProvider,
+         walletProvider: WalletProvider,
+         balanceService: WalletBalanceService) {
         self.tokenDetailsProvider = tokenDetailsProvider
+        self.walletProvider = walletProvider
+        self.balanceService = balanceService
     }
     
-    public func getTokenHeader() -> TokenDetailsHeader {
-        tokenDetailsProvider.getHeader()
+    public func getTokenHeader() throws -> TokenDetailsHeader {
+        let wallet = try walletProvider.activeWallet
+        let balance = try balanceService.getWalletBalance(wallet: wallet)
+        return tokenDetailsProvider.getHeader(walletBalance: balance, currency: .USD)
+    }
+    
+    public func reloadContent() async throws {
+        let wallet = try walletProvider.activeWallet
+        try await _ = balanceService.loadWalletBalance(wallet: wallet)
+        try await tokenDetailsProvider.reloadRate(currency: .USD)
     }
 }
