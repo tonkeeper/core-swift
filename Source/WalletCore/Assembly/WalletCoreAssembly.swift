@@ -14,6 +14,7 @@ final class WalletCoreAssembly {
     private let coreAssembly = CoreAssembly()
     private let deeplinkAssembly = DeeplinkAssembly()
     private let validatorsAssembly = ValidatorsAssembly()
+    private let tokenDetailsAssembly = TokenDetailsAssembly()
     private lazy var ratesAssembly = RatesAssembly(coreAssembly: coreAssembly)
     private lazy var apiAssembly = APIAssembly(coreAssembly: coreAssembly)
     private lazy var walletBalanceAssembly = WalletBalanceAssembly(coreAssembly: coreAssembly,
@@ -57,6 +58,14 @@ final class WalletCoreAssembly {
             cacheURL: cacheURL,
             walletProvider: walletProvider
         )
+    }
+    
+    func tokenDetailsTonController() -> TokenDetailsController {
+        tokenDetailsAssembly.tokenDetailsTonController()
+    }
+    
+    func tokenDetailsTokenController(tokenInfo: TokenInfo) -> TokenDetailsController {
+        tokenDetailsAssembly.tokenDetailsTokenController(tokenInfo)
     }
     
     func deeplinkParser() -> DeeplinkParser {
