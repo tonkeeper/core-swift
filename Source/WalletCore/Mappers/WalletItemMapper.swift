@@ -63,6 +63,12 @@ struct WalletItemMapper {
                                       currency: currency,
                                       maximumFractionDigits: maximumFractionDigits)
     }
+    
+    func mapCollectible(title: String?,
+                        subtitle: String?,
+                        imageURL: URL?) -> WalletCollectibleItemViewModel {
+        WalletCollectibleItemViewModel(title: title, subtitle: subtitle, imageURL: imageURL)
+    }
 }
 
 private extension WalletItemMapper {
@@ -128,8 +134,8 @@ private extension WalletItemMapper {
                                              amountFractionLength: tokenInfo.fractionDigits,
                                              rate: currencyRate)
             
-            fiatAmount = bigIntAmountFormatter.format(amount: amount,
-                                                      fractionDigits: tokenInfo.fractionDigits,
+            fiatAmount = bigIntAmountFormatter.format(amount: fiat.amount,
+                                                      fractionDigits: fiat.fractionLength,
                                                       maximumFractionDigits: maximumFractionDigits,
                                                       symbol: currency.symbol)
             
