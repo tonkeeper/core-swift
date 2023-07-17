@@ -38,8 +38,14 @@ public final class TokenDetailsController {
     
     public func getTokenHeader() throws -> TokenDetailsHeader {
         let wallet = try walletProvider.activeWallet
-        let balance = try balanceService.getWalletBalance(wallet: wallet)
-        return tokenDetailsProvider.getHeader(walletBalance: balance, currency: .USD)
+        
+        let walletBalance: WalletBalance
+        do {
+            walletBalance = try balanceService.getWalletBalance(wallet: wallet)
+        } catch {
+            walletBalance = try balanceService.getEmptyWalletBalance(wallet: wallet)
+        }
+        return tokenDetailsProvider.getHeader(walletBalance: walletBalance, currency: .USD)
     }
     
     public func reloadContent() async throws {
