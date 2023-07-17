@@ -15,11 +15,11 @@ struct Rates: Codable, LocalStorable {
 
     struct TokenRate: Codable {
         let tokenInfo: TokenInfo
-        let rates: [Rate]
+        var rates: [Rate]
     }
 
-    let ton: [Rate]
-    let tokens: [TokenRate]
+    var ton: [Rate]
+    var tokens: [TokenRate]
     
     static var fileName: String {
         String(describing: self)
