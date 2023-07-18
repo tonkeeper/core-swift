@@ -52,12 +52,12 @@ struct TonInfo: Codable {
 }
 
 public struct TokenInfo: Codable, Equatable {
-    var address: Address
-    var fractionDigits: Int
-    var name: String
-    var symbol: String?
-    var description: String?
-    var imageURL: URL?
+    public var address: Address
+    public var fractionDigits: Int
+    public var name: String
+    public var symbol: String?
+    public var description: String?
+    public var imageURL: URL?
 }
 
 struct AppBalance {
