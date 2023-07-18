@@ -26,6 +26,7 @@ struct DecimalAmountFormatter {
         let decimalNumberAmount = NSDecimalNumber(decimal: amount)
         numberFormatter.currencySymbol = symbol
         numberFormatter.positiveFormat = "¤ #,##0.\(formatFractional)"
+        numberFormatter.roundingMode = .down
         return numberFormatter.string(from: decimalNumberAmount) ?? ""
     }
 }

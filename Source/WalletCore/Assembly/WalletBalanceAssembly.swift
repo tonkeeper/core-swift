@@ -28,10 +28,14 @@ final class WalletBalanceAssembly {
     }
     
     func walletBalanceMapper() -> WalletBalanceMapper {
-        WalletBalanceMapper(intAmountFormatter: formattersAssembly.intAmountFormatter,
-                            decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
-                            bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter,
-                            rateConverter: rateConverter())
+        let walletItemMapper = WalletItemMapper(intAmountFormatter: formattersAssembly.intAmountFormatter,
+                                                bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter,
+                                                decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
+                                                rateConverter: rateConverter())
+        
+        return WalletBalanceMapper(walletItemMapper: walletItemMapper,
+                                   bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter,
+                                   rateConverter: rateConverter())
     }
 }
 

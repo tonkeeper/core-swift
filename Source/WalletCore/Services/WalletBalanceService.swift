@@ -11,6 +11,7 @@ import TonSwift
 protocol WalletBalanceService {
     func loadWalletBalance(wallet: Wallet) async throws -> WalletBalance
     func getWalletBalance(wallet: Wallet) throws -> WalletBalance
+    func getEmptyWalletBalance(wallet: Wallet) throws -> WalletBalance
 }
 
 final class WalletBalanceServiceImplementation: WalletBalanceService {
@@ -74,6 +75,21 @@ final class WalletBalanceServiceImplementation: WalletBalanceService {
         try? localRepository.save(item: walletBalance)
         
         return walletBalance
+    }
+    
+    func getEmptyWalletBalance(wallet: Wallet) throws -> WalletBalance {
+        let publicKey = try wallet.publicKey
+        let contract = try walletContractBuilder.walletContract(
+            with: publicKey,
+            contractVersion: wallet.contractVersion
+        )
+        let address = try contract.address()
+        
+        return WalletBalance(walletAddress: address,
+                             tonBalance: .init(walletAddress: address, amount: .init(quantity: 0)),
+                             tokensBalance: [],
+                             previousRevisionsBalances: [],
+                             collectibles: [])
     }
 }
 

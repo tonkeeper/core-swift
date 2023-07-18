@@ -14,26 +14,10 @@ public struct WalletBalanceModel {
         public let fullAddress: String
         public let shortAddress: String
     }
-    
-    public struct Token {
-        public let title: String
-        public let shortTitle: String?
-        public let price: String?
-        public let priceDiff: String?
-        public let topAmount: String?
-        public let bottomAmount: String?
-        public let image: Image
-    }
-    
-    public struct Collectible {
-        public let title: String?
-        public let subtitle: String?
-        public let imageURL: URL?
-    }
-    
+
     public enum Section {
-        case token([Token])
-        case collectibles([Collectible])
+        case token([WalletItemViewModel])
+        case collectibles([WalletCollectibleItemViewModel])
     }
     
     public struct Page {

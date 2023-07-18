@@ -14,7 +14,7 @@ protocol RatesService {
     func getRates() throws -> Rates
 }
 
-final class RatesServiceImplementation: RatesService {
+actor RatesServiceImplementation: RatesService {
     
     private let api: API
     private let localRepository: any LocalRepository<Rates>
@@ -25,7 +25,7 @@ final class RatesServiceImplementation: RatesService {
         self.localRepository = localRepository
     }
     
-    func getRates() throws -> Rates {
+    nonisolated func getRates() throws -> Rates {
         return try localRepository.load(fileName: Rates.fileName)
     }
     
@@ -57,7 +57,28 @@ final class RatesServiceImplementation: RatesService {
         }
         
         let rates = Rates(ton: tonRates, tokens: tokensRates)
-        try? localRepository.save(item: rates)
+        updateCache(with: rates)
         return rates
+    }
+}
+
+private extension RatesServiceImplementation {
+    func updateCache(with rates: Rates) {
+        guard var cachedRates = try? getRates() else {
+            try? localRepository.save(item: rates)
+            return
+        }
+        
+        cachedRates.ton = rates.ton
+        
+        for tokenRate in rates.tokens {
+            guard let cachedTokenRatesIndex = cachedRates.tokens.firstIndex(where: { $0.tokenInfo == tokenRate.tokenInfo }) else {
+                continue
+            }
+            
+            cachedRates.tokens[cachedTokenRatesIndex].rates = tokenRate.rates
+        }
+        
+        try? localRepository.save(item: cachedRates)
     }
 }
