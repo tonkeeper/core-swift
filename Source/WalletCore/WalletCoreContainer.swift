@@ -37,6 +37,10 @@ public final class WalletCoreContainer {
         walletCoreAssembly.sendController(walletProvider: keeperController())
     }
     
+    public func receiveController() -> ReceiveController {
+        walletCoreAssembly.receiveController(walletProvider: keeperController())
+    }
+    
     public func tokenDetailsTonController() -> TokenDetailsController {
         walletCoreAssembly.tokenDetailsTonController(walletProvider: keeperController())
     }

@@ -23,6 +23,7 @@ final class WalletCoreAssembly {
                                                  ratesAssembly: ratesAssembly,
                                                  balanceAssembly: walletBalanceAssembly,
                                                  coreAssembly: coreAssembly)
+    private lazy var receiveAssembly = ReceiveAssembly()
     private lazy var keeperInfoAssembly = KeeperInfoAssembly(coreAssembly: coreAssembly)
     private lazy var confifurationAssembly = ConfigurationAssembly(coreAssembly: coreAssembly)
     
@@ -58,6 +59,10 @@ final class WalletCoreAssembly {
             cacheURL: cacheURL,
             walletProvider: walletProvider
         )
+    }
+    
+    func receiveController(walletProvider: WalletProvider) -> ReceiveController {
+        receiveAssembly.receiveController(walletProvider: walletProvider)
     }
     
     func tokenDetailsTonController(walletProvider: WalletProvider) -> TokenDetailsController {
