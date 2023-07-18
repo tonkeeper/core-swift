@@ -9,6 +9,7 @@ import Foundation
 import BigInt
 
 struct TokenDetailsTokenProvider: TokenDetailsProvider {
+    weak var output: TokenDetailsControllerOutput?
     
     private let tokenInfo: TokenInfo
     private let walletItemMapper: WalletItemMapper
@@ -47,5 +48,17 @@ struct TokenDetailsTokenProvider: TokenDetailsProvider {
     
     func reloadRate(currency: Currency) async throws {
         try await _ = ratesService.loadRates(tonInfo: TonInfo(), tokens: [tokenInfo], currencies: [currency])
+    }
+    
+    func handleRecieve() {
+        output?.handleTokenRecieve(tokenInfo: tokenInfo)
+    }
+    
+    func handleSend() {
+        output?.handleTokenSend(tokenInfo: tokenInfo)
+    }
+    
+    func handleSwap() {
+        output?.handleTokenSwap(tokenInfo: tokenInfo)
     }
 }

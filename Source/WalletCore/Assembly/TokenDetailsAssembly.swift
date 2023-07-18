@@ -40,11 +40,15 @@ struct TokenDetailsAssembly {
 
 private extension TokenDetailsAssembly {
     func tokenDetailsTonProvider(ratesService: RatesService) -> TokenDetailsTonProvider {
-        return TokenDetailsTonProvider(walletItemMapper: walletItemMapper(), ratesService: ratesService)
+        TokenDetailsTonProvider(walletItemMapper: walletItemMapper(),
+                                ratesService: ratesService)
     }
     
-    func tokenDetailsTokenProvider(tokenInfo: TokenInfo, ratesService: RatesService) -> TokenDetailsTokenProvider {
-        TokenDetailsTokenProvider(tokenInfo: tokenInfo, walletItemMapper: walletItemMapper(), ratesService: ratesService)
+    func tokenDetailsTokenProvider(tokenInfo: TokenInfo,
+                                   ratesService: RatesService) -> TokenDetailsTokenProvider {
+        TokenDetailsTokenProvider(tokenInfo: tokenInfo,
+                                  walletItemMapper: walletItemMapper(),
+                                  ratesService: ratesService)
     }
     
     func walletItemMapper() -> WalletItemMapper {

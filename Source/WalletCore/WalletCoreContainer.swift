@@ -42,7 +42,8 @@ public final class WalletCoreContainer {
     }
     
     public func tokenDetailsTokenController(tokenInfo: TokenInfo) -> TokenDetailsController {
-        walletCoreAssembly.tokenDetailsTokenController(tokenInfo: tokenInfo, walletProvider: keeperController())
+        walletCoreAssembly.tokenDetailsTokenController(tokenInfo: tokenInfo,
+                                                       walletProvider: keeperController())
     }
     
     public func deeplinkParser() -> DeeplinkParser {

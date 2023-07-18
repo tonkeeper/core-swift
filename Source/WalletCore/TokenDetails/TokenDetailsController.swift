@@ -7,7 +7,29 @@
 
 import Foundation
 
+public protocol TokenDetailsTonControllerOutput: AnyObject {
+    func handleTonRecieve()
+    func handleTonSend()
+    func handleTonSwap()
+    func handleTonBuy()
+}
+
+public protocol TokenDetailsTokenControllerOutput: AnyObject {
+    func handleTokenRecieve(tokenInfo: TokenInfo)
+    func handleTokenSend(tokenInfo: TokenInfo)
+    func handleTokenSwap(tokenInfo: TokenInfo)
+}
+
+public typealias TokenDetailsControllerOutput = TokenDetailsTonControllerOutput & TokenDetailsTokenControllerOutput
+
 public final class TokenDetailsController {
+    
+    public weak var output: TokenDetailsControllerOutput? {
+        didSet {
+            tokenDetailsProvider.output = output
+        }
+    }
+    
     public struct TokenDetailsHeader {
         public enum Button {
             case send
@@ -24,7 +46,7 @@ public final class TokenDetailsController {
         public let buttons: [Button]
     }
     
-    private let tokenDetailsProvider: TokenDetailsProvider
+    private var tokenDetailsProvider: TokenDetailsProvider
     private let walletProvider: WalletProvider
     private let balanceService: WalletBalanceService
     
@@ -52,5 +74,21 @@ public final class TokenDetailsController {
         let wallet = try walletProvider.activeWallet
         try await _ = balanceService.loadWalletBalance(wallet: wallet)
         try await tokenDetailsProvider.reloadRate(currency: .USD)
+    }
+    
+    public func handleRecieve() {
+        tokenDetailsProvider.handleRecieve()
+    }
+    
+    public func handleSend() {
+        tokenDetailsProvider.handleSend()
+    }
+    
+    public func handleSwap() {
+        tokenDetailsProvider.handleSwap()
+    }
+    
+    public func handleBuy() {
+        tokenDetailsProvider.handleBuy()
     }
 }
