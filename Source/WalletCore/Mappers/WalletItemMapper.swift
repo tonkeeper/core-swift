@@ -105,7 +105,7 @@ private extension WalletItemMapper {
         return WalletItemViewModel(
             type: type,
             image: image,
-            leftTitle: tonInfo.name,
+            leftTitle: title,
             rightTitle: tonInfo.symbol,
             leftSubtitle: price,
             rightSubtitle: nil,
