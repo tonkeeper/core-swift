@@ -116,7 +116,7 @@ private extension SendController {
         return try cell.toBoc().base64EncodedString()
     }
     
-    func getAction(transactionInfo: EstimateTx) throws -> EstimateTx.Action {
+    func getAction(transactionInfo: TransferTransactionInfo) throws -> TransferTransactionInfo.Action {
         if let jettonTransferAction = transactionInfo.actions.first(where: { $0.type == .jettonTransfer }) {
             return jettonTransferAction
         }
@@ -128,7 +128,7 @@ private extension SendController {
         throw Error.noValidActionInTransactionInfo
     }
     
-    func getRates(action: EstimateTx.Action) async -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {
+    func getRates(action: TransferTransactionInfo.Action) async -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {
         do {
             switch action.transfer {
             case .ton:
