@@ -15,16 +15,16 @@
         "repositoryURL": "https://github.com/tonkeeper/ton-api-swift",
         "state": {
           "branch": null,
-          "revision": "1537965b0474e62a43f60bc3313d8653b9a6067a",
-          "version": "0.0.3"
+          "revision": "3e4e82688fea1ae82c63a9b3ee44e25f1648324d",
+          "version": "0.0.5"
         }
       },
       {
         "package": "TonSwift",
         "repositoryURL": "https://github.com/tonkeeper/ton-swift",
         "state": {
-          "branch": "feature/wallet_transfer_signing",
-          "revision": "c5179f32c122a4033522e71dc794ff48fef45569",
+          "branch": "feature/jetton_transfer",
+          "revision": "8de358bb6d85ac806c7e42cf9824b18332d3c5d5",
           "version": null
         }
       },

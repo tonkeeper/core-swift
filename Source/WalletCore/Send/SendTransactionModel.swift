@@ -11,7 +11,8 @@ public struct SendTransactionModel {
     public struct TokenTransactionModel {
         public let title: String
         public let image: Image
-        public let address: String
+        public let recipientAddress: String?
+        public let recipientName: String?
         public let amountToken: String
         public let amountFiat: String?
         public let feeTon: String

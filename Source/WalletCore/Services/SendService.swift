@@ -12,7 +12,7 @@ import BigInt
 
 protocol SendService {
     func loadSeqno(address: Address) async throws -> UInt64
-    func loadTransactionInfo(boc: String) async throws -> EstimateTx
+    func loadTransactionInfo(boc: String) async throws -> TransferTransactionInfo
     func sendTransaction(boc: String) async throws
 }
 
@@ -29,10 +29,11 @@ final class SendServiceImplementation: SendService {
         return response.entity.seqno
     }
     
-    func loadTransactionInfo(boc: String) async throws -> EstimateTx {
-        let request = EstimateTxRequest(boc: boc)
+    func loadTransactionInfo(boc: String) async throws -> TransferTransactionInfo {
+        let request = WalletEmulateRequest(boc: boc)
         let response = try await api.send(request: request)
-        return response.entity
+        return TransferTransactionInfo(accountEvent: response.entity.event,
+                                       transaction: response.entity.trace.transaction)
     }
     
     func sendTransaction(boc: String) async throws {
@@ -73,31 +74,7 @@ private struct Seqno: Codable {
     let seqno: UInt64
 }
 
-private struct EstimateTxRequest: APIRequest {
-    typealias Entity = EstimateTx
-    
-    var request: TonAPI.Request {
-        Request(
-            path: path,
-            method: .POST,
-            headers: [],
-            queryItems: [],
-            bodyParameter: ["boc": boc]
-        )
-    }
-    
-    var path: String {
-        "/v1/send/estimateTx"
-    }
-    
-    let boc: String
-    
-    init(boc: String) {
-        self.boc = boc
-    }
-}
-
-struct EstimateTx: Codable {
+struct TransferTransactionInfo {
     enum ActionType: String {
         case tonTransfer = "TonTransfer"
         case jettonTransfer = "JettonTransfer"
@@ -108,96 +85,68 @@ struct EstimateTx: Codable {
         case token(tokenInfo: TokenInfo)
     }
     
+    struct Recipient {
+        let address: Address?
+        let name: String?
+    }
+    
     struct Action {
         let type: ActionType
         let transfer: Transfer
         let amount: BigInt
-        let recipient: Address
+        let recipient: Recipient
         let name: String
         let comment: String?
     }
     
     let actions: [Action]
     let fee: Int64
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: StringCodingKey.self)
-        var actionsContainer = try container.nestedUnkeyedContainer(forKey: "actions")
-        
-        var actions = [Action]()
-        while !actionsContainer.isAtEnd {
-            let actionContainer = try actionsContainer.nestedContainer(keyedBy: StringCodingKey.self)
-            
-            let type = try actionContainer.decode(String.self, forKey: "type")
-            guard let actionType = ActionType(rawValue: type) else {
-                continue
-            }
-
-            let transferContainer = try actionContainer.nestedContainer(keyedBy: StringCodingKey.self, forKey: .init(string: type))
-            
-            let transfer: Transfer
-            let amount: BigInt
-            if actionType == .jettonTransfer {
-                let jettonInfo = try transferContainer.decode(JettonPreview.self, forKey: "jetton")
-                let tokenInfo = try TokenInfo(jettonPreview: jettonInfo)
-                transfer = .token(tokenInfo: tokenInfo)
-                amount = BigInt(stringLiteral: try transferContainer.decode(String.self, forKey: "amount"))
-            } else {
-                transfer = .ton
-                amount = BigInt(try transferContainer.decode(Int64.self, forKey: "amount"))
-            }
-
-            let recipient = try transferContainer.nestedContainer(keyedBy: StringCodingKey.self, forKey: "recipient")
-            let recipientAddress = try recipient.decode(String.self, forKey: "address")
-            
-            let preview = try actionContainer.nestedContainer(keyedBy: StringCodingKey.self, forKey: "simple_preview")
-            let name = try preview.decode(String.self, forKey: "name")
-            
-            let comment = try transferContainer.decodeIfPresent(String.self, forKey: "comment")
-            
-            guard let address = try? Address.parse(recipientAddress) else { continue }
-            
-            let action = Action(type: actionType,
-                                transfer: transfer,
-                                amount: BigInt(amount),
-                                recipient: address,
-                                name: name,
-                                comment: comment)
-            actions.append(action)
-        }
-        
-        let fee = try container.nestedContainer(keyedBy: StringCodingKey.self, forKey: "fee")
-        let total = try fee.decode(Int64.self, forKey: "total")
-        
+    
+    init(actions: [Action], fee: Int64) {
         self.actions = actions
-        self.fee = total
+        self.fee = fee
     }
     
-    func encode(to encoder: Encoder) throws {}
-}
-
-struct StringCodingKey: CodingKey, ExpressibleByStringLiteral {
-    private let string: String
-    private var int: Int?
-
-    var stringValue: String { return string }
-
-    init(string: String) {
-        self.string = string
-    }
-
-    init?(stringValue: String) {
-        self.string = stringValue
-    }
-
-    var intValue: Int? { return int }
-
-    init?(intValue: Int) {
-        self.string = String(describing: intValue)
-        self.int = intValue
-    }
-
-    init(stringLiteral value: String) {
-        self.string = value
+    init(accountEvent: AccountEvent,
+         transaction: Transaction) {
+        let actions = accountEvent.actions.compactMap { eventAction -> Action? in
+            let type: ActionType
+            let transfer: Transfer
+            let amount: BigInt
+            let recipient: Recipient
+            let name: String
+            let comment: String?
+            
+            if let tonTransferAction = eventAction.tonTransfer {
+                type = .tonTransfer
+                transfer = .ton
+                amount = BigInt(integerLiteral: tonTransferAction.amount)
+                recipient = Recipient(address: try? Address.parse(tonTransferAction.recipient.address),
+                                      name: tonTransferAction.recipient.name)
+                name = eventAction.simplePreview.name
+                comment = tonTransferAction.comment
+            } else if let jettonTransferAction = eventAction.jettonTransfer,
+                      let tokenInfo = try? TokenInfo(jettonPreview: jettonTransferAction.jetton){
+                type = .jettonTransfer
+                transfer = .token(tokenInfo: tokenInfo)
+                amount = BigInt(stringLiteral: jettonTransferAction.amount)
+                recipient = Recipient(address: try? Address.parse(jettonTransferAction.recipient?.address ?? ""),
+                                      name: jettonTransferAction.recipient?.name)
+                name = eventAction.simplePreview.name
+                comment = jettonTransferAction.comment
+            } else {
+                return nil
+            }
+            
+            return Action(type: type,
+                          transfer: transfer,
+                          amount: amount,
+                          recipient: recipient,
+                          name: name,
+                          comment: comment)
+        }
+        
+        self.actions = actions
+        self.fee = transaction.totalFees
     }
 }

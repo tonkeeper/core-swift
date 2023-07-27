@@ -15,7 +15,7 @@ struct SendActionMapper {
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
     
-    func mapAction(action: EstimateTx.Action,
+    func mapAction(action: TransferTransactionInfo.Action,
                    fee: Int64,
                    comment: String?,
                    rate: Rates.Rate?,
@@ -36,7 +36,8 @@ struct SendActionMapper {
         
         return map(name: name,
                    image: image,
-                   recipient: action.recipient.shortString,
+                   recipientAddress: action.recipient.address?.shortString,
+                   recipientName: action.recipient.name,
                    token: token,
                    amount: action.amount,
                    fee: fee,
@@ -49,7 +50,8 @@ struct SendActionMapper {
 private extension SendActionMapper {
     func map(name: String,
              image: Image,
-             recipient: String,
+             recipientAddress: String?,
+             recipientName: String?,
              token: FormatterTokenInfo,
              amount: BigInt,
              fee: Int64,
@@ -87,7 +89,8 @@ private extension SendActionMapper {
         }
         return SendTransactionModel.TokenTransactionModel(title: name,
                                                           image: image,
-                                                          address: recipient,
+                                                          recipientAddress: recipientAddress,
+                                                          recipientName: recipientName,
                                                           amountToken: "\(amountFormatted) \(token.tokenSymbol ?? "")",
                                                           amountFiat: amountFiatString,
                                                           feeTon: "≈\(feeTon) \(tonInfo.symbol)",
