@@ -8,7 +8,6 @@
 import Foundation
 import TonAPI
 import TonSwift
-import BigInt
 
 protocol SendService {
     func loadSeqno(address: Address) async throws -> UInt64
@@ -72,81 +71,4 @@ private struct GetSeqnoRequest: APIRequest {
 
 private struct Seqno: Codable {
     let seqno: UInt64
-}
-
-struct TransferTransactionInfo {
-    enum ActionType: String {
-        case tonTransfer = "TonTransfer"
-        case jettonTransfer = "JettonTransfer"
-    }
-    
-    enum Transfer {
-        case ton
-        case token(tokenInfo: TokenInfo)
-    }
-    
-    struct Recipient {
-        let address: Address?
-        let name: String?
-    }
-    
-    struct Action {
-        let type: ActionType
-        let transfer: Transfer
-        let amount: BigInt
-        let recipient: Recipient
-        let name: String
-        let comment: String?
-    }
-    
-    let actions: [Action]
-    let fee: Int64
-    
-    init(actions: [Action], fee: Int64) {
-        self.actions = actions
-        self.fee = fee
-    }
-    
-    init(accountEvent: AccountEvent,
-         transaction: Transaction) {
-        let actions = accountEvent.actions.compactMap { eventAction -> Action? in
-            let type: ActionType
-            let transfer: Transfer
-            let amount: BigInt
-            let recipient: Recipient
-            let name: String
-            let comment: String?
-            
-            if let tonTransferAction = eventAction.tonTransfer {
-                type = .tonTransfer
-                transfer = .ton
-                amount = BigInt(integerLiteral: tonTransferAction.amount)
-                recipient = Recipient(address: try? Address.parse(tonTransferAction.recipient.address),
-                                      name: tonTransferAction.recipient.name)
-                name = eventAction.simplePreview.name
-                comment = tonTransferAction.comment
-            } else if let jettonTransferAction = eventAction.jettonTransfer,
-                      let tokenInfo = try? TokenInfo(jettonPreview: jettonTransferAction.jetton){
-                type = .jettonTransfer
-                transfer = .token(tokenInfo: tokenInfo)
-                amount = BigInt(stringLiteral: jettonTransferAction.amount)
-                recipient = Recipient(address: try? Address.parse(jettonTransferAction.recipient?.address ?? ""),
-                                      name: jettonTransferAction.recipient?.name)
-                name = eventAction.simplePreview.name
-                comment = jettonTransferAction.comment
-            } else {
-                return nil
-            }
-            
-            return Action(type: type,
-                          transfer: transfer,
-                          amount: amount,
-                          recipient: recipient,
-                          name: name,
-                          comment: comment)
-        }
-        
-        self.actions = actions
-        self.fee = transaction.totalFees
-    }
 }

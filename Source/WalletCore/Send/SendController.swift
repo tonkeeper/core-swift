@@ -36,9 +36,66 @@ public final class SendController {
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
     
-    public func prepareSendTonTransaction(value: BigInt,
-                                          address: String,
-                                          comment: String?) async throws -> String {
+    public func initialSendTransactionModel(itemTransferModel: ItemTransferModel,
+                                            recipientAddress: String?,
+                                            comment: String?) -> SendTransactionViewModel {
+        let mapper = SendActionMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let model = mapper.mapItemTransferModel(
+            itemTransferModel,
+            recipientAddress: try? Address.parse(recipientAddress ?? "").shortString,
+            recipientName: nil,
+            fee: 0,
+            comment: comment,
+            rate: nil,
+            tonRate: nil)
+        return model
+    }
+    
+    public func prepareSendTransaction(itemTransferModel: ItemTransferModel,
+                                       recipientAddress: String,
+                                       comment: String?) async throws -> String {
+        switch itemTransferModel.transferItem {
+        case .ton:
+            return try await prepareSendTonTransaction(
+                value: itemTransferModel.amount,
+                address: recipientAddress,
+                comment: comment)
+        case .token(let tokenAddress, _):
+            return try await prepareSendTokenTransaction(
+                tokenAddress: tokenAddress.toString(),
+                value: itemTransferModel.amount,
+                address: recipientAddress,
+                comment: comment)
+        }
+    }
+    
+    public func loadTransactionInformation(itemTransferModel: ItemTransferModel,
+                                           boc: String) async throws -> SendTransactionViewModel {
+        async let transactionInfoTask = sendService.loadTransactionInfo(boc: boc)
+        async let ratesTask = getRates(itemTransferModel: itemTransferModel)
+        
+        let transactionInfo = try await transactionInfoTask
+        let rates = await ratesTask
+        
+        let action = try getAction(transactionInfo: transactionInfo)
+        let mapper = SendActionMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let transactionModel = mapper.mapAction(action: action,
+                                                fee: transactionInfo.fee,
+                                                comment: action.comment,
+                                                rate: rates.tokenRates,
+                                                tonRate: rates.tonRates)
+        return transactionModel
+    }
+    
+    public func sendTransaction(boc: String) async throws {
+        try await sendService.sendTransaction(boc: boc)
+    }
+}
+
+private extension SendController {
+    func prepareSendTonTransaction(value: BigInt,
+                                   address: String,
+                                   comment: String?) async throws -> String {
         return try await sendExternalMessage { sender in
             let recipient = try Address.parse(address)
             
@@ -55,7 +112,10 @@ public final class SendController {
         }
     }
     
-    public func prepareSendTokenTransaction(tokenAddress: String, value: BigInt, address: String, comment: String?) async throws -> String {
+    func prepareSendTokenTransaction(tokenAddress: String,
+                                     value: BigInt,
+                                     address: String,
+                                     comment: String?) async throws -> String {
         return try await sendExternalMessage { sender in
             let recipient = try Address.parse(address)
             
@@ -68,25 +128,6 @@ public final class SendController {
         }
     }
     
-    public func loadTransactionInformation(transactionBoc: String) async throws -> SendTransactionModel {
-        let transactionInfo = try await sendService.loadTransactionInfo(boc: transactionBoc)
-        let action = try getAction(transactionInfo: transactionInfo)
-        let rates = await getRates(action: action)
-        let mapper = SendActionMapper(bigIntAmountFormatter: bigIntAmountFormatter)
-        let tokenModel = mapper.mapAction(action: action,
-                                          fee: transactionInfo.fee,
-                                          comment: action.comment,
-                                          rate: rates.tokenRates,
-                                          tonRate: rates.tonRates)
-        return .init(tokenModel: tokenModel, boc: transactionBoc)
-    }
-    
-    public func sendTransaction(boc: String) async throws {
-        try await sendService.sendTransaction(boc: boc)
-    }
-}
-
-private extension SendController {
     func sendExternalMessage(internalMessage: (_ sender: Address) throws -> MessageRelaxed) async throws -> String {
         let wallet = try walletProvider.activeWallet
         let walletPublicKey = try wallet.publicKey
@@ -128,14 +169,14 @@ private extension SendController {
         throw Error.noValidActionInTransactionInfo
     }
     
-    func getRates(action: TransferTransactionInfo.Action) async -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {
+    func getRates(itemTransferModel: ItemTransferModel) async -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {
         do {
-            switch action.transfer {
+            switch itemTransferModel.transferItem {
             case .ton:
                 let rates = try await rateService.loadRates(tonInfo: TonInfo(), tokens: [], currencies: [.USD])
                 let tonRates = rates.ton.first(where: { $0.currency == .USD })
                 return (tonRates, tonRates)
-            case .token(let tokenInfo):
+            case .token(_, let tokenInfo):
                 let rates = try await rateService.loadRates(tonInfo: TonInfo(), tokens: [tokenInfo], currencies: [.USD])
                 let tokenRates = rates.tokens
                     .first(where: { $0.tokenInfo == tokenInfo })?
@@ -143,7 +184,6 @@ private extension SendController {
                     .first(where: { $0.currency == .USD })
                 let tonRates = rates.ton.first(where: { $0.currency == .USD })
                 return (tokenRates, tonRates)
-                
             }
         } catch {
             return (nil, nil)

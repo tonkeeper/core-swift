@@ -15,35 +15,53 @@ struct SendActionMapper {
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
     
-    func mapAction(action: TransferTransactionInfo.Action,
-                   fee: Int64,
-                   comment: String?,
-                   rate: Rates.Rate?,
-                   tonRate: Rates.Rate?) -> SendTransactionModel.TokenTransactionModel {
-        let name: String
+    func mapItemTransferModel(_ itemTransferModel: ItemTransferModel,
+                              recipientAddress: String?,
+                              recipientName: String?,
+                              fee: Int64,
+                              comment: String?,
+                              rate: Rates.Rate?,
+                              tonRate: Rates.Rate?) -> SendTransactionViewModel {
         let token: FormatterTokenInfo
         let image: Image
-        switch action.transfer {
-        case .token(let tokenInfo):
-            name = "Token Transfer"
+        let name: String
+        switch itemTransferModel.transferItem {
+        case .token(_, let tokenInfo):
+            name = "\(tokenInfo.symbol ?? "Token") Transfer"
             token = tokenInfo
             image = .url(tokenInfo.imageURL)
         case .ton:
-            name = action.name
+            name = "Ton Transfer"
             token = TonInfo()
             image = .ton
         }
         
         return map(name: name,
                    image: image,
-                   recipientAddress: action.recipient.address?.shortString,
-                   recipientName: action.recipient.name,
+                   recipientAddress: recipientAddress,
+                   recipientName: recipientName,
                    token: token,
-                   amount: action.amount,
+                   amount: itemTransferModel.amount,
                    fee: fee,
                    comment: comment,
                    rate: rate,
                    tonRate: tonRate)
+    }
+    
+    func mapAction(action: TransferTransactionInfo.Action,
+                   fee: Int64,
+                   comment: String?,
+                   rate: Rates.Rate?,
+                   tonRate: Rates.Rate?) -> SendTransactionViewModel {
+        let itemTranferModel = ItemTransferModel(transferItem: action.transferItem,
+                                                 amount: action.amount)
+        return mapItemTransferModel(itemTranferModel,
+                                    recipientAddress: action.recipient.address?.shortString,
+                                    recipientName: nil,
+                                    fee: fee,
+                                    comment: comment,
+                                    rate: rate,
+                                    tonRate: tonRate)
     }
 }
 
@@ -57,7 +75,7 @@ private extension SendActionMapper {
              fee: Int64,
              comment: String?,
              rate: Rates.Rate?,
-             tonRate: Rates.Rate?) -> SendTransactionModel.TokenTransactionModel {
+             tonRate: Rates.Rate?) -> SendTransactionViewModel {
         let amountFormatted = bigIntAmountFormatter.format(amount: amount,
                                                            fractionDigits: token.fractionDigits,
                                                            maximumFractionDigits: token.fractionDigits,
@@ -87,15 +105,15 @@ private extension SendActionMapper {
                                                                 symbol: tonRate.currency.symbol)
             feeFiatString = "≈\(feeFiatFormatted)"
         }
-        return SendTransactionModel.TokenTransactionModel(title: name,
-                                                          image: image,
-                                                          recipientAddress: recipientAddress,
-                                                          recipientName: recipientName,
-                                                          amountToken: "\(amountFormatted) \(token.tokenSymbol ?? "")",
-                                                          amountFiat: amountFiatString,
-                                                          feeTon: "≈\(feeTon) \(tonInfo.symbol)",
-                                                          feeFiat: feeFiatString,
-                                                          comment: comment)
+        return SendTransactionViewModel(title: name,
+                                        image: image,
+                                        recipientAddress: recipientAddress,
+                                        recipientName: recipientName,
+                                        amountToken: "\(amountFormatted) \(token.tokenSymbol ?? "")",
+                                        amountFiat: amountFiatString,
+                                        feeTon: "≈\(feeTon) \(tonInfo.symbol)",
+                                        feeFiat: feeFiatString,
+                                        comment: comment)
         
     }
 }
