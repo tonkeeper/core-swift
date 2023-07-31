@@ -38,9 +38,9 @@ public final class SendController {
     }
     
     public func initialSendTransactionModel(itemTransferModel: ItemTransferModel,
-                                            recipientAddress: String?,
+                                            recipientAddress: String,
                                             comment: String?) -> SendTransactionViewModel {
-        let mapper = SendActionMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
         
         let mapperRates: (tokenRates: Rates.Rate?, tonRates: Rates.Rate?)
         if let cachedRates = try? rateService.getRates() {
@@ -51,73 +51,74 @@ public final class SendController {
         
         let model = mapper.mapItemTransferModel(
             itemTransferModel,
-            recipientAddress: try? Address.parse(recipientAddress ?? "").shortString,
+            recipientAddress: try? Address.parse(recipientAddress).shortString,
             recipientName: nil,
-            fee: 0,
+            fee: nil,
             comment: comment,
             rate: mapperRates.tonRates,
             tonRate: mapperRates.tonRates)
         return model
     }
     
-    public func prepareSendTransaction(itemTransferModel: ItemTransferModel,
-                                       recipientAddress: String,
-                                       comment: String?) async -> Result<String, SendController.Error> {
-        do {
-            let boc: String
-            switch itemTransferModel.transferItem {
-            case .ton:
-                boc = try await prepareSendTonTransaction(
-                    value: itemTransferModel.amount,
-                    address: recipientAddress,
-                    comment: comment)
-            case .token(let tokenAddress, _):
-                boc = try await prepareSendTokenTransaction(
-                    tokenAddress: tokenAddress.toString(),
-                    value: itemTransferModel.amount,
-                    address: recipientAddress,
-                    comment: comment)
-            }
-            return .success(boc)
-        } catch {
-            return .failure(.failedToPrepareTransaction)
-        }
-    }
-    
     public func loadTransactionInformation(itemTransferModel: ItemTransferModel,
-                                           boc: String) async -> Result<SendTransactionViewModel, SendController.Error> {
-        do {
-            async let transactionInfoTask = sendService.loadTransactionInfo(boc: boc)
-            async let ratesTask = loadRates(itemTransferModel: itemTransferModel)
-            
-            let transactionInfo = try await transactionInfoTask
-            
-            let mapperRates: (tokenRates: Rates.Rate?, tonRates: Rates.Rate?)
-            if let loadedRates = try? await ratesTask {
-                mapperRates = getRates(itemTransferModel: itemTransferModel, rates: loadedRates)
-            } else {
-                mapperRates = (nil, nil)
-            }
-            
-            let action = try getAction(transactionInfo: transactionInfo)
-            let mapper = SendActionMapper(bigIntAmountFormatter: bigIntAmountFormatter)
-            let transactionModel = mapper.mapAction(action: action,
-                                                    fee: transactionInfo.fee,
-                                                    comment: action.comment,
-                                                    rate: mapperRates.tokenRates,
-                                                    tonRate: mapperRates.tonRates)
-            return .success(transactionModel)
-        } catch {
-            return .failure(.failedToEmulateTransaction)
+                                           recipientAddress: String,
+                                           comment: String?) async throws -> SendTransactionViewModel {
+        async let ratesTask = loadRates(itemTransferModel: itemTransferModel)
+        async let transactionBocTask = prepareSendTransaction(itemTransferModel: itemTransferModel,
+                                                              recipientAddress: recipientAddress,
+                                                              comment: comment)
+        
+        let mapperRates: (tokenRates: Rates.Rate?, tonRates: Rates.Rate?)
+        if let loadedRates = try? await ratesTask {
+            mapperRates = getRates(itemTransferModel: itemTransferModel, rates: loadedRates)
+        } else {
+            mapperRates = (nil, nil)
         }
+        
+        let transactionBoc = try await transactionBocTask
+        let transactionInfo = try await sendService.loadTransactionInfo(boc: transactionBoc)
+        let action = try getAction(transactionInfo: transactionInfo)
+        let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let transactionModel = mapper.mapAction(action: action,
+                                                fee: transactionInfo.fee,
+                                                comment: action.comment,
+                                                rate: mapperRates.tokenRates,
+                                                tonRate: mapperRates.tonRates)
+        return transactionModel
     }
     
-    public func sendTransaction(boc: String) async throws {
-        try await sendService.sendTransaction(boc: boc)
+    public func sendTransaction(itemTransferModel: ItemTransferModel,
+                                recipientAddress: String,
+                                comment: String?) async throws {
+        let transactionBoc = try await prepareSendTransaction(
+            itemTransferModel: itemTransferModel,
+            recipientAddress: recipientAddress,
+            comment: comment
+        )
+        
+        try await sendService.sendTransaction(boc: transactionBoc)
     }
 }
 
 private extension SendController {
+    func prepareSendTransaction(itemTransferModel: ItemTransferModel,
+                                recipientAddress: String,
+                                comment: String?) async throws -> String {
+        switch itemTransferModel.transferItem {
+        case .ton:
+            return try await prepareSendTonTransaction(
+                value: itemTransferModel.amount,
+                address: recipientAddress,
+                comment: comment)
+        case .token(let tokenAddress, _):
+            return try await prepareSendTokenTransaction(
+                tokenAddress: tokenAddress.toString(),
+                value: itemTransferModel.amount,
+                address: recipientAddress,
+                comment: comment)
+        }
+    }
+    
     func prepareSendTonTransaction(value: BigInt,
                                    address: String,
                                    comment: String?) async throws -> String {

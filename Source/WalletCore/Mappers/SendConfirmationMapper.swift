@@ -1,5 +1,5 @@
 //
-//  SendActionMapper.swift
+//  SendConfirmationMapper.swift
 //
 //
 //  Created by Grigory on 12.7.23..
@@ -8,7 +8,7 @@
 import Foundation
 import BigInt
 
-struct SendActionMapper {
+struct SendConfirmationMapper {
     private let bigIntAmountFormatter: BigIntAmountFormatter
     
     init(bigIntAmountFormatter: BigIntAmountFormatter) {
@@ -18,7 +18,7 @@ struct SendActionMapper {
     func mapItemTransferModel(_ itemTransferModel: ItemTransferModel,
                               recipientAddress: String?,
                               recipientName: String?,
-                              fee: Int64,
+                              fee: Int64?,
                               comment: String?,
                               rate: Rates.Rate?,
                               tonRate: Rates.Rate?) -> SendTransactionViewModel {
@@ -49,7 +49,7 @@ struct SendActionMapper {
     }
     
     func mapAction(action: TransferTransactionInfo.Action,
-                   fee: Int64,
+                   fee: Int64?,
                    comment: String?,
                    rate: Rates.Rate?,
                    tonRate: Rates.Rate?) -> SendTransactionViewModel {
@@ -65,14 +65,14 @@ struct SendActionMapper {
     }
 }
 
-private extension SendActionMapper {
+private extension SendConfirmationMapper {
     func map(name: String,
              image: Image,
              recipientAddress: String?,
              recipientName: String?,
              token: FormatterTokenInfo,
              amount: BigInt,
-             fee: Int64,
+             fee: Int64?,
              comment: String?,
              rate: Rates.Rate?,
              tonRate: Rates.Rate?) -> SendTransactionViewModel {
@@ -82,12 +82,10 @@ private extension SendActionMapper {
                                                            symbol: nil)
         
         let tonInfo = TonInfo()
-        let feeTon = bigIntAmountFormatter.format(amount: BigInt(fee),
-                                                  fractionDigits: tonInfo.fractionDigits,
-                                                  maximumFractionDigits: tonInfo.fractionDigits,
-                                                  symbol: nil)
-        var amountFiatString: String?
+        
+        var feeTonString: String?
         var feeFiatString: String?
+        var amountFiatString: String?
         let rateConverter = RateConverter()
         if let rate = rate {
             let fiat = rateConverter.convert(amount: amount, amountFractionLength: token.fractionDigits, rate: rate)
@@ -97,21 +95,30 @@ private extension SendActionMapper {
                                                              symbol: rate.currency.symbol)
             amountFiatString = "≈\(fiatFormatted)"
         }
-        if let tonRate = tonRate {
-            let feeFiat = rateConverter.convert(amount: fee, amountFractionLength: tonInfo.fractionDigits, rate: tonRate)
-            let feeFiatFormatted = bigIntAmountFormatter.format(amount: feeFiat.amount,
-                                                                fractionDigits: feeFiat.fractionLength,
-                                                                maximumFractionDigits: 2,
-                                                                symbol: tonRate.currency.symbol)
-            feeFiatString = "≈\(feeFiatFormatted)"
+        if let fee = fee {
+            let feeTon = bigIntAmountFormatter.format(amount: BigInt(fee),
+                                                      fractionDigits: tonInfo.fractionDigits,
+                                                      maximumFractionDigits: tonInfo.fractionDigits,
+                                                      symbol: nil)
+            feeTonString = "≈\(feeTon) \(tonInfo.symbol)"
+            if let tonRate = tonRate {
+                let feeFiat = rateConverter.convert(amount: fee, amountFractionLength: tonInfo.fractionDigits, rate: tonRate)
+                let feeFiatFormatted = bigIntAmountFormatter.format(amount: feeFiat.amount,
+                                                                    fractionDigits: feeFiat.fractionLength,
+                                                                    maximumFractionDigits: 2,
+                                                                    symbol: tonRate.currency.symbol)
+                feeFiatString = "≈\(feeFiatFormatted)"
+
+            }
         }
+        
         return SendTransactionViewModel(title: name,
                                         image: image,
                                         recipientAddress: recipientAddress,
                                         recipientName: recipientName,
                                         amountToken: "\(amountFormatted) \(token.tokenSymbol ?? "")",
                                         amountFiat: amountFiatString,
-                                        feeTon: "≈\(feeTon) \(tonInfo.symbol)",
+                                        feeTon: feeTonString,
                                         feeFiat: feeFiatString,
                                         comment: comment)
         

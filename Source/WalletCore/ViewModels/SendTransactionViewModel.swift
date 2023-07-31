@@ -14,7 +14,7 @@ public struct SendTransactionViewModel {
     public let recipientName: String?
     public let amountToken: String
     public let amountFiat: String?
-    public let feeTon: String
+    public let feeTon: String?
     public let feeFiat: String?
     public let comment: String?
 }
