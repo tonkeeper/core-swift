@@ -19,16 +19,6 @@ public struct TokenListModel {
     public let selectedIndex: Int
 }
 
-public struct TokenTransfer {
-    public enum Token {
-        case ton
-        case token(Address)
-    }
-    
-    public let token: Token
-    public let amount: BigInt
-}
-
 public final class SendInputController {
     
     enum Token {
@@ -130,7 +120,6 @@ public final class SendInputController {
     
     private var state = State(fiatState: .init(amount: 0, fractionalDigits: 0), tokenState: .init(amount: 0), active: .token)
     public private(set) var isMax = false
-    private var tokensBalances = [TokenBalance]()
     
     init(bigIntAmountFormatter: BigIntAmountFormatter,
          ratesService: RatesService,
@@ -146,17 +135,23 @@ public final class SendInputController {
         self.rateConverter = rateConverter
     }
     
-    public var tokenTransferData: TokenTransfer? {
+    public var itemTransferModel: ItemTransferModel? {
         switch state.tokenState.token {
         case .ton:
-            return TokenTransfer(token: .ton, amount: state.tokenState.amount)
+            return ItemTransferModel(
+                transferItem: .ton,
+                amount: state.tokenState.amount
+            )
         case .token(let tokenInfo):
             guard let wallet = try? walletProvider.activeWallet,
                   let walletBalance = try? balanceService.getWalletBalance(wallet: wallet),
                   let tokenBalance = walletBalance.tokensBalance.first(where: { $0.amount.tokenInfo == tokenInfo }) else {
                 return nil
             }
-            return TokenTransfer(token: .token(tokenBalance.walletAddress), amount: state.tokenState.amount)
+            return ItemTransferModel(
+                transferItem: .token(tokenWalletAddress: tokenBalance.walletAddress,
+                                     tokenInfo: tokenInfo),
+                amount: state.tokenState.amount)
         }
     }
     
