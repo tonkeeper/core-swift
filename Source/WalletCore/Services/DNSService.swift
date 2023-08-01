@@ -26,13 +26,14 @@ final class DNSServiceImplementation: DNSService {
     }
     
     func resolveDomainName(_ domainName: String) async throws -> Recipient {
-        let request = ResolveDNSRequest(domainName: parseDomainName(domainName))
+        let parsedDomainName = parseDomainName(domainName)
+        let request = ResolveDNSRequest(domainName: parsedDomainName)
         let response = try await api.send(request: request)
         guard let wallet = response.entity.wallet else {
             throw Error.noWalletData
         }
         let address = try Address.parse(wallet.address)
-        return Recipient(address: address, domain: domainName)
+        return Recipient(address: address, domain: parsedDomainName)
     }
 }
 
