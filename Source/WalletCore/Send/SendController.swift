@@ -38,7 +38,7 @@ public final class SendController {
     }
     
     public func initialSendTransactionModel(itemTransferModel: ItemTransferModel,
-                                            recipientAddress: String,
+                                            recipient: Recipient,
                                             comment: String?) -> SendTransactionViewModel {
         let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
         
@@ -51,8 +51,8 @@ public final class SendController {
         
         let model = mapper.mapItemTransferModel(
             itemTransferModel,
-            recipientAddress: try? Address.parse(recipientAddress).shortString,
-            recipientName: nil,
+            recipientAddress: recipient.address.shortString,
+            recipientName: recipient.domain,
             fee: nil,
             comment: comment,
             rate: mapperRates.tonRates,
@@ -61,11 +61,11 @@ public final class SendController {
     }
     
     public func loadTransactionInformation(itemTransferModel: ItemTransferModel,
-                                           recipientAddress: String,
+                                           recipient: Recipient,
                                            comment: String?) async throws -> SendTransactionViewModel {
         async let ratesTask = loadRates(itemTransferModel: itemTransferModel)
         async let transactionBocTask = prepareSendTransaction(itemTransferModel: itemTransferModel,
-                                                              recipientAddress: recipientAddress,
+                                                              recipientAddress: recipient.address,
                                                               comment: comment)
         
         let mapperRates: (tokenRates: Rates.Rate?, tonRates: Rates.Rate?)
@@ -88,11 +88,11 @@ public final class SendController {
     }
     
     public func sendTransaction(itemTransferModel: ItemTransferModel,
-                                recipientAddress: String,
+                                recipient: Recipient,
                                 comment: String?) async throws {
         let transactionBoc = try await prepareSendTransaction(
             itemTransferModel: itemTransferModel,
-            recipientAddress: recipientAddress,
+            recipientAddress: recipient.address,
             comment: comment
         )
         
@@ -102,36 +102,34 @@ public final class SendController {
 
 private extension SendController {
     func prepareSendTransaction(itemTransferModel: ItemTransferModel,
-                                recipientAddress: String,
+                                recipientAddress: Address,
                                 comment: String?) async throws -> String {
         switch itemTransferModel.transferItem {
         case .ton:
             return try await prepareSendTonTransaction(
                 value: itemTransferModel.amount,
-                address: recipientAddress,
+                recipientAddress: recipientAddress,
                 comment: comment)
         case .token(let tokenAddress, _):
             return try await prepareSendTokenTransaction(
                 tokenAddress: tokenAddress.toString(),
                 value: itemTransferModel.amount,
-                address: recipientAddress,
+                recipientAddress: recipientAddress,
                 comment: comment)
         }
     }
     
     func prepareSendTonTransaction(value: BigInt,
-                                   address: String,
+                                   recipientAddress: Address,
                                    comment: String?) async throws -> String {
         return try await sendExternalMessage { sender in
-            let recipient = try Address.parse(address)
-            
             let internalMessage: MessageRelaxed
             if let comment = comment {
-                internalMessage = try MessageRelaxed.internal(to: recipient,
+                internalMessage = try MessageRelaxed.internal(to: recipientAddress,
                                                               value: value.magnitude,
                                                               textPayload: comment)
             } else {
-                internalMessage = MessageRelaxed.internal(to: recipient,
+                internalMessage = MessageRelaxed.internal(to: recipientAddress,
                                                           value: value.magnitude)
             }
             return internalMessage
@@ -140,14 +138,12 @@ private extension SendController {
     
     func prepareSendTokenTransaction(tokenAddress: String,
                                      value: BigInt,
-                                     address: String,
+                                     recipientAddress: Address,
                                      comment: String?) async throws -> String {
         return try await sendExternalMessage { sender in
-            let recipient = try Address.parse(address)
-            
             let internalMessage = try JettonTransferMessage.internalMessage(jettonAddress: try Address.parse(tokenAddress),
                                                                             amount: value,
-                                                                            to: recipient,
+                                                                            to: recipientAddress,
                                                                             from: sender,
                                                                             comment: comment)
             return internalMessage

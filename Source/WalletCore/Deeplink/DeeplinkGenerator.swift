@@ -9,7 +9,8 @@ import Foundation
 import TonSwift
 
 public struct DeeplinkGenerator {
-    public func generateTransferDeeplink(with address: String) -> Deeplink {
-        Deeplink.ton(.transfer(address: address))
+    public func generateTransferDeeplink(with string: String) throws -> Deeplink {
+        let address = try Address.parse(string)
+        return Deeplink.ton(.transfer(address: address))
     }
 }

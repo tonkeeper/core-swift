@@ -9,6 +9,11 @@ import Foundation
 import TonSwift
 
 public struct Recipient {
-    let address: Address
-    let domain: String?
+    public let address: Address
+    public let domain: String?
+    
+    public init(address: Address, domain: String?) {
+        self.address = address
+        self.domain = domain
+    }
 }

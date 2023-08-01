@@ -57,7 +57,7 @@ struct SendConfirmationMapper {
                                                  amount: action.amount)
         return mapItemTransferModel(itemTranferModel,
                                     recipientAddress: action.recipient.address?.shortString,
-                                    recipientName: nil,
+                                    recipientName: action.recipient.name,
                                     fee: fee,
                                     comment: comment,
                                     rate: rate,

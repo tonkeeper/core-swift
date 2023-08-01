@@ -20,12 +20,12 @@ public enum Deeplink {
 }
 
 public enum TonDeeplink {
-    case transfer(address: String)
+    case transfer(address: Address)
     
     var path: String {
         switch self {
         case let .transfer(address):
-            return "transfer/\(address)"
+            return "transfer/\(address.toRaw())"
         }
     }
 }
