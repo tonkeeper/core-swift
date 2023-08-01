@@ -46,11 +46,24 @@ final class SendAssembly {
                        intAmountFormatter: formattersAssembly.intAmountFormatter,
                        bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
+    
+    func sendRecipientController(api: API) -> SendRecipientController {
+        SendRecipientController(domainService: dnsService(api: api),
+                                accountInfoService: accountInfoService(api: api))
+    }
 }
 
 private extension SendAssembly {
     func sendService(api: API) -> SendService {
         SendServiceImplementation(api: api)
+    }
+    
+    func dnsService(api: API) -> DNSService {
+        DNSServiceImplementation(api: api)
+    }
+    
+    func accountInfoService(api: API) -> AccountInfoService {
+        AccountInfoServiceImplementation(api: api)
     }
     
     func sendTokenMapper() -> SendTokenMapper {

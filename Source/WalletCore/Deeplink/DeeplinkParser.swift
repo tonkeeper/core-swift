@@ -26,7 +26,8 @@ public struct DeeplinkParser {
         case "ton":
             switch host {
             case "transfer":
-                return .ton(.transfer(address: url.lastPathComponent))
+                let addressString = url.lastPathComponent
+                return .ton(.transfer(address: try Address.parse(addressString)))
             default:
                 throw Error.failedToParse(string: string)
             }

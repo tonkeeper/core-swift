@@ -37,6 +37,10 @@ public final class WalletCoreContainer {
         walletCoreAssembly.sendController(walletProvider: keeperController())
     }
     
+    public func sendRecipientController() -> SendRecipientController {
+        walletCoreAssembly.sendRecipientController()
+    }
+    
     public func receiveController() -> ReceiveController {
         walletCoreAssembly.receiveController(walletProvider: keeperController())
     }

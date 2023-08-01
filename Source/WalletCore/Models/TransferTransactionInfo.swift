@@ -39,7 +39,9 @@ struct TransferTransactionInfo {
     }
     
     init(accountEvent: AccountEvent,
+         risk: Risk,
          transaction: Transaction) {
+        // TBD: When tonapi v2 will be fixed and in action will be correct jetton information - remove getting jetton info from Risk
         let actions = accountEvent.actions.compactMap { eventAction -> Action? in
             let type: ActionType
             let transferItem: ItemTransferModel.TransferItem
@@ -57,7 +59,8 @@ struct TransferTransactionInfo {
                 name = eventAction.simplePreview.name
                 comment = tonTransferAction.comment
             } else if let jettonTransferAction = eventAction.jettonTransfer,
-                      let tokenInfo = try? TokenInfo(jettonPreview: jettonTransferAction.jetton),
+                      let riskJettonPreview = risk.jettons.first?.jetton,
+                      let tokenInfo = try? TokenInfo(jettonPreview: riskJettonPreview),
                       let tokenWalletAddress = try? Address.parse(jettonTransferAction.recipientsWallet)  {
                 type = .jettonTransfer
                 transferItem = .token(tokenWalletAddress: tokenWalletAddress, tokenInfo: tokenInfo)
