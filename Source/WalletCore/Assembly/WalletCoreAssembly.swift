@@ -61,6 +61,10 @@ final class WalletCoreAssembly {
         )
     }
     
+    func sendRecipientController() -> SendRecipientController {
+        sendAssembly.sendRecipientController(api: tonAPI)
+    }
+    
     func receiveController(walletProvider: WalletProvider) -> ReceiveController {
         receiveAssembly.receiveController(walletProvider: walletProvider)
     }
