@@ -38,7 +38,9 @@ private extension APIAssembly {
     }
     
     var urlSession: URLSession {
-        .shared
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 15
+        return URLSession(configuration: configuration)
     }
     var urlRequestBuilder: URLRequestBuilder {
         URLRequestBuilder()

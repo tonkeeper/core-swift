@@ -32,6 +32,7 @@ final class SendServiceImplementation: SendService {
         let request = WalletEmulateRequest(boc: boc)
         let response = try await api.send(request: request)
         return TransferTransactionInfo(accountEvent: response.entity.event,
+                                       risk: response.entity.risk,
                                        transaction: response.entity.trace.transaction)
     }
     
