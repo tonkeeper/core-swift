@@ -12,7 +12,8 @@ import BigInt
 
 struct ActivityEvent {
     let eventId: String
-    let timestamp: Int64
+    let timestamp: TimeInterval
+    let account: WalletAccount
     let isScam: Bool
     let isInProgress: Bool
     let fee: Int64
@@ -20,9 +21,10 @@ struct ActivityEvent {
 }
 
 extension ActivityEvent {
-    init(accountEvent: AccountEvent) {
+    init(accountEvent: AccountEvent) throws {
         self.eventId = accountEvent.eventId
-        self.timestamp = accountEvent.timestamp
+        self.timestamp = TimeInterval(accountEvent.timestamp)
+        self.account = try WalletAccount(accountAddress: accountEvent.account)
         self.isScam = accountEvent.isScam
         self.isInProgress = accountEvent.isInProgress
         self.fee = accountEvent.extra

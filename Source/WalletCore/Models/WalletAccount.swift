@@ -9,7 +9,7 @@ import Foundation
 import TonSwift
 import TonAPI
 
-struct WalletAccount {
+struct WalletAccount: Equatable {
     let address: Address
     let name: String?
     let isScam: Bool

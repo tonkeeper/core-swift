@@ -10,8 +10,7 @@ import TonAPI
 import TonSwift
 
 protocol ActivityService {
-    func loadInitialEvents(address: Address, limit: Int) async throws -> ActivityEvents
-    func loadEvents(address: Address, from: Int64, limit: Int) async throws -> ActivityEvents
+    func loadEvents(address: Address, beforeLt: Int64?, limit: Int) async throws -> ActivityEvents
 }
 
 final class ActivityServiceImplementation: ActivityService {
@@ -21,30 +20,21 @@ final class ActivityServiceImplementation: ActivityService {
         self.api = api
     }
     
-    func loadInitialEvents(address: Address, limit: Int) async throws -> ActivityEvents {
+    func loadEvents(address: Address, beforeLt: Int64?, limit: Int) async throws -> ActivityEvents {
         let request = AccountEventsRequest(
             accountId: address.toString(),
-            beforeLt: nil,
+            beforeLt: beforeLt,
             limit: limit,
             startDate: nil,
             endDate: nil)
         let response = try await api.send(request: request)
         
-        let events: [ActivityEvent] = response.entity.events.map { ActivityEvent(accountEvent: $0) }
-        return ActivityEvents(events: events, nextFrom: response.entity.nextFrom)
-    }
-    
-    func loadEvents(address: Address, from: Int64, limit: Int) async throws -> ActivityEvents {
-        let request = AccountEventsRequest(
-            accountId: address.toString(),
-            beforeLt: nil,
-            limit: limit,
-            startDate: from,
-            endDate: nil)
-        let response = try await api.send(request: request)
-        
-        let events: [ActivityEvent] = response.entity.events.map { ActivityEvent(accountEvent: $0) }
-        return ActivityEvents(events: events, nextFrom: response.entity.nextFrom)
+        let events: [ActivityEvent] = response.entity.events.compactMap {
+            guard let activityEvent = try? ActivityEvent(accountEvent: $0) else { return nil }
+            return activityEvent
+        }
+                
+        return ActivityEvents(events: events, startFrom: beforeLt ?? 0, nextFrom: response.entity.nextFrom)
     }
 }
 

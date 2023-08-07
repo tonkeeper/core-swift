@@ -54,6 +54,10 @@ public final class WalletCoreContainer {
                                                        walletProvider: keeperController())
     }
     
+    public func activityListController() -> ActivityListController {
+        walletCoreAssembly.activityListController(walletProvider: keeperController())
+    }
+    
     public func deeplinkParser() -> DeeplinkParser {
         walletCoreAssembly.deeplinkParser()
     }
