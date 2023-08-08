@@ -23,4 +23,10 @@ final class FormattersAssembly {
     var bigIntAmountFormatter: BigIntAmountFormatter {
         BigIntAmountFormatter()
     }
+    
+    var dateFormatter: DateFormatter {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale.init(identifier: "EN")
+        return dateFormatter
+    }
 }

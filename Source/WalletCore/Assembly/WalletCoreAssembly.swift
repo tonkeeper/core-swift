@@ -88,7 +88,9 @@ final class WalletCoreAssembly {
     }
     
     func activityListController(walletProvider: WalletProvider) -> ActivityListController {
-        ActivityAssembly(coreAssembly: coreAssembly).activityListController(api: tonAPI, walletProvider: walletProvider, cacheURL: cacheURL)
+        ActivityAssembly(coreAssembly: coreAssembly,
+                         formattersAssembly: formattersAssembly)
+        .activityListController(api: tonAPI, walletProvider: walletProvider, cacheURL: cacheURL)
     }
     
     func deeplinkParser() -> DeeplinkParser {

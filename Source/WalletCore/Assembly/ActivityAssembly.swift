@@ -9,10 +9,13 @@ import Foundation
 import TonAPI
 
 struct ActivityAssembly {
+    let formattersAssembly: FormattersAssembly
     let coreAssembly: CoreAssembly
     
-    init(coreAssembly: CoreAssembly) {
+    init(coreAssembly: CoreAssembly,
+         formattersAssembly: FormattersAssembly) {
         self.coreAssembly = coreAssembly
+        self.formattersAssembly = formattersAssembly
     }
     
     func activityListController(api: API,
@@ -20,12 +23,18 @@ struct ActivityAssembly {
                                 cacheURL: URL) -> ActivityListController {
         return ActivityListController(activityService: activityService(api: api, cacheURL: cacheURL),
                                       walletProvider: walletProvider,
-                                      contractBuilder: WalletContractBuilder())
+                                      contractBuilder: WalletContractBuilder(),
+                                      activityEventMapper: activityEventMapper()
+        )
     }
 }
 
 private extension ActivityAssembly {
     func activityService(api: API, cacheURL: URL) -> ActivityService {
         ActivityServiceImplementation(api: api)
+    }
+    
+    func activityEventMapper() -> ActivityEventMapper {
+        ActivityEventMapper(dateFormatter: formattersAssembly.dateFormatter)
     }
 }

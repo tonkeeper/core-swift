@@ -8,15 +8,36 @@
 import Foundation
 
 struct ActivityEventMapper {
+    private let dateFormatter: DateFormatter
+    
+    init(dateFormatter: DateFormatter) {
+        self.dateFormatter = dateFormatter
+    }
+    
     func mapActivityEvent(_ event: ActivityEvent, dateFormat: String) -> ActivityEventViewModel {
         let eventDate = Date(timeIntervalSince1970: event.timestamp)
-        let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = dateFormat
         let date = dateFormatter.string(from: eventDate)
         let actionViewModels = event.actions.map { action in
             mapAction(action, activityEvent: event, date: date)
         }
         return ActivityEventViewModel(actions: actionViewModels)
+    }
+    
+    func mapEventsSectionDate(_ date: Date) -> String? {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else if calendar.isDate(date, equalTo: Date(), toGranularity: .month) {
+            dateFormatter.dateFormat = "d MMMM"
+        } else if calendar.isDate(date, equalTo: Date(), toGranularity: .year) {
+            dateFormatter.dateFormat = "LLLL"
+        } else {
+            dateFormatter.dateFormat = "LLLL y"
+        }
+        return dateFormatter.string(from: date).capitalized
     }
 }
 
