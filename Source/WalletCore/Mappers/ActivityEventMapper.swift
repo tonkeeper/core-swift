@@ -14,12 +14,12 @@ struct ActivityEventMapper {
         self.dateFormatter = dateFormatter
     }
     
-    func mapActivityEvent(_ event: ActivityEvent, dateFormat: String) -> ActivityEventViewModel {
+    func mapActivityEvent(_ event: ActivityEvent, dateFormat: String, collectibles: Collectibles) -> ActivityEventViewModel {
         let eventDate = Date(timeIntervalSince1970: event.timestamp)
         dateFormatter.dateFormat = dateFormat
         let date = dateFormatter.string(from: eventDate)
         let actionViewModels = event.actions.map { action in
-            mapAction(action, activityEvent: event, date: date)
+            mapAction(action, activityEvent: event, date: date, collectibles: collectibles)
         }
         return ActivityEventViewModel(actions: actionViewModels)
     }
@@ -42,7 +42,7 @@ struct ActivityEventMapper {
 }
 
 private extension ActivityEventMapper {
-    func mapAction(_ action: Action, activityEvent: ActivityEvent, date: String) -> ActivityEventViewModel.ActionViewModel {
+    func mapAction(_ action: Action, activityEvent: ActivityEvent, date: String, collectibles: Collectibles) -> ActivityEventViewModel.ActionViewModel {
         
         let dummy = ActivityEventViewModel.ActionViewModel(eventType: .endOfAuction,
                                                            amount: "420",
@@ -51,7 +51,8 @@ private extension ActivityEventMapper {
                                                            date: "Time",
                                                            rightTopDesription: "Right",
                                                            status: "Status",
-                                                           comment: "Comment")
+                                                           comment: "Comment",
+                                                           collectible: nil)
         
         switch action.type {
         case .tonTransfer(let tonTransfer):
@@ -67,20 +68,42 @@ private extension ActivityEventMapper {
                                            date: date,
                                            status: action.status.rawValue)
         case .auctionBid(let auctionBid):
-            return dummy
+            return mapAuctionBidAction(auctionBid,
+                                       activityEvent: activityEvent,
+                                       preview: action.preview,
+                                       date: date,
+                                       status: action.status.rawValue)
+        case .nftPurchase(let nftPurchase):
+            print(nftPurchase)
+            return mapNFTPurchaseAction(nftPurchase,
+                                        activityEvent: activityEvent,
+                                        preview: action.preview,
+                                        date: date,
+                                        status: action.status.rawValue)
         case .contractDeploy(let contractDeploy):
-            return dummy
+            return mapContractDeployAction(contractDeploy,
+                                           activityEvent: activityEvent,
+                                           preview: action.preview,
+                                           date: date,
+                                           status: action.status.rawValue)
+        case .smartContractExec(let smartContractExec):
+            return mapSmartContractExecAction(smartContractExec,
+                                              activityEvent: activityEvent,
+                                              preview: action.preview,
+                                              date: date,
+                                              status: action.status.rawValue)
+        case .nftItemTransfer(let nftItemTransfer):
+            return mapItemTransferAction(nftItemTransfer,
+                                         activityEvent: activityEvent,
+                                         preview: action.preview,
+                                         date: date,
+                                         status: action.status.rawValue,
+                                         collectibles: collectibles)
         case .depositStake(let depositStake):
             return dummy
         case .jettonSwap(let jettonSwap):
             return dummy
-        case .nftItemTransfer(let nftItemTransfer):
-            return dummy
-        case .nftPurchase(let nftPurchase):
-            return dummy
         case .recoverStake(let recoverStake):
-            return dummy
-        case .smartContract(let smartContract):
             return dummy
         case .subscribe(let subscribe):
             return dummy
@@ -113,9 +136,10 @@ private extension ActivityEventMapper {
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
                                                       date: date,
-                                                      rightTopDesription: nil,
+                                                      rightTopDesription: date,
                                                       status: status,
-                                                      comment: action.comment)
+                                                      comment: action.comment,
+                                                      collectible: nil)
     }
     
     func mapJettonTransferAction(_ action: Action.JettonTransfer,
@@ -142,8 +166,131 @@ private extension ActivityEventMapper {
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
                                                       date: date,
-                                                      rightTopDesription: nil,
+                                                      rightTopDesription: date,
                                                       status: status,
-                                                      comment: action.comment)
+                                                      comment: action.comment,
+                                                      collectible: nil)
+    }
+    
+    func mapAuctionBidAction(_ action: Action.AuctionBid,
+                             activityEvent: ActivityEvent,
+                             preview: Action.SimplePreview,
+                             date: String,
+                             status: String?) -> ActivityEventViewModel.ActionViewModel {
+        
+        var collectible: ActivityEventViewModel.ActionViewModel.CollectibleViewModel?
+        if let actionCollectible = action.collectible {
+            collectible = ActivityEventViewModel.ActionViewModel.CollectibleViewModel(name: actionCollectible.name, collectionName: actionCollectible.collection?.name, image: .url(actionCollectible.imageURL))
+        }
+        
+        return ActivityEventViewModel.ActionViewModel(eventType: .bid,
+                                                      amount: preview.value,
+                                                      leftTopDescription: action.bidder.address.shortString,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: nil,
+                                                      collectible: collectible)
+    }
+    
+    func mapNFTPurchaseAction(_ action: Action.NFTPurchase,
+                              activityEvent: ActivityEvent,
+                              preview: Action.SimplePreview,
+                              date: String,
+                              status: String?) -> ActivityEventViewModel.ActionViewModel {
+        
+        let collectibleViewModel = ActivityEventViewModel.ActionViewModel.CollectibleViewModel(
+            name: action.collectible.name,
+            collectionName: action.collectible.collection?.name,
+            image: .url(action.collectible.imageURL)
+        )
+        
+        return ActivityEventViewModel.ActionViewModel(eventType: .nftPurchase,
+                                                      amount: preview.value,
+                                                      leftTopDescription: action.seller.address.shortString,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: nil,
+                                                      collectible: collectibleViewModel)
+    }
+    
+    func mapContractDeployAction(_ action: Action.ContractDeploy,
+                                 activityEvent: ActivityEvent,
+                                 preview: Action.SimplePreview,
+                                 date: String,
+                                 status: String?) -> ActivityEventViewModel.ActionViewModel {
+        return ActivityEventViewModel.ActionViewModel(eventType: .walletInitialized,
+                                                      amount: "-",
+                                                      leftTopDescription: action.address.shortString,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: nil,
+                                                      collectible: nil)
+    }
+    
+    func mapSmartContractExecAction(_ action: Action.SmartContractExec,
+                                    activityEvent: ActivityEvent,
+                                    preview: Action.SimplePreview,
+                                    date: String,
+                                    status: String?) -> ActivityEventViewModel.ActionViewModel {
+        return ActivityEventViewModel.ActionViewModel(eventType: .contractExec,
+                                                      amount: preview.value,
+                                                      leftTopDescription: action.operation,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: nil,
+                                                      collectible: nil)
+    }
+    
+    func mapItemTransferAction(_ action: Action.NFTItemTransfer,
+                               activityEvent: ActivityEvent,
+                               preview: Action.SimplePreview,
+                               date: String,
+                               status: String?,
+                               collectibles: Collectibles) -> ActivityEventViewModel.ActionViewModel {
+        let eventType: ActivityEventViewModel.ActionViewModel.ActionType
+        let leftTopDescription: String?
+        
+        if activityEvent.isScam {
+            eventType = .spam
+            leftTopDescription = action.sender?.value
+        } else if action.sender == activityEvent.account {
+            eventType = .sent
+            leftTopDescription = action.recipient?.value
+        } else {
+            eventType = .receieved
+            leftTopDescription = action.sender?.value
+        }
+        
+        var collectible: ActivityEventViewModel.ActionViewModel.CollectibleViewModel?
+        if let actionCollectible = collectibles.collectibles[action.nftAddress] {
+            collectible = .init(name: actionCollectible.name,
+                                collectionName: actionCollectible.collection?.name,
+                                image: .url(actionCollectible.imageURL))
+        }
+        
+        return ActivityEventViewModel.ActionViewModel(eventType: eventType,
+                                                      amount: "NFT",
+                                                      leftTopDescription: leftTopDescription,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: action.comment,
+                                                      collectible: collectible)
+    }
+}
+
+private extension WalletAccount {
+    var value: String {
+        if let name = name { return name }
+        return address.shortString
     }
 }

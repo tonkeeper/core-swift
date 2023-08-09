@@ -35,7 +35,7 @@ struct Action {
         case depositStake(DepositStake)
         case recoverStake(RecoverStake)
         case jettonSwap(JettonSwap)
-        case smartContract(SmartContract)
+        case smartContractExec(SmartContractExec)
     }
     
     struct TonTransfer {
@@ -117,7 +117,7 @@ struct Action {
         let tokenInfoOut: TokenInfo
     }
 
-    struct SmartContract {
+    struct SmartContractExec {
         let executor: WalletAccount
         let contract: WalletAccount
         let tonAttached: Int64

@@ -19,6 +19,7 @@ public actor ActivityListController {
     // MARK: - Dependencies
     
     private let activityService: ActivityService
+    private let collectiblesService: CollectiblesService
     private let walletProvider: WalletProvider
     private let contractBuilder: WalletContractBuilder
     private let activityEventMapper: ActivityEventMapper
@@ -30,19 +31,21 @@ public actor ActivityListController {
         nextFrom != 0
     }
     
-    private let limit: Int = 2
+    private let limit: Int = 25
     private var nextFrom: Int64?
-    private var loadEventsTask: Task<[ActivityEvent], Error>?
+    private var loadEventsTask: Task<([ActivityEvent], Collectibles), Error>?
     
     public private(set) var eventsSections = [EventsSection]()
     private var eventsSectionIndexTable = [Date: Int]()
     private var events = [String: ActivityEvent]()
 
     init(activityService: ActivityService,
+         collectiblesService: CollectiblesService,
          walletProvider: WalletProvider,
          contractBuilder: WalletContractBuilder,
          activityEventMapper: ActivityEventMapper) {
         self.activityService = activityService
+        self.collectiblesService = collectiblesService
         self.walletProvider = walletProvider
         self.contractBuilder = contractBuilder
         self.activityEventMapper = activityEventMapper
@@ -50,20 +53,20 @@ public actor ActivityListController {
     
     public func loadNextEvents() async throws -> [String: ActivityEventViewModel] {
         loadEventsTask?.cancel()
-        let loadEventsTask = Task {
+        let task = Task {
             defer {
                 isLoading = false
             }
             isLoading = true
-            let events = try await activityService.loadEvents(address: try getAddress(), beforeLt: nextFrom, limit: limit)
+            let loadedEvents = try await activityService.loadEvents(address: try getAddress(), beforeLt: nextFrom, limit: limit)
             try Task.checkCancellation()
-            self.nextFrom = events.nextFrom
-            return events.events
+            let collectibles = try await loadEventsCollectibles(events: loadedEvents.events)
+            try Task.checkCancellation()
+            self.nextFrom = loadedEvents.nextFrom
+            return (loadedEvents.events, collectibles)
         }
-        self.loadEventsTask = loadEventsTask
-    
-        let loadedEvents = try await loadEventsTask.value
-        let viewModels = handleLoadedEvents(loadedEvents: loadedEvents)
+        let taskValue = try await task.value
+        let viewModels = handleLoadedEvents(loadedEvents: taskValue.0, collectibles: taskValue.1)
         return viewModels
     }
 }
@@ -79,7 +82,7 @@ private extension ActivityListController {
         return try contract.address()
     }
     
-    func handleLoadedEvents(loadedEvents: [ActivityEvent]) -> [String: ActivityEventViewModel] {
+    func handleLoadedEvents(loadedEvents: [ActivityEvent], collectibles: Collectibles) -> [String: ActivityEventViewModel] {
         let calendar = Calendar.current
         
         var viewModels = [String: ActivityEventViewModel]()
@@ -95,7 +98,7 @@ private extension ActivityListController {
                 dateFormat = "HH:mm"
             } else {
                 dateComponents = calendar.dateComponents([.year, .month], from: eventDate)
-                dateFormat = "MMM dd 'at' HH:mm"
+                dateFormat = "MMM d 'at' HH:mm"
             }
             
             guard let groupDate = calendar.date(from: dateComponents) else { continue }
@@ -109,9 +112,26 @@ private extension ActivityListController {
             }
 
             events[event.eventId] = event
-            viewModels[event.eventId] = activityEventMapper.mapActivityEvent(event, dateFormat: dateFormat)
+            viewModels[event.eventId] = activityEventMapper.mapActivityEvent(event, dateFormat: dateFormat, collectibles: collectibles)
         }
         
         return viewModels
+    }
+    
+    func loadEventsCollectibles(events: [ActivityEvent]) async throws -> Collectibles {
+        let nftItemsAddresses = events.map { event in
+            return event.actions.compactMap { action -> Address? in
+                guard case let .nftItemTransfer(nftItem) = action.type else { return nil }
+                return nftItem.nftAddress
+            }
+        }.flatMap { $0 }
+        guard !nftItemsAddresses.isEmpty else { return Collectibles(collectibles: [:]) }
+        
+        do {
+            return try await collectiblesService.loadCollectibles(addresses: nftItemsAddresses)
+        } catch {
+            guard let cachedCollectibles = try? collectiblesService.getCollectibles() else { return Collectibles(collectibles: [:]) }
+            return cachedCollectibles
+        }
     }
 }

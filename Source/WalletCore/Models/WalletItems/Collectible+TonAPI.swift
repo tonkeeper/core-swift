@@ -30,6 +30,11 @@ extension Collectible {
             collection = Collection(address: address, name: nftCollection.name)
         }
         
+        if imageURL == nil,
+           let previewURLString = nftItem.previews?[2].url,
+           let previewURL = URL(string: previewURLString) {
+            imageURL = previewURL
+        }
         
         self.address = address
         self.name = name

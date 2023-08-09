@@ -163,12 +163,12 @@ extension Action.JettonSwap {
     }
 }
 
-extension Action.SmartContract {
-    init(smartContract: SmartContractAction) throws {
-        self.executor = try WalletAccount(accountAddress: smartContract.executor)
-        self.contract = try WalletAccount(accountAddress: smartContract.contract)
-        self.tonAttached = smartContract.tonAttached
-        self.operation = smartContract.operation
-        self.payload = smartContract.payload
+extension Action.SmartContractExec {
+    init(smartContractExec: SmartContractAction) throws {
+        self.executor = try WalletAccount(accountAddress: smartContractExec.executor)
+        self.contract = try WalletAccount(accountAddress: smartContractExec.contract)
+        self.tonAttached = smartContractExec.tonAttached
+        self.operation = smartContractExec.operation
+        self.payload = smartContractExec.payload
     }
 }

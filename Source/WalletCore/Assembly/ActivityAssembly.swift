@@ -22,6 +22,7 @@ struct ActivityAssembly {
                                 walletProvider: WalletProvider,
                                 cacheURL: URL) -> ActivityListController {
         return ActivityListController(activityService: activityService(api: api, cacheURL: cacheURL),
+                                      collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
                                       walletProvider: walletProvider,
                                       contractBuilder: WalletContractBuilder(),
                                       activityEventMapper: activityEventMapper()
@@ -34,7 +35,19 @@ private extension ActivityAssembly {
         ActivityServiceImplementation(api: api)
     }
     
+    func collectiblesService(api: API, cacheURL: URL) -> CollectiblesService {
+        CollectiblesServiceImplementation(api: api,
+                                          localRepository: localRepository(cacheURL: cacheURL))
+    }
+    
     func activityEventMapper() -> ActivityEventMapper {
         ActivityEventMapper(dateFormatter: formattersAssembly.dateFormatter)
+    }
+    
+    func localRepository(cacheURL: URL) -> any LocalRepository<Collectibles> {
+        return LocalDiskRepository(fileManager: coreAssembly.fileManager,
+                                   directory: cacheURL,
+                                   encoder: coreAssembly.encoder,
+                                   decoder: coreAssembly.decoder)
     }
 }
