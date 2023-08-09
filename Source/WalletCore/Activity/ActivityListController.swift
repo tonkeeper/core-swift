@@ -69,6 +69,16 @@ public actor ActivityListController {
         let viewModels = handleLoadedEvents(loadedEvents: taskValue.0, collectibles: taskValue.1)
         return viewModels
     }
+    
+    public func reset() {
+        loadEventsTask?.cancel()
+        loadEventsTask = nil
+        isLoading = false
+        nextFrom = nil
+        eventsSections = []
+        eventsSectionIndexTable = [:]
+        events = [:]
+    }
 }
 
 private extension ActivityListController {
