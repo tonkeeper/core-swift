@@ -93,6 +93,7 @@ struct Action {
         let collectible: Collectible
         let seller: WalletAccount
         let buyer: WalletAccount
+        let price: BigInt
     }
 
     struct DepositStake {

@@ -41,7 +41,9 @@ private extension ActivityAssembly {
     }
     
     func activityEventMapper() -> ActivityEventMapper {
-        ActivityEventMapper(dateFormatter: formattersAssembly.dateFormatter)
+        ActivityEventMapper(dateFormatter: formattersAssembly.dateFormatter,
+                            bigIntFormatter: formattersAssembly.bigIntAmountFormatter,
+                            intAmountFormatter: formattersAssembly.intAmountFormatter)
     }
     
     func localRepository(cacheURL: URL) -> any LocalRepository<Collectibles> {

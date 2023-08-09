@@ -10,10 +10,6 @@ import TonSwift
 import TonAPI
 import BigInt
 
-extension Action {
-    
-}
-
 extension Action.SimplePreview {
     init(simplePreview: ActionSimplePreview) throws {
         self.name = simplePreview.name
@@ -132,6 +128,7 @@ extension Action.NFTPurchase {
         self.collectible = try Collectible(nftItem: nftPurchase.nft)
         self.seller = try WalletAccount(accountAddress: nftPurchase.seller)
         self.buyer = try WalletAccount(accountAddress: nftPurchase.buyer)
+        self.price = BigInt(stringLiteral: nftPurchase.amount.value)
     }
 }
 

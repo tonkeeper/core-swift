@@ -6,12 +6,19 @@
 //
 
 import Foundation
+import BigInt
 
 struct ActivityEventMapper {
     private let dateFormatter: DateFormatter
+    private let bigIntFormatter: BigIntAmountFormatter
+    private let intAmountFormatter: IntAmountFormatter
     
-    init(dateFormatter: DateFormatter) {
+    init(dateFormatter: DateFormatter,
+         bigIntFormatter: BigIntAmountFormatter,
+         intAmountFormatter: IntAmountFormatter) {
         self.dateFormatter = dateFormatter
+        self.bigIntFormatter = bigIntFormatter
+        self.intAmountFormatter = intAmountFormatter
     }
     
     func mapActivityEvent(_ event: ActivityEvent, dateFormat: String, collectibles: Collectibles) -> ActivityEventViewModel {
@@ -74,7 +81,6 @@ private extension ActivityEventMapper {
                                        date: date,
                                        status: action.status.rawValue)
         case .nftPurchase(let nftPurchase):
-            print(nftPurchase)
             return mapNFTPurchaseAction(nftPurchase,
                                         activityEvent: activityEvent,
                                         preview: action.preview,
@@ -117,22 +123,30 @@ private extension ActivityEventMapper {
                               preview: Action.SimplePreview,
                               date: String,
                               status: String?) -> ActivityEventViewModel.ActionViewModel {
+        let tonInfo = TonInfo()
+        let amount = bigIntFormatter.format(amount: BigInt(integerLiteral: action.amount),
+                                            fractionDigits: tonInfo.fractionDigits,
+                                            maximumFractionDigits: tonInfo.fractionDigits,
+                                            symbol: nil)
         let eventType: ActivityEventViewModel.ActionViewModel.ActionType
         let leftTopDescription: String
+        let sign: String
         if activityEvent.isScam {
             eventType = .spam
-            leftTopDescription = action.sender.address.shortString
-        } else if action.sender == activityEvent.account {
-            eventType = .sent
-            leftTopDescription = action.recipient.address.shortString
-        } else {
+            leftTopDescription = action.sender.value
+            sign = "+"
+        } else if action.recipient == activityEvent.account {
             eventType = .receieved
-            leftTopDescription = action.sender.address.shortString
+            leftTopDescription = action.sender.value
+            sign = "+"
+        } else {
+            eventType = .sent
+            leftTopDescription = action.recipient.value
+            sign = "-"
         }
         
-        
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,
-                                                      amount: preview.value,
+                                                      amount: "\(sign)\(amount) \(tonInfo.symbol)",
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
                                                       date: date,
@@ -149,20 +163,31 @@ private extension ActivityEventMapper {
                                  status: String?) -> ActivityEventViewModel.ActionViewModel {
         let eventType: ActivityEventViewModel.ActionViewModel.ActionType
         let leftTopDescription: String?
-        
+        let sign: String
         if activityEvent.isScam {
             eventType = .spam
-            leftTopDescription = action.sender?.address.shortString ?? nil
-        } else if action.sender == activityEvent.account {
-            eventType = .sent
-            leftTopDescription = action.recipient?.address.shortString ?? nil
-        } else {
+            leftTopDescription = action.sender?.value ?? nil
+            sign = " "
+        } else if action.recipient == activityEvent.account {
             eventType = .receieved
-            leftTopDescription = action.sender?.address.shortString ?? nil
+            leftTopDescription = action.sender?.value ?? nil
+            sign = "+"
+        } else {
+            eventType = .sent
+            leftTopDescription = action.recipient?.value ?? nil
+            sign = "-"
+        }
+        
+        var amount = sign + bigIntFormatter.format(amount: action.amount,
+                                                   fractionDigits: action.tokenInfo.fractionDigits,
+                                                   maximumFractionDigits: action.tokenInfo.fractionDigits,
+                                                   symbol: nil)
+        if let symbol = action.tokenInfo.symbol {
+            amount += " \(symbol)"
         }
         
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,
-                                                      amount: preview.value,
+                                                      amount: amount,
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
                                                       date: date,
@@ -185,7 +210,7 @@ private extension ActivityEventMapper {
         
         return ActivityEventViewModel.ActionViewModel(eventType: .bid,
                                                       amount: preview.value,
-                                                      leftTopDescription: action.bidder.address.shortString,
+                                                      leftTopDescription: action.bidder.value,
                                                       leftBottomDescription: nil,
                                                       date: date,
                                                       rightTopDesription: date,
@@ -206,9 +231,21 @@ private extension ActivityEventMapper {
             image: .url(action.collectible.imageURL)
         )
         
+        let tonInfo = TonInfo()
+        var amount = bigIntFormatter.format(amount: action.price,
+                                            fractionDigits: tonInfo.fractionDigits,
+                                            maximumFractionDigits: tonInfo.fractionDigits,
+                                            symbol: nil)
+        
+        if action.buyer == activityEvent.account {
+            amount = "- \(amount) \(tonInfo.symbol)"
+        } else {
+            amount = "+ \(amount) \(tonInfo.symbol)"
+        }
+        
         return ActivityEventViewModel.ActionViewModel(eventType: .nftPurchase,
-                                                      amount: preview.value,
-                                                      leftTopDescription: action.seller.address.shortString,
+                                                      amount: amount,
+                                                      leftTopDescription: action.seller.value,
                                                       leftBottomDescription: nil,
                                                       date: date,
                                                       rightTopDesription: date,
@@ -238,8 +275,21 @@ private extension ActivityEventMapper {
                                     preview: Action.SimplePreview,
                                     date: String,
                                     status: String?) -> ActivityEventViewModel.ActionViewModel {
+        
+        let tonInfo = TonInfo()
+        var amount = bigIntFormatter.format(amount: BigInt(integerLiteral: action.tonAttached),
+                                            fractionDigits: tonInfo.fractionDigits,
+                                            maximumFractionDigits: tonInfo.fractionDigits,
+                                            symbol: nil)
+        
+        if action.executor == activityEvent.account {
+            amount = "- \(amount) \(tonInfo.symbol)"
+        } else {
+            amount = "+ \(amount) \(tonInfo.symbol)"
+        }
+        
         return ActivityEventViewModel.ActionViewModel(eventType: .contractExec,
-                                                      amount: preview.value,
+                                                      amount: amount,
                                                       leftTopDescription: action.operation,
                                                       leftBottomDescription: nil,
                                                       date: date,
