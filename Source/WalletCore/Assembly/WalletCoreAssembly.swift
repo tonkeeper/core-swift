@@ -90,7 +90,31 @@ final class WalletCoreAssembly {
     func activityListController(walletProvider: WalletProvider) -> ActivityListController {
         ActivityAssembly(coreAssembly: coreAssembly,
                          formattersAssembly: formattersAssembly)
-        .activityListController(api: tonAPI, walletProvider: walletProvider, cacheURL: cacheURL)
+        .activityListController(api: tonAPI, 
+                                walletProvider: walletProvider,
+                                cacheURL: cacheURL
+        )
+    }
+    
+    func activityListTonEventsController(walletProvider: WalletProvider) -> ActivityListController {
+        ActivityAssembly(coreAssembly: coreAssembly,
+                         formattersAssembly: formattersAssembly)
+        .activityListTonEventsController(
+            api: tonAPI,
+            walletProvider: walletProvider,
+            cacheURL: cacheURL
+        )
+    }
+    
+    func activityListTokenEventsController(walletProvider: WalletProvider, tokenInfo: TokenInfo) -> ActivityListController {
+        ActivityAssembly(coreAssembly: coreAssembly,
+                         formattersAssembly: formattersAssembly)
+        .activityListTokenEventsController(
+            api: tonAPI,
+            walletProvider: walletProvider,
+            cacheURL: cacheURL,
+            tokenInfo: tokenInfo
+        )
     }
     
     func deeplinkParser() -> DeeplinkParser {

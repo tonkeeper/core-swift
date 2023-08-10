@@ -18,7 +18,7 @@ public actor ActivityListController {
     
     // MARK: - Dependencies
     
-    private let activityService: ActivityService
+    private let activityListLoader: ActivityListLoader
     private let collectiblesService: CollectiblesService
     private let walletProvider: WalletProvider
     private let contractBuilder: WalletContractBuilder
@@ -33,18 +33,18 @@ public actor ActivityListController {
     
     private let limit: Int = 25
     private var nextFrom: Int64?
-    private var loadEventsTask: Task<([ActivityEvent], Collectibles), Error>?
+    private var loadEventsTask: Task<(ActivityEvents, Collectibles), Error>?
     
     public private(set) var eventsSections = [EventsSection]()
     private var eventsSectionIndexTable = [Date: Int]()
     private var events = [String: ActivityEvent]()
 
-    init(activityService: ActivityService,
+    init(activityListLoader: ActivityListLoader,
          collectiblesService: CollectiblesService,
          walletProvider: WalletProvider,
          contractBuilder: WalletContractBuilder,
          activityEventMapper: ActivityEventMapper) {
-        self.activityService = activityService
+        self.activityListLoader = activityListLoader
         self.collectiblesService = collectiblesService
         self.walletProvider = walletProvider
         self.contractBuilder = contractBuilder
@@ -58,15 +58,22 @@ public actor ActivityListController {
                 isLoading = false
             }
             isLoading = true
-            let loadedEvents = try await activityService.loadEvents(address: try getAddress(), beforeLt: nextFrom, limit: limit)
+            let loadedEvents = try await activityListLoader.loadEvents(
+                address: try getAddress(),
+                beforeLt: nextFrom,
+                limit: limit
+            )
             try Task.checkCancellation()
             let collectibles = try await loadEventsCollectibles(events: loadedEvents.events)
             try Task.checkCancellation()
             self.nextFrom = loadedEvents.nextFrom
-            return (loadedEvents.events, collectibles)
+            return (loadedEvents, collectibles)
         }
         let taskValue = try await task.value
-        let viewModels = handleLoadedEvents(loadedEvents: taskValue.0, collectibles: taskValue.1)
+        if taskValue.0.events.isEmpty && taskValue.0.nextFrom != 0 {
+            return try await loadNextEvents()
+        }
+        let viewModels = handleLoadedEvents(loadedEvents: taskValue.0.events, collectibles: taskValue.1)
         return viewModels
     }
     

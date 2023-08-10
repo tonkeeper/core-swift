@@ -1,6 +1,6 @@
 //
 //  ActivityAssembly.swift
-//  
+//
 //
 //  Created by Grigory on 4.8.23..
 //
@@ -21,7 +21,32 @@ struct ActivityAssembly {
     func activityListController(api: API,
                                 walletProvider: WalletProvider,
                                 cacheURL: URL) -> ActivityListController {
-        return ActivityListController(activityService: activityService(api: api, cacheURL: cacheURL),
+        return ActivityListController(activityListLoader: activityListLoader(api: api, cacheURL: cacheURL),
+                                      collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
+                                      walletProvider: walletProvider,
+                                      contractBuilder: WalletContractBuilder(),
+                                      activityEventMapper: activityEventMapper()
+        )
+    }
+    
+    func activityListTonEventsController(api: API,
+                                         walletProvider: WalletProvider,
+                                         cacheURL: URL) -> ActivityListController {
+        return ActivityListController(activityListLoader: activityListTonEventsLoader(api: api, cacheURL: cacheURL),
+                                      collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
+                                      walletProvider: walletProvider,
+                                      contractBuilder: WalletContractBuilder(),
+                                      activityEventMapper: activityEventMapper()
+        )
+    }
+    
+    func activityListTokenEventsController(api: API,
+                                           walletProvider: WalletProvider,
+                                           cacheURL: URL,
+                                           tokenInfo: TokenInfo) -> ActivityListController {
+        return ActivityListController(activityListLoader: activityListTokenEventsLoader(api: api,
+                                                                                        cacheURL: cacheURL,
+                                                                                        tokenInfo: tokenInfo),
                                       collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
                                       walletProvider: walletProvider,
                                       contractBuilder: WalletContractBuilder(),
@@ -47,9 +72,24 @@ private extension ActivityAssembly {
     }
     
     func localRepository(cacheURL: URL) -> any LocalRepository<Collectibles> {
-        return LocalDiskRepository(fileManager: coreAssembly.fileManager,
-                                   directory: cacheURL,
-                                   encoder: coreAssembly.encoder,
-                                   decoder: coreAssembly.decoder)
+        LocalDiskRepository(fileManager: coreAssembly.fileManager,
+                            directory: cacheURL,
+                            encoder: coreAssembly.encoder,
+                            decoder: coreAssembly.decoder)
+    }
+    
+    func activityListLoader(api: API, cacheURL: URL) -> ActivityListLoader {
+        ActivityListAllEventsLoader(activityService: activityService(api: api, cacheURL: cacheURL))
+    }
+    
+    func activityListTonEventsLoader(api: API, cacheURL: URL) -> ActivityListLoader {
+        ActivityListTonEventsLoader(activityService: activityService(api: api, cacheURL: cacheURL))
+    }
+    
+    func activityListTokenEventsLoader(api: API, cacheURL: URL, tokenInfo: TokenInfo) -> ActivityListLoader {
+        ActivityListTokenEventsLoader(
+            tokenInfo: tokenInfo,
+            activityService: activityService(api: api, cacheURL: cacheURL)
+        )
     }
 }
