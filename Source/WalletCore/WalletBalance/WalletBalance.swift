@@ -58,6 +58,10 @@ public struct TokenInfo: Codable, Equatable {
     public var symbol: String?
     public var description: String?
     public var imageURL: URL?
+    
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.address == rhs.address
+    }
 }
 
 struct AppBalance {
