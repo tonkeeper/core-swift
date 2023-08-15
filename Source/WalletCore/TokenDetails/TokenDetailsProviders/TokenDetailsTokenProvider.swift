@@ -11,6 +11,8 @@ import BigInt
 struct TokenDetailsTokenProvider: TokenDetailsProvider {
     weak var output: TokenDetailsControllerOutput?
     
+    var hasChart: Bool { false }
+    
     private let tokenInfo: TokenInfo
     private let walletItemMapper: WalletItemMapper
     private let ratesService: RatesService

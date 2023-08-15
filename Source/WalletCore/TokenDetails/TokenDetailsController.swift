@@ -91,4 +91,8 @@ public final class TokenDetailsController {
     public func handleBuy() {
         tokenDetailsProvider.handleBuy()
     }
+    
+    public func hasChart() -> Bool {
+        tokenDetailsProvider.hasChart
+    }
 }
