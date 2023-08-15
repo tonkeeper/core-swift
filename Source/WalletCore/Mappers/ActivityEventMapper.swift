@@ -231,17 +231,14 @@ private extension ActivityEventMapper {
             image: .url(action.collectible.imageURL)
         )
         
+        let sign = action.buyer == activityEvent.account ? "-" : "+"
+        
         let tonInfo = TonInfo()
         var amount = bigIntFormatter.format(amount: action.price,
                                             fractionDigits: tonInfo.fractionDigits,
                                             maximumFractionDigits: tonInfo.fractionDigits,
                                             symbol: nil)
-        
-        if action.buyer == activityEvent.account {
-            amount = "- \(amount) \(tonInfo.symbol)"
-        } else {
-            amount = "+ \(amount) \(tonInfo.symbol)"
-        }
+        amount = "\(sign) \(amount) \(tonInfo.symbol)"
         
         return ActivityEventViewModel.ActionViewModel(eventType: .nftPurchase,
                                                       amount: amount,
@@ -282,15 +279,12 @@ private extension ActivityEventMapper {
                                             maximumFractionDigits: tonInfo.fractionDigits,
                                             symbol: nil)
         
-        if action.executor == activityEvent.account {
-            amount = "- \(amount) \(tonInfo.symbol)"
-        } else {
-            amount = "+ \(amount) \(tonInfo.symbol)"
-        }
+        let sign = action.executor == activityEvent.account ? "-" : "+"
+        amount = "\(sign) \(amount) \(tonInfo.symbol)"
         
         return ActivityEventViewModel.ActionViewModel(eventType: .contractExec,
                                                       amount: amount,
-                                                      leftTopDescription: action.operation,
+                                                      leftTopDescription: action.contract.value,
                                                       leftBottomDescription: nil,
                                                       date: date,
                                                       rightTopDesription: date,

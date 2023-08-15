@@ -66,7 +66,7 @@ public actor ActivityListController {
             try Task.checkCancellation()
             let collectibles = try await loadEventsCollectibles(events: loadedEvents.events)
             try Task.checkCancellation()
-            self.nextFrom = loadedEvents.nextFrom
+            self.nextFrom = loadedEvents.events.count < limit ? 0 : loadedEvents.nextFrom
             return (loadedEvents, collectibles)
         }
         let taskValue = try await task.value
