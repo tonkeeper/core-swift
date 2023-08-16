@@ -59,6 +59,6 @@ private extension APIAssembly {
     }
     
     var configurationAPIURL: URL {
-        URL(string: "https://api.tonkeeper.com/keys")!
+        URL(string: "https://api.tonkeeper.com")!
     }
 }
