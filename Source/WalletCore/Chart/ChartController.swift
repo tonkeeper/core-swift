@@ -16,6 +16,17 @@ public final class ChartController {
         case halfYear
         case year
         
+        public var title: String {
+            switch self {
+            case .hour: return "H"
+            case .day: return "D"
+            case .week: return "W"
+            case .month: return "M"
+            case .halfYear: return "6M"
+            case .year: return "Y"
+            }
+        }
+        
         var stringValue: String {
             switch self {
             case .hour: return "1H"
