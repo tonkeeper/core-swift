@@ -9,6 +9,8 @@ import Foundation
 
 struct TokenDetailsTonProvider: TokenDetailsProvider {
     weak var output: TokenDetailsControllerOutput?
+    
+    var hasChart: Bool { true }
 
     private let walletItemMapper: WalletItemMapper
     private let ratesService: RatesService

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TonAPI
 
 struct TokenDetailsAssembly {
     let formattersAssembly: FormattersAssembly
@@ -36,6 +37,10 @@ struct TokenDetailsAssembly {
             balanceService: balaceService)
         return tokenDetailsController
     }
+    
+    func chartController(api: API) -> ChartController {
+        ChartController(chartService: chartService(api: api))
+    }
 }
 
 private extension TokenDetailsAssembly {
@@ -58,5 +63,9 @@ private extension TokenDetailsAssembly {
             decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
             rateConverter: RateConverter()
         )
+    }
+    
+    func chartService(api: API) -> ChartService {
+        ChartServiceImplementation(api: api)
     }
 }

@@ -117,6 +117,10 @@ final class WalletCoreAssembly {
         )
     }
     
+    func chartController() -> ChartController {
+        tokenDetailsAssembly.chartController(api: configurationAPI)
+    }
+    
     func deeplinkParser() -> DeeplinkParser {
         deeplinkAssembly.deeplinkParser
     }
