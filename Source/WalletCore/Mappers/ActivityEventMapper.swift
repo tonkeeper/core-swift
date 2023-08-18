@@ -25,7 +25,7 @@ struct ActivityEventMapper {
         let eventDate = Date(timeIntervalSince1970: event.timestamp)
         dateFormatter.dateFormat = dateFormat
         let date = dateFormatter.string(from: eventDate)
-        let actionViewModels = event.actions.map { action in
+        let actionViewModels = event.actions.compactMap { action in
             mapAction(action, activityEvent: event, date: date, collectibles: collectibles)
         }
         return ActivityEventViewModel(actions: actionViewModels)
@@ -49,18 +49,8 @@ struct ActivityEventMapper {
 }
 
 private extension ActivityEventMapper {
-    func mapAction(_ action: Action, activityEvent: ActivityEvent, date: String, collectibles: Collectibles) -> ActivityEventViewModel.ActionViewModel {
-        
-        let dummy = ActivityEventViewModel.ActionViewModel(eventType: .endOfAuction,
-                                                           amount: "420",
-                                                           leftTopDescription: "Left",
-                                                           leftBottomDescription: "Right",
-                                                           date: "Time",
-                                                           rightTopDesription: "Right",
-                                                           status: "Status",
-                                                           comment: "Comment",
-                                                           collectible: nil)
-        
+    func mapAction(_ action: Action, activityEvent: ActivityEvent, date: String, collectibles: Collectibles) -> ActivityEventViewModel.ActionViewModel? {
+
         switch action.type {
         case .tonTransfer(let tonTransfer):
             return mapTonTransferAction(tonTransfer,
@@ -106,15 +96,15 @@ private extension ActivityEventMapper {
                                          status: action.status.rawValue,
                                          collectibles: collectibles)
         case .depositStake(let depositStake):
-            return dummy
+            return nil
         case .jettonSwap(let jettonSwap):
-            return dummy
+            return nil
         case .recoverStake(let recoverStake):
-            return dummy
+            return nil
         case .subscribe(let subscribe):
-            return dummy
+            return nil
         case .unsubscribe(let unsubscribe):
-            return dummy
+            return nil
         }
     }
     
