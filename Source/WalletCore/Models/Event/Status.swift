@@ -15,7 +15,7 @@ enum Status {
     var rawValue: String? {
         switch self {
         case .ok: return nil
-        case .failed: return "failed"
+        case .failed: return "Failed"
         case .unknown(let value):
             return value
         }
