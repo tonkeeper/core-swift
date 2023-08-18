@@ -54,6 +54,7 @@ public actor ChartController {
         let task = Task {
             let coordinates = try await chartService.loadChartData(period: period.stringValue)
             try Task.checkCancellation()
+            loadChartDataTask = nil
             return coordinates
         }
         self.loadChartDataTask = task
