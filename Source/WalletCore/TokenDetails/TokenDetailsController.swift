@@ -95,4 +95,8 @@ public final class TokenDetailsController {
     public func hasChart() -> Bool {
         tokenDetailsProvider.hasChart
     }
+    
+    public var hasAbout: Bool {
+        tokenDetailsProvider.hasAbout
+    }
 }

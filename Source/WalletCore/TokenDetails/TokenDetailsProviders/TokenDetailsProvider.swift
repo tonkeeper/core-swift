@@ -11,6 +11,7 @@ protocol TokenDetailsProvider {
     var output: TokenDetailsControllerOutput? { get set }
     
     var hasChart: Bool { get }
+    var hasAbout: Bool { get }
     
     func getHeader(walletBalance: WalletBalance,
                    currency: Currency) -> TokenDetailsController.TokenDetailsHeader

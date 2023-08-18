@@ -11,6 +11,7 @@ struct TokenDetailsTonProvider: TokenDetailsProvider {
     weak var output: TokenDetailsControllerOutput?
     
     var hasChart: Bool { true }
+    var hasAbout: Bool { true }
 
     private let walletItemMapper: WalletItemMapper
     private let ratesService: RatesService
