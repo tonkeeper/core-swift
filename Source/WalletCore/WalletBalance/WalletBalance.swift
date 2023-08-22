@@ -16,12 +16,10 @@ struct WalletBalance: Codable, LocalStorable {
     let previousRevisionsBalances: [TonBalance]
     let collectibles: [Collectible]
     
-    var fileName: String {
-        return walletAddress.toString()
-    }
+    typealias KeyType = String
     
-    static var fileName: String {
-        ""
+    var key: String {
+        walletAddress.toString()
     }
 }
 

@@ -28,5 +28,9 @@ struct Rates: Codable, LocalStorable {
     var fileName: String {
         String(describing: type(of: self))
     }
+    
+    var key: String {
+        return fileName
+    }
 }
 

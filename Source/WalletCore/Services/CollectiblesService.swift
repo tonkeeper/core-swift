@@ -10,28 +10,34 @@ import TonAPI
 import TonSwift
 
 struct Collectibles: LocalStorable {
+    typealias KeyType = String
+    
     let collectibles: [Address: Collectible]
     
-    static var fileName: String {
-        String(describing: self)
+    var key: String {
+        fileName
     }
-    
-    var fileName: String {
-        String(describing: type(of: self))
+}
+
+extension Collectible: LocalStorable {
+    typealias KeyType = String
+    var key: String {
+        address.toString()
     }
 }
 
 protocol CollectiblesService {
     func loadCollectibles(addresses: [Address]) async throws -> Collectibles
     func getCollectibles() throws -> Collectibles
+    func getCollectible(address: Address) throws -> Collectible
 }
 
 final class CollectiblesServiceImplementation: CollectiblesService {
     private let api: API
-    private let localRepository: any LocalRepository<Collectibles>
+    private let localRepository: any LocalRepository<Collectible>
     
     init(api: API,
-         localRepository: any LocalRepository<Collectibles>) {
+         localRepository: any LocalRepository<Collectible>) {
         self.api = api
         self.localRepository = localRepository
     }
@@ -42,14 +48,22 @@ final class CollectiblesServiceImplementation: CollectiblesService {
         var collectibles = [Address: Collectible]()
         for item in response.entity.nftItems {
             guard let collectible = try? Collectible(nftItem: item) else { continue }
+            try? localRepository.save(item: collectible)
             collectibles[collectible.address] = collectible
         }
-        try? localRepository.save(item: .init(collectibles: collectibles))
         return .init(collectibles: collectibles)
     }
     
     func getCollectibles() throws -> Collectibles {
-        return try localRepository.load(fileName: Collectibles.fileName)
+        let collectibles = try localRepository.loadAll()
+        let collectiblesDictionary = collectibles.reduce(into: [Address: Collectible]()) { result, collectible in
+            result[collectible.address] = collectible
+        }
+        return Collectibles(collectibles: collectiblesDictionary)
+    }
+    
+    func getCollectible(address: Address) throws -> Collectible {
+        return try localRepository.load(key: address.toString())
     }
 }
 

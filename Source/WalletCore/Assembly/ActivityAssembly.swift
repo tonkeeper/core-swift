@@ -71,7 +71,7 @@ private extension ActivityAssembly {
                             intAmountFormatter: formattersAssembly.intAmountFormatter)
     }
     
-    func localRepository(cacheURL: URL) -> any LocalRepository<Collectibles> {
+    func localRepository(cacheURL: URL) -> any LocalRepository<Collectible> {
         LocalDiskRepository(fileManager: coreAssembly.fileManager,
                             directory: cacheURL,
                             encoder: coreAssembly.encoder,
