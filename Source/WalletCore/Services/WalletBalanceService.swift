@@ -17,18 +17,18 @@ protocol WalletBalanceService {
 final class WalletBalanceServiceImplementation: WalletBalanceService {
     private let tonBalanceService: AccountTonBalanceService
     private let tokensBalanceService: AccountTokensBalanceService
-    private let collectiblesBalanceService: AccountCollectiblesBalanceService
+    private let collectiblesService: CollectiblesService
     private let walletContractBuilder: WalletContractBuilder
     private let localRepository: any LocalRepository<WalletBalance>
     
     init(tonBalanceService: AccountTonBalanceService,
          tokensBalanceService: AccountTokensBalanceService,
-         collectiblesBalanceService: AccountCollectiblesBalanceService,
+         collectiblesService: CollectiblesService,
          walletContractBuilder: WalletContractBuilder,
          localRepository: any LocalRepository<WalletBalance>) {
         self.tonBalanceService = tonBalanceService
         self.tokensBalanceService = tokensBalanceService
-        self.collectiblesBalanceService = collectiblesBalanceService
+        self.collectiblesService = collectiblesService
         self.walletContractBuilder = walletContractBuilder
         self.localRepository = localRepository
     }
@@ -103,10 +103,10 @@ private extension WalletBalanceServiceImplementation {
     }
     
     func loadCollectiblesBalance(address: Address) async throws -> [Collectible] {
-        return try await collectiblesBalanceService.loadCollectibles(address: address,
-                                                                     collectionAddress: nil,
-                                                                     limit: 1000, offset: 0,
-                                                                     isIndirectOwnership: true)
+        return try await collectiblesService.loadCollectibles(address: address,
+                                                              collectionAddress: nil,
+                                                              limit: 1000, offset: 0,
+                                                              isIndirectOwnership: true)
     }
     
     func loadPreviousRevisionsTonBalances(contractVersion: WalletContractVersion,

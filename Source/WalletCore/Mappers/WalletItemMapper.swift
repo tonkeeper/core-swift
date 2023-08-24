@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TonSwift
 import BigInt
 
 struct WalletItemMapper {
@@ -66,8 +67,9 @@ struct WalletItemMapper {
     
     func mapCollectible(title: String?,
                         subtitle: String?,
-                        imageURL: URL?) -> WalletCollectibleItemViewModel {
-        WalletCollectibleItemViewModel(title: title, subtitle: subtitle, imageURL: imageURL)
+                        imageURL: URL?,
+                        address: Address) -> WalletCollectibleItemViewModel {
+        WalletCollectibleItemViewModel(title: title, subtitle: subtitle, imageURL: imageURL, address: address)
     }
 }
 

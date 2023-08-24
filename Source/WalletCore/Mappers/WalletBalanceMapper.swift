@@ -182,7 +182,8 @@ private extension WalletBalanceMapper {
         return collectibles.map { collectible in
             walletItemMapper.mapCollectible(title: collectible.name,
                                             subtitle: collectible.collection?.name,
-                                            imageURL: collectible.imageURL)
+                                            imageURL: collectible.imageURL,
+                                            address: collectible.address)
         }
     }
     

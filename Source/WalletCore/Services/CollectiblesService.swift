@@ -30,6 +30,11 @@ protocol CollectiblesService {
     func loadCollectibles(addresses: [Address]) async throws -> Collectibles
     func getCollectibles() throws -> Collectibles
     func getCollectible(address: Address) throws -> Collectible
+    func loadCollectibles(address: Address,
+                          collectionAddress: Address?,
+                          limit: Int,
+                          offset: Int,
+                          isIndirectOwnership: Bool) async throws -> [Collectible]
 }
 
 final class CollectiblesServiceImplementation: CollectiblesService {
@@ -52,6 +57,28 @@ final class CollectiblesServiceImplementation: CollectiblesService {
             collectibles[collectible.address] = collectible
         }
         return .init(collectibles: collectibles)
+    }
+    
+    func loadCollectibles(address: Address,
+                          collectionAddress: Address?,
+                          limit: Int,
+                          offset: Int,
+                          isIndirectOwnership: Bool) async throws -> [Collectible] {
+        let request = AccountNFTsRequest(
+            accountId: address.toRaw(),
+            collection: collectionAddress?.toRaw(),
+            limit: limit,
+            offset: offset,
+            isIndirectOwnership: isIndirectOwnership)
+        let response = try await api.send(request: request)
+        
+        let collectibles = response.entity.nftItems.compactMap { nft -> Collectible? in
+            guard let collectible = try? Collectible(nftItem: nft) else { return nil }
+            try? localRepository.save(item: collectible)
+            return collectible
+        }
+
+        return collectibles
     }
     
     func getCollectibles() throws -> Collectibles {

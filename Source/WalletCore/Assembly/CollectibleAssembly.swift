@@ -17,6 +17,7 @@ struct CollectibleAssembly {
     
     func collectibleDetailsController(collectibleAddress: Address) -> CollectibleDetailsController {
         CollectibleDetailsController(collectibleAddress: collectibleAddress,
-                                     collectiblesService: servicesAssembly.collectiblesService)
+                                     collectiblesService: servicesAssembly.collectiblesService,
+                                     collectibleDetailsMapper: CollectibleDetailsMapper())
     }
 }

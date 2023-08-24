@@ -19,6 +19,7 @@ final class WalletCoreAssembly {
     private lazy var ratesAssembly = RatesAssembly(coreAssembly: coreAssembly)
     private lazy var apiAssembly = APIAssembly(coreAssembly: coreAssembly)
     private lazy var walletBalanceAssembly = WalletBalanceAssembly(coreAssembly: coreAssembly,
+                                                                   servicesAssembly: servicesAssembly,
                                                                    formattersAssembly: formattersAssembly)
     private lazy var sendAssembly = SendAssembly(formattersAssembly: formattersAssembly,
                                                  ratesAssembly: ratesAssembly,
