@@ -10,7 +10,7 @@ import TonSwift
 
 public final class CollectibleDetailsController {
     
-    private let collectibleAddress: Address
+    public let collectibleAddress: Address
     private let walletProvider: WalletProvider
     private let contractBuilder: WalletContractBuilder
     private let collectiblesService: CollectiblesService
