@@ -72,6 +72,17 @@ extension Collectible {
             imageURL = previewURL
         }
         
+        var sale: Sale?
+        if let nftSale = nftItem.sale {
+            let address = try Address.parse(nftSale.address)
+            let market = try WalletAccount(accountAddress: nftSale.market)
+            var ownerWalletAccount: WalletAccount?
+            if let nftSaleOwner = nftItem.owner {
+                ownerWalletAccount = try WalletAccount(accountAddress: nftSaleOwner)
+            }
+            sale = Sale(address: address, market: market, owner: ownerWalletAccount)
+        }
+        
         self.address = address
         self.owner = owner
         self.name = name
@@ -81,6 +92,7 @@ extension Collectible {
         self.preview = Self.mapPreviews(nftItem.previews)
         self.collection = collection
         self.dns = nftItem.dns
+        self.sale = sale
     }
     
     static private func mapPreviews(_ previews: [ImagePreview]?) -> Preview {

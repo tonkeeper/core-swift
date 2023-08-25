@@ -8,13 +8,15 @@
 import Foundation
 
 struct CollectibleDetailsMapper {
-    func map(collectible: Collectible) -> CollectibleDetailsViewModel {
+    func map(collectible: Collectible, isOwner: Bool) -> CollectibleDetailsViewModel {
         return CollectibleDetailsViewModel(
             title: collectible.name,
             collectibleDetails: mapCollectibleDetails(collectible: collectible),
             collectionDetails: mapCollectionDetails(collectible: collectible),
             properties: mapProperties(collectible: collectible),
-            details: mapDetails(collectible: collectible))
+            details: mapDetails(collectible: collectible),
+            isTransferEnable: mapIsTransferEnable(collectible: collectible, isOwner: isOwner),
+            isOnSale: collectible.sale != nil)
     }
     
     private func mapCollectibleDetails(collectible: Collectible) -> CollectibleDetailsViewModel.CollectibleDetails {
@@ -65,6 +67,12 @@ struct CollectibleDetailsMapper {
         
         let url = URL.tonviewerURL.appendingPathComponent(collectible.address.toString())
         return CollectibleDetailsViewModel.Details(items: items, url: url)
+    }
+    
+    private func mapIsTransferEnable(
+        collectible: Collectible,
+        isOwner: Bool) -> Bool {
+            return collectible.sale == nil && isOwner
     }
 }
 

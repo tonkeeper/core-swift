@@ -40,4 +40,6 @@ public struct CollectibleDetailsViewModel {
     public let collectionDetails: CollectionDetails
     public let properties: [Property]
     public let details: Details
+    public let isTransferEnable: Bool
+    public let isOnSale: Bool
 }

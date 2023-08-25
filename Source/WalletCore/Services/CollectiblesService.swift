@@ -65,7 +65,7 @@ final class CollectiblesServiceImplementation: CollectiblesService {
                           offset: Int,
                           isIndirectOwnership: Bool) async throws -> [Collectible] {
         let request = AccountNFTsRequest(
-            accountId: address.toRaw(),
+            accountId: address.toString(),
             collection: collectionAddress?.toRaw(),
             limit: limit,
             offset: offset,

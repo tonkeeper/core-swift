@@ -11,6 +11,6 @@ extension KeeperInfo: LocalStorable {
     typealias KeyType = String
     
     var key: String {
-        String(describing: self)
+        fileName
     }
 }

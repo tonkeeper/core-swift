@@ -195,7 +195,10 @@ private extension ActivityEventMapper {
         
         var collectible: ActivityEventViewModel.ActionViewModel.CollectibleViewModel?
         if let actionCollectible = action.collectible {
-            collectible = ActivityEventViewModel.ActionViewModel.CollectibleViewModel(name: actionCollectible.name, collectionName: actionCollectible.collection?.name, image: .url(actionCollectible.imageURL))
+            collectible = ActivityEventViewModel.ActionViewModel.CollectibleViewModel(
+                name: actionCollectible.name,
+                collectionName: actionCollectible.collection?.name,
+                image: .url(actionCollectible.preview.size500))
         }
         
         return ActivityEventViewModel.ActionViewModel(eventType: .bid,
@@ -218,7 +221,7 @@ private extension ActivityEventMapper {
         let collectibleViewModel = ActivityEventViewModel.ActionViewModel.CollectibleViewModel(
             name: action.collectible.name,
             collectionName: action.collectible.collection?.name,
-            image: .url(action.collectible.imageURL)
+            image: .url(action.collectible.preview.size500)
         )
         
         let sign = action.buyer == activityEvent.account ? "-" : "+"
@@ -307,7 +310,7 @@ private extension ActivityEventMapper {
         if let actionCollectible = collectibles.collectibles[action.nftAddress] {
             collectible = .init(name: actionCollectible.name,
                                 collectionName: actionCollectible.collection?.name,
-                                image: .url(actionCollectible.imageURL))
+                                image: .url(actionCollectible.preview.size500))
         }
         
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,

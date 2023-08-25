@@ -130,7 +130,9 @@ final class WalletCoreAssembly {
     }
     
     func collectibleDetailsController(collectibleAddress: Address) -> CollectibleDetailsController {
-        collectibleAssembly.collectibleDetailsController(collectibleAddress: collectibleAddress)
+        collectibleAssembly.collectibleDetailsController(collectibleAddress: collectibleAddress,
+                                                         walletProvider: keeperController,
+                                                         contractBuilder: WalletContractBuilder())
     }
     
     func deeplinkParser() -> DeeplinkParser {
