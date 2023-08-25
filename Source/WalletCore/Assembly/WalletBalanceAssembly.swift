@@ -10,11 +10,14 @@ import TonAPI
 
 final class WalletBalanceAssembly {
     let coreAssembly: CoreAssembly
+    let servicesAssembly: ServicesAssembly
     let formattersAssembly: FormattersAssembly
     
     init(coreAssembly: CoreAssembly,
+         servicesAssembly: ServicesAssembly,
          formattersAssembly: FormattersAssembly) {
         self.coreAssembly = coreAssembly
+        self.servicesAssembly = servicesAssembly
         self.formattersAssembly = formattersAssembly
     }
     
@@ -22,7 +25,7 @@ final class WalletBalanceAssembly {
         WalletBalanceServiceImplementation(
             tonBalanceService: tonBalanceService(api: api),
             tokensBalanceService: tokensBalanceService(api: api),
-            collectiblesBalanceService: collectiblesBalanceService(api: api),
+            collectiblesService: servicesAssembly.collectiblesService,
             walletContractBuilder: walletContractBuilder(),
             localRepository: localRepository(cacheURL: cacheURL))
     }

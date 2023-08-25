@@ -16,12 +16,10 @@ struct WalletBalance: Codable, LocalStorable {
     let previousRevisionsBalances: [TonBalance]
     let collectibles: [Collectible]
     
-    var fileName: String {
-        return walletAddress.toString()
-    }
+    typealias KeyType = String
     
-    static var fileName: String {
-        ""
+    var key: String {
+        walletAddress.toString()
     }
 }
 
@@ -96,14 +94,23 @@ enum AppTokenAmount {
 
 struct Collectible: Codable {
     let address: Address
+    let owner: WalletAccount?
     let name: String?
     let imageURL: URL?
+    let preview: Preview
     let description: String?
+    let attributes: [Attribute]
     let collection: Collection?
+    let dns: String?
     
     struct Marketplace {
         let name: String
         let url: URL?
+    }
+    
+    struct Attribute: Codable {
+        let key: String
+        let value: String
     }
     
     enum Trust {
@@ -112,9 +119,17 @@ struct Collectible: Codable {
         }
         case approvedBy([Approval])
     }
+    
+    struct Preview: Codable {
+        let size5: URL?
+        let size100: URL?
+        let size500: URL?
+        let size1500: URL?
+    }
 }
 
 struct Collection: Codable {
     let address: Address
     let name: String?
+    let description: String?
 }

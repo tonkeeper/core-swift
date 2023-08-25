@@ -10,6 +10,10 @@ import TonSwift
 
 public actor ActivityListController {
     
+    public enum Error: Swift.Error {
+        case noCollectible(sectionIndex: Int, eventIndex: Int, actionIndex: Int)
+    }
+    
     public struct EventsSection {
         public let date: Date
         public let title: String?
@@ -85,6 +89,32 @@ public actor ActivityListController {
         eventsSections = []
         eventsSectionIndexTable = [:]
         events = [:]
+    }
+    
+    public func getCollectibleAddress(sectionIndex: Int,
+                                      eventIndex: Int,
+                                      actionIndex: Int) throws -> Address {
+        let eventId = eventsSections[sectionIndex].eventsIds[eventIndex]
+        guard let event = events[eventId] else {
+            throw Error.noCollectible(
+                sectionIndex: sectionIndex,
+                eventIndex: eventIndex,
+                actionIndex: actionIndex
+            )
+        }
+        
+        switch event.actions[actionIndex].type {
+        case .nftPurchase(let nftPurchase):
+            return nftPurchase.collectible.address
+        case .nftItemTransfer(let nftTransfer):
+            return nftTransfer.nftAddress
+        default:
+            throw Error.noCollectible(
+                sectionIndex: sectionIndex,
+                eventIndex: eventIndex,
+                actionIndex: actionIndex
+            )
+        }
     }
 }
 

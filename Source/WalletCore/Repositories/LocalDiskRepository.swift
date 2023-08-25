@@ -29,7 +29,7 @@ struct LocalDiskRepository<T: Codable & LocalStorable>: LocalRepository {
     }
     
     func save(item: T) throws {
-        let path = folderPath().appendingPathComponent(item.fileName)
+        let path = folderPath().appendingPathComponent(item.key.description)
         try createFolderIfNeeded(url: path)
         if fileManager.fileExists(atPath: path.path) {
             try fileManager.removeItem(at: path)
@@ -53,6 +53,19 @@ struct LocalDiskRepository<T: Codable & LocalStorable>: LocalRepository {
             throw error
         }
     }
+    
+    func load(key: T.KeyType) throws -> T {
+        try load(fileName: key.description)
+    }
+    
+    func loadAll() throws -> [T] {
+        guard let diskItems = try? fileManager.contentsOfDirectory(atPath: folderPath().path) else {
+            return []
+        }
+        return diskItems.compactMap { name in
+            return try? load(fileName: name)
+        }
+    }
 }
 
 private extension LocalDiskRepository {
@@ -60,10 +73,6 @@ private extension LocalDiskRepository {
         let typeFolder = String(describing: T.self)
         let folderURL = directory.appendingPathComponent(typeFolder, isDirectory: true)
         return folderURL
-    }
-    
-    func itemPath(itemType: T.Type) -> URL {
-        return folderPath().appendingPathComponent(itemType.fileName)
     }
     
     func createFolderIfNeeded(url: URL) throws {

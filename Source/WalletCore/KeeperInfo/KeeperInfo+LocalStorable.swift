@@ -8,11 +8,9 @@
 import Foundation
 
 extension KeeperInfo: LocalStorable {
-    static var fileName: String {
-        String(describing: self)
-    }
+    typealias KeyType = String
     
-    var fileName: String {
-        String(describing: type(of: self))
+    var key: String {
+        String(describing: self)
     }
 }

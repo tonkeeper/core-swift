@@ -7,6 +7,7 @@
 
 import Foundation
 import TonAPI
+import TonSwift
 
 final class WalletCoreAssembly {
     
@@ -18,6 +19,7 @@ final class WalletCoreAssembly {
     private lazy var ratesAssembly = RatesAssembly(coreAssembly: coreAssembly)
     private lazy var apiAssembly = APIAssembly(coreAssembly: coreAssembly)
     private lazy var walletBalanceAssembly = WalletBalanceAssembly(coreAssembly: coreAssembly,
+                                                                   servicesAssembly: servicesAssembly,
                                                                    formattersAssembly: formattersAssembly)
     private lazy var sendAssembly = SendAssembly(formattersAssembly: formattersAssembly,
                                                  ratesAssembly: ratesAssembly,
@@ -31,6 +33,12 @@ final class WalletCoreAssembly {
     private lazy var configurationAPI: API = apiAssembly.configurationAPI()
     
     lazy var keeperController: KeeperController = keeperInfoAssembly.keeperController(cacheURL: cacheURL)
+    
+    private lazy var servicesAssembly = ServicesAssembly(tonAPI: tonAPI,
+                                                         tonkeeperAPI: configurationAPI,
+                                                         coreAssembly: coreAssembly,
+                                                         cacheURL: cacheURL)
+    private lazy var collectibleAssembly = CollectibleAssembly(servicesAssembly: servicesAssembly)
     
     private let cacheURL: URL
     init(cacheURL: URL) {
@@ -119,6 +127,10 @@ final class WalletCoreAssembly {
     
     func chartController() -> ChartController {
         tokenDetailsAssembly.chartController(api: configurationAPI)
+    }
+    
+    func collectibleDetailsController(collectibleAddress: Address) -> CollectibleDetailsController {
+        collectibleAssembly.collectibleDetailsController(collectibleAddress: collectibleAddress)
     }
     
     func deeplinkParser() -> DeeplinkParser {

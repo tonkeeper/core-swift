@@ -12,4 +12,6 @@ protocol LocalRepository<T> {
     
     func save(item: T) throws
     func load(fileName: String) throws -> T
+    func load(key: T.KeyType) throws -> T
+    func loadAll() throws -> [T]
 }
