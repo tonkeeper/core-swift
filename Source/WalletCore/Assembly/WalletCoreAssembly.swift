@@ -61,11 +61,11 @@ final class WalletCoreAssembly {
         sendAssembly.sendInputController(api: tonAPI, cacheURL: cacheURL, walletProvider: walletProvider)
     }
     
-    func sendController(itemTransferModel: ItemTransferModel,
-                        recipient: Recipient,
-                        comment: String?,
-                        walletProvider: WalletProvider) -> SendController {
-        sendAssembly.sendController(
+    func tokenSendController(itemTransferModel: ItemTransferModel,
+                             recipient: Recipient,
+                             comment: String?,
+                             walletProvider: WalletProvider) -> SendController {
+        sendAssembly.tokenSendController(
             api: tonAPI,
             cacheURL: cacheURL,
             itemTransferModel: itemTransferModel,

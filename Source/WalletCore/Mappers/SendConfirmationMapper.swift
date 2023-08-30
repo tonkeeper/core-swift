@@ -21,7 +21,7 @@ struct SendConfirmationMapper {
                               fee: Int64?,
                               comment: String?,
                               rate: Rates.Rate?,
-                              tonRate: Rates.Rate?) -> SendTransactionViewModel {
+                              tonRate: Rates.Rate?) -> SendTransactionViewModel.SendTokenModel {
         let token: FormatterTokenInfo
         let image: Image
         let name: String
@@ -52,7 +52,7 @@ struct SendConfirmationMapper {
                    fee: Int64?,
                    comment: String?,
                    rate: Rates.Rate?,
-                   tonRate: Rates.Rate?) -> SendTransactionViewModel {
+                   tonRate: Rates.Rate?) -> SendTransactionViewModel.SendTokenModel {
         let itemTranferModel = ItemTransferModel(transferItem: action.transferItem,
                                                  amount: action.amount)
         return mapItemTransferModel(itemTranferModel,
@@ -75,7 +75,7 @@ private extension SendConfirmationMapper {
              fee: Int64?,
              comment: String?,
              rate: Rates.Rate?,
-             tonRate: Rates.Rate?) -> SendTransactionViewModel {
+             tonRate: Rates.Rate?) -> SendTransactionViewModel.SendTokenModel {
         let amountFormatted = bigIntAmountFormatter.format(amount: amount,
                                                            fractionDigits: token.fractionDigits,
                                                            maximumFractionDigits: token.fractionDigits,
@@ -112,7 +112,7 @@ private extension SendConfirmationMapper {
             }
         }
         
-        return SendTransactionViewModel(title: name,
+        return SendTransactionViewModel.SendTokenModel(title: name,
                                         image: image,
                                         recipientAddress: recipientAddress,
                                         recipientName: recipientName,

@@ -37,10 +37,10 @@ public final class WalletCoreContainer {
     public func sendController(itemTransferModel: ItemTransferModel,
                                recipient: Recipient,
                                comment: String?) -> SendController {
-        walletCoreAssembly.sendController(itemTransferModel: itemTransferModel,
-                                          recipient: recipient,
-                                          comment: comment,
-                                          walletProvider: keeperController())
+        walletCoreAssembly.tokenSendController(itemTransferModel: itemTransferModel,
+                                               recipient: recipient,
+                                               comment: comment,
+                                               walletProvider: keeperController())
     }
     
     public func sendRecipientController() -> SendRecipientController {

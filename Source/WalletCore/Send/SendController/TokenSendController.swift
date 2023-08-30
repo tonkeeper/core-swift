@@ -1,52 +1,46 @@
 //
-//  SendController.swift
-//  
+//  TokenSendController.swift
 //
-//  Created by Grigory on 6.7.23..
+//
+//  Created by Grigory on 30.8.23..
 //
 
 import Foundation
 import TonSwift
 import BigInt
 
-public final class SendController {
-    
-    public enum Error: Swift.Error {
-        case failedToPrepareTransaction
-        case failedToEmulateTransaction
-    }
+public final class TokenSendController: SendController {
     
     private let itemTransferModel: ItemTransferModel
     private let recipient: Recipient
     private let comment: String?
-    private let walletProvider: WalletProvider
-    private let keychainManager: KeychainManager
     private let sendService: SendService
     private let rateService: RatesService
+    private let sendMessageBuilder: SendMessageBuilder
     private let intAmountFormatter: IntAmountFormatter
     private let bigIntAmountFormatter: BigIntAmountFormatter
     
     init(itemTransferModel: ItemTransferModel,
          recipient: Recipient,
          comment: String?,
-         walletProvider: WalletProvider,
-         keychainManager: KeychainManager,
          sendService: SendService,
          rateService: RatesService,
+         sendMessageBuilder: SendMessageBuilder,
          intAmountFormatter: IntAmountFormatter,
          bigIntAmountFormatter: BigIntAmountFormatter) {
         self.itemTransferModel = itemTransferModel
         self.recipient = recipient
         self.comment = comment
-        self.walletProvider = walletProvider
-        self.keychainManager = keychainManager
         self.sendService = sendService
         self.rateService = rateService
+        self.sendMessageBuilder = sendMessageBuilder
         self.intAmountFormatter = intAmountFormatter
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
     
-    public func initialSendTransactionModel() -> SendTransactionViewModel {
+    // MARK: - SendController
+    
+    public func getInitialTransactionModel() -> SendTransactionViewModel {
         let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
         
         let mapperRates: (tokenRates: Rates.Rate?, tonRates: Rates.Rate?)
@@ -55,7 +49,7 @@ public final class SendController {
         } else {
             mapperRates = (nil, nil)
         }
-        
+
         let model = mapper.mapItemTransferModel(
             itemTransferModel,
             recipientAddress: recipient.address.shortString,
@@ -64,10 +58,11 @@ public final class SendController {
             comment: comment,
             rate: mapperRates.tonRates,
             tonRate: mapperRates.tonRates)
-        return model
+        return SendTransactionViewModel.token(model)
+
     }
     
-    public func loadTransactionInformation() async throws -> SendTransactionViewModel {
+    public func loadTransactionModel() async throws -> SendTransactionViewModel {
         async let ratesTask = loadRates(itemTransferModel: itemTransferModel)
         async let transactionBocTask = prepareSendTransaction(itemTransferModel: itemTransferModel,
                                                               recipientAddress: recipient.address,
@@ -89,7 +84,8 @@ public final class SendController {
                                                 comment: action.comment,
                                                 rate: mapperRates.tokenRates,
                                                 tonRate: mapperRates.tonRates)
-        return transactionModel
+        return SendTransactionViewModel.token(transactionModel)
+
     }
     
     public func sendTransaction() async throws {
@@ -103,83 +99,25 @@ public final class SendController {
     }
 }
 
-private extension SendController {
+private extension TokenSendController {
     func prepareSendTransaction(itemTransferModel: ItemTransferModel,
                                 recipientAddress: Address,
                                 comment: String?) async throws -> String {
         switch itemTransferModel.transferItem {
         case .ton:
-            return try await prepareSendTonTransaction(
+            return try await sendMessageBuilder.sendTonTransactionBoc(
                 value: itemTransferModel.amount,
                 recipientAddress: recipientAddress,
-                comment: comment)
+                comment: comment
+            )
         case .token(let tokenAddress, _):
-            return try await prepareSendTokenTransaction(
+            return try await sendMessageBuilder.sendTokenTransactionBoc(
                 tokenAddress: tokenAddress.toString(),
                 value: itemTransferModel.amount,
                 recipientAddress: recipientAddress,
-                comment: comment)
+                comment: comment
+            )
         }
-    }
-    
-    func prepareSendTonTransaction(value: BigInt,
-                                   recipientAddress: Address,
-                                   comment: String?) async throws -> String {
-        return try await sendExternalMessage { sender in
-            let internalMessage: MessageRelaxed
-            if let comment = comment {
-                internalMessage = try MessageRelaxed.internal(to: recipientAddress,
-                                                              value: value.magnitude,
-                                                              textPayload: comment)
-            } else {
-                internalMessage = MessageRelaxed.internal(to: recipientAddress,
-                                                          value: value.magnitude)
-            }
-            return internalMessage
-        }
-    }
-    
-    func prepareSendTokenTransaction(tokenAddress: String,
-                                     value: BigInt,
-                                     recipientAddress: Address,
-                                     comment: String?) async throws -> String {
-        return try await sendExternalMessage { sender in
-            let internalMessage = try JettonTransferMessage.internalMessage(jettonAddress: try Address.parse(tokenAddress),
-                                                                            amount: value,
-                                                                            to: recipientAddress,
-                                                                            from: sender,
-                                                                            comment: comment)
-            return internalMessage
-        }
-    }
-    
-    func sendExternalMessage(internalMessage: (_ sender: Address) throws -> MessageRelaxed) async throws -> String {
-        let wallet = try walletProvider.activeWallet
-        let walletPublicKey = try wallet.publicKey
-        let mnemonicVault = try KeychainMnemonicVault(keychainManager: keychainManager, walletID: wallet.identity.id())
-        let contractBuilder = WalletContractBuilder()
-        let contract = try contractBuilder.walletContract(with: walletPublicKey,
-                                                          contractVersion: wallet.contractVersion)
-        let mnemonic = try mnemonicVault.loadValue(key: walletPublicKey)
-        let keyPair = try Mnemonic.mnemonicToPrivateKey(mnemonicArray: mnemonic)
-        
-        let senderAddress = try contract.address()
-        
-        let internalMessage = try internalMessage(senderAddress)
-        
-        let seqno = try await sendService.loadSeqno(address: senderAddress)
-        let transferData = WalletTransferData(
-            seqno: seqno,
-            secretKey: keyPair.privateKey.data,
-            messages: [internalMessage],
-            sendMode: .walletDefault(),
-            timeout: nil)
-        let transferCell = try contract.createTransfer(args: transferData)
-        let externalMessage = Message.external(to: senderAddress,
-                                               stateInit: nil,
-                                               body: transferCell)
-        let cell = try Builder().store(externalMessage).endCell()
-        return try cell.toBoc().base64EncodedString()
     }
     
     func getAction(transactionInfo: TransferTransactionInfo) throws -> TransferTransactionInfo.Action {
@@ -191,7 +129,7 @@ private extension SendController {
             return tonTransfer
         }
         
-        throw Error.failedToEmulateTransaction
+        throw SendControllerError.failedToEmulateTransaction
     }
     
     func getRates(itemTransferModel: ItemTransferModel, rates: Rates) -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {
