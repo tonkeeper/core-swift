@@ -135,10 +135,10 @@ public final class SendInputController {
         self.rateConverter = rateConverter
     }
     
-    public var itemTransferModel: ItemTransferModel? {
+    public var tokenTransferModel: TokenTransferModel? {
         switch state.tokenState.token {
         case .ton:
-            return ItemTransferModel(
+            return TokenTransferModel(
                 transferItem: .ton,
                 amount: state.tokenState.amount
             )
@@ -148,7 +148,7 @@ public final class SendInputController {
                   let tokenBalance = walletBalance.tokensBalance.first(where: { $0.amount.tokenInfo == tokenInfo }) else {
                 return nil
             }
-            return ItemTransferModel(
+            return TokenTransferModel(
                 transferItem: .token(tokenWalletAddress: tokenBalance.walletAddress,
                                      tokenInfo: tokenInfo),
                 amount: state.tokenState.amount)

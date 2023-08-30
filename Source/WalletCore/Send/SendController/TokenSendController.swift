@@ -11,7 +11,7 @@ import BigInt
 
 public final class TokenSendController: SendController {
     
-    private let itemTransferModel: ItemTransferModel
+    private let tokenTransferModel: TokenTransferModel
     private let recipient: Recipient
     private let comment: String?
     private let sendService: SendService
@@ -20,7 +20,7 @@ public final class TokenSendController: SendController {
     private let intAmountFormatter: IntAmountFormatter
     private let bigIntAmountFormatter: BigIntAmountFormatter
     
-    init(itemTransferModel: ItemTransferModel,
+    init(tokenTransferModel: TokenTransferModel,
          recipient: Recipient,
          comment: String?,
          sendService: SendService,
@@ -28,7 +28,7 @@ public final class TokenSendController: SendController {
          sendMessageBuilder: SendMessageBuilder,
          intAmountFormatter: IntAmountFormatter,
          bigIntAmountFormatter: BigIntAmountFormatter) {
-        self.itemTransferModel = itemTransferModel
+        self.tokenTransferModel = tokenTransferModel
         self.recipient = recipient
         self.comment = comment
         self.sendService = sendService
@@ -45,13 +45,13 @@ public final class TokenSendController: SendController {
         
         let mapperRates: (tokenRates: Rates.Rate?, tonRates: Rates.Rate?)
         if let cachedRates = try? rateService.getRates() {
-            mapperRates = getRates(itemTransferModel: itemTransferModel, rates: cachedRates)
+            mapperRates = getRates(tokenTransferModel: tokenTransferModel, rates: cachedRates)
         } else {
             mapperRates = (nil, nil)
         }
 
         let model = mapper.mapItemTransferModel(
-            itemTransferModel,
+            tokenTransferModel,
             recipientAddress: recipient.address.shortString,
             recipientName: recipient.domain,
             fee: nil,
@@ -63,14 +63,14 @@ public final class TokenSendController: SendController {
     }
     
     public func loadTransactionModel() async throws -> SendTransactionViewModel {
-        async let ratesTask = loadRates(itemTransferModel: itemTransferModel)
-        async let transactionBocTask = prepareSendTransaction(itemTransferModel: itemTransferModel,
+        async let ratesTask = loadRates(tokenTransferModel: tokenTransferModel)
+        async let transactionBocTask = prepareSendTransaction(tokenTransferModel: tokenTransferModel,
                                                               recipientAddress: recipient.address,
                                                               comment: comment)
         
         let mapperRates: (tokenRates: Rates.Rate?, tonRates: Rates.Rate?)
         if let loadedRates = try? await ratesTask {
-            mapperRates = getRates(itemTransferModel: itemTransferModel, rates: loadedRates)
+            mapperRates = getRates(tokenTransferModel: tokenTransferModel, rates: loadedRates)
         } else {
             mapperRates = (nil, nil)
         }
@@ -90,7 +90,7 @@ public final class TokenSendController: SendController {
     
     public func sendTransaction() async throws {
         let transactionBoc = try await prepareSendTransaction(
-            itemTransferModel: itemTransferModel,
+            tokenTransferModel: tokenTransferModel,
             recipientAddress: recipient.address,
             comment: comment
         )
@@ -100,20 +100,20 @@ public final class TokenSendController: SendController {
 }
 
 private extension TokenSendController {
-    func prepareSendTransaction(itemTransferModel: ItemTransferModel,
+    func prepareSendTransaction(tokenTransferModel: TokenTransferModel,
                                 recipientAddress: Address,
                                 comment: String?) async throws -> String {
-        switch itemTransferModel.transferItem {
+        switch tokenTransferModel.transferItem {
         case .ton:
             return try await sendMessageBuilder.sendTonTransactionBoc(
-                value: itemTransferModel.amount,
+                value: tokenTransferModel.amount,
                 recipientAddress: recipientAddress,
                 comment: comment
             )
         case .token(let tokenAddress, _):
             return try await sendMessageBuilder.sendTokenTransactionBoc(
                 tokenAddress: tokenAddress.toString(),
-                value: itemTransferModel.amount,
+                value: tokenTransferModel.amount,
                 recipientAddress: recipientAddress,
                 comment: comment
             )
@@ -132,8 +132,8 @@ private extension TokenSendController {
         throw SendControllerError.failedToEmulateTransaction
     }
     
-    func getRates(itemTransferModel: ItemTransferModel, rates: Rates) -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {
-        switch itemTransferModel.transferItem {
+    func getRates(tokenTransferModel: TokenTransferModel, rates: Rates) -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {
+        switch tokenTransferModel.transferItem {
         case .ton:
             let tonRates = rates.ton.first(where: { $0.currency == .USD })
             return (tonRates, tonRates)
@@ -147,9 +147,9 @@ private extension TokenSendController {
         }
     }
     
-    func loadRates(itemTransferModel: ItemTransferModel) async throws -> Rates {
+    func loadRates(tokenTransferModel: TokenTransferModel) async throws -> Rates {
         do {
-            switch itemTransferModel.transferItem {
+            switch tokenTransferModel.transferItem {
             case .ton:
                 return try await rateService.loadRates(tonInfo: TonInfo(), tokens: [], currencies: [.USD])
             case .token(_, let tokenInfo):

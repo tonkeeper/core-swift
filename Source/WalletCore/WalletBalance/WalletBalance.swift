@@ -92,7 +92,7 @@ enum AppTokenAmount {
     case token(TokenBalance)
 }
 
-struct Collectible: Codable {
+public struct Collectible: Codable {
     let address: Address
     let owner: WalletAccount?
     let name: String?

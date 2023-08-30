@@ -61,18 +61,29 @@ final class WalletCoreAssembly {
         sendAssembly.sendInputController(api: tonAPI, cacheURL: cacheURL, walletProvider: walletProvider)
     }
     
-    func tokenSendController(itemTransferModel: ItemTransferModel,
+    func tokenSendController(tokenTransferModel: TokenTransferModel,
                              recipient: Recipient,
                              comment: String?,
                              walletProvider: WalletProvider) -> SendController {
         sendAssembly.tokenSendController(
             api: tonAPI,
             cacheURL: cacheURL,
-            itemTransferModel: itemTransferModel,
+            tokenTransferModel: tokenTransferModel,
             recipient: recipient,
             comment: comment,
             walletProvider: walletProvider
         )
+    }
+    
+    func nftSendController(_ nft: Collectible,
+                           recipient: Recipient,
+                           comment: String?,
+                           walletProvider: WalletProvider) -> SendController {
+        sendAssembly.nftSendController(
+            nft,
+            recipient: recipient,
+            comment: comment,
+            walletProvider: walletProvider)
     }
     
     func sendRecipientController() -> SendRecipientController {

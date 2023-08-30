@@ -9,7 +9,12 @@ import Foundation
 import TonSwift
 import BigInt
 
-public struct ItemTransferModel {
+public enum TransferModel {
+    case token(TokenTransferModel)
+    case nft(Collectible)
+}
+
+public struct TokenTransferModel {
     public enum TransferItem {
         case ton
         case token(tokenWalletAddress: Address, tokenInfo: TokenInfo)

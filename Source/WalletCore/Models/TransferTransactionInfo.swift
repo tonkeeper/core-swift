@@ -23,7 +23,7 @@ struct TransferTransactionInfo {
     
     struct Action {
         let type: ActionType
-        let transferItem: ItemTransferModel.TransferItem
+        let transferItem: TokenTransferModel.TransferItem
         let amount: BigInt
         let recipient: Recipient
         let name: String
@@ -44,7 +44,7 @@ struct TransferTransactionInfo {
         // TBD: When tonapi v2 will be fixed and in action will be correct jetton information - remove getting jetton info from Risk
         let actions = accountEvent.actions.compactMap { eventAction -> Action? in
             let type: ActionType
-            let transferItem: ItemTransferModel.TransferItem
+            let transferItem: TokenTransferModel.TransferItem
             let amount: BigInt
             let recipient: Recipient
             let name: String

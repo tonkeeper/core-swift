@@ -38,13 +38,13 @@ final class SendAssembly {
     
     func tokenSendController(api: API,
                              cacheURL: URL,
-                             itemTransferModel: ItemTransferModel,
+                             tokenTransferModel: TokenTransferModel,
                              recipient: Recipient,
                              comment: String?,
                              walletProvider: WalletProvider) -> SendController {
         let sendService = sendService(api: api)
         return TokenSendController(
-            itemTransferModel: itemTransferModel,
+            tokenTransferModel: tokenTransferModel,
             recipient: recipient,
             comment: comment,
             sendService: sendService,
@@ -52,6 +52,13 @@ final class SendAssembly {
             sendMessageBuilder: sendMessageBuilder(walletProvider: walletProvider, sendService: sendService),
             intAmountFormatter: formattersAssembly.intAmountFormatter,
             bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
+    }
+    
+    func nftSendController(_ nft: Collectible,
+                           recipient: Recipient,
+                           comment: String?,
+                           walletProvider: WalletProvider) -> SendController {
+        return NFTSendController(collectible: nft)
     }
     
     func sendRecipientController(api: API) -> SendRecipientController {

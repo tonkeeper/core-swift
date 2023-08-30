@@ -15,7 +15,7 @@ struct SendConfirmationMapper {
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
     
-    func mapItemTransferModel(_ itemTransferModel: ItemTransferModel,
+    func mapItemTransferModel(_ tokenTransferModel: TokenTransferModel,
                               recipientAddress: String?,
                               recipientName: String?,
                               fee: Int64?,
@@ -25,7 +25,7 @@ struct SendConfirmationMapper {
         let token: FormatterTokenInfo
         let image: Image
         let name: String
-        switch itemTransferModel.transferItem {
+        switch tokenTransferModel.transferItem {
         case .token(_, let tokenInfo):
             name = "\(tokenInfo.symbol ?? "Token") Transfer"
             token = tokenInfo
@@ -41,7 +41,7 @@ struct SendConfirmationMapper {
                    recipientAddress: recipientAddress,
                    recipientName: recipientName,
                    token: token,
-                   amount: itemTransferModel.amount,
+                   amount: tokenTransferModel.amount,
                    fee: fee,
                    comment: comment,
                    rate: rate,
@@ -53,9 +53,9 @@ struct SendConfirmationMapper {
                    comment: String?,
                    rate: Rates.Rate?,
                    tonRate: Rates.Rate?) -> SendTransactionViewModel.SendTokenModel {
-        let itemTranferModel = ItemTransferModel(transferItem: action.transferItem,
+        let tokenTransferModel = TokenTransferModel(transferItem: action.transferItem,
                                                  amount: action.amount)
-        return mapItemTransferModel(itemTranferModel,
+        return mapItemTransferModel(tokenTransferModel,
                                     recipientAddress: action.recipient.address?.shortString,
                                     recipientName: action.recipient.name,
                                     fee: fee,

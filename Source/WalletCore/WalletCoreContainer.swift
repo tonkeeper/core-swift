@@ -34,13 +34,22 @@ public final class WalletCoreContainer {
         walletCoreAssembly.sendInputController(walletProvider: keeperController())
     }
     
-    public func sendController(itemTransferModel: ItemTransferModel,
+    public func sendController(transferModel: TransferModel,
                                recipient: Recipient,
                                comment: String?) -> SendController {
-        walletCoreAssembly.tokenSendController(itemTransferModel: itemTransferModel,
-                                               recipient: recipient,
-                                               comment: comment,
-                                               walletProvider: keeperController())
+        switch transferModel {
+        case .token(let tokenTransferModel):
+            walletCoreAssembly.tokenSendController(tokenTransferModel: tokenTransferModel,
+                                                   recipient: recipient,
+                                                   comment: comment,
+                                                   walletProvider: keeperController())
+        case .nft(let collectible):
+            walletCoreAssembly.nftSendController(collectible,
+                                                 recipient: recipient,
+                                                 comment: comment,
+                                                 walletProvider: keeperController())
+        }
+        
     }
     
     public func sendRecipientController() -> SendRecipientController {
