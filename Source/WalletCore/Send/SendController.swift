@@ -16,6 +16,9 @@ public final class SendController {
         case failedToEmulateTransaction
     }
     
+    private let itemTransferModel: ItemTransferModel
+    private let recipient: Recipient
+    private let comment: String?
     private let walletProvider: WalletProvider
     private let keychainManager: KeychainManager
     private let sendService: SendService
@@ -23,12 +26,18 @@ public final class SendController {
     private let intAmountFormatter: IntAmountFormatter
     private let bigIntAmountFormatter: BigIntAmountFormatter
     
-    init(walletProvider: WalletProvider,
+    init(itemTransferModel: ItemTransferModel,
+         recipient: Recipient,
+         comment: String?,
+         walletProvider: WalletProvider,
          keychainManager: KeychainManager,
          sendService: SendService,
          rateService: RatesService,
          intAmountFormatter: IntAmountFormatter,
          bigIntAmountFormatter: BigIntAmountFormatter) {
+        self.itemTransferModel = itemTransferModel
+        self.recipient = recipient
+        self.comment = comment
         self.walletProvider = walletProvider
         self.keychainManager = keychainManager
         self.sendService = sendService
@@ -37,9 +46,7 @@ public final class SendController {
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
     
-    public func initialSendTransactionModel(itemTransferModel: ItemTransferModel,
-                                            recipient: Recipient,
-                                            comment: String?) -> SendTransactionViewModel {
+    public func initialSendTransactionModel() -> SendTransactionViewModel {
         let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
         
         let mapperRates: (tokenRates: Rates.Rate?, tonRates: Rates.Rate?)
@@ -60,9 +67,7 @@ public final class SendController {
         return model
     }
     
-    public func loadTransactionInformation(itemTransferModel: ItemTransferModel,
-                                           recipient: Recipient,
-                                           comment: String?) async throws -> SendTransactionViewModel {
+    public func loadTransactionInformation() async throws -> SendTransactionViewModel {
         async let ratesTask = loadRates(itemTransferModel: itemTransferModel)
         async let transactionBocTask = prepareSendTransaction(itemTransferModel: itemTransferModel,
                                                               recipientAddress: recipient.address,
@@ -87,9 +92,7 @@ public final class SendController {
         return transactionModel
     }
     
-    public func sendTransaction(itemTransferModel: ItemTransferModel,
-                                recipient: Recipient,
-                                comment: String?) async throws {
+    public func sendTransaction() async throws {
         let transactionBoc = try await prepareSendTransaction(
             itemTransferModel: itemTransferModel,
             recipientAddress: recipient.address,

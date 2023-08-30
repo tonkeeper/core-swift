@@ -34,8 +34,13 @@ public final class WalletCoreContainer {
         walletCoreAssembly.sendInputController(walletProvider: keeperController())
     }
     
-    public func sendController() -> SendController {
-        walletCoreAssembly.sendController(walletProvider: keeperController())
+    public func sendController(itemTransferModel: ItemTransferModel,
+                               recipient: Recipient,
+                               comment: String?) -> SendController {
+        walletCoreAssembly.sendController(itemTransferModel: itemTransferModel,
+                                          recipient: recipient,
+                                          comment: comment,
+                                          walletProvider: keeperController())
     }
     
     public func sendRecipientController() -> SendRecipientController {

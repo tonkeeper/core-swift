@@ -38,8 +38,14 @@ final class SendAssembly {
     
     func sendController(api: API,
                         cacheURL: URL,
+                        itemTransferModel: ItemTransferModel,
+                        recipient: Recipient,
+                        comment: String?,
                         walletProvider: WalletProvider) -> SendController {
-        SendController(walletProvider: walletProvider,
+        SendController(itemTransferModel: itemTransferModel,
+                       recipient: recipient,
+                       comment: comment,
+                       walletProvider: walletProvider,
                        keychainManager: coreAssembly.keychainManager,
                        sendService: sendService(api: api),
                        rateService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
