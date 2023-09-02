@@ -81,6 +81,11 @@ public final class WalletCoreContainer {
         walletCoreAssembly.activityListTokenEventsController(walletProvider: keeperController(), tokenInfo: tokenInfo)
     }
     
+    public func activityController() -> ActivityController {
+        walletCoreAssembly
+            .activityController()
+    }
+    
     public func chartController() -> ChartController {
         walletCoreAssembly.chartController()
     }
