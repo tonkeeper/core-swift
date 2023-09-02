@@ -24,6 +24,7 @@ final class WalletCoreAssembly {
     private lazy var sendAssembly = SendAssembly(formattersAssembly: formattersAssembly,
                                                  ratesAssembly: ratesAssembly,
                                                  balanceAssembly: walletBalanceAssembly,
+                                                 servicesAssembly: servicesAssembly,
                                                  coreAssembly: coreAssembly)
     private lazy var receiveAssembly = ReceiveAssembly()
     private lazy var keeperInfoAssembly = KeeperInfoAssembly(coreAssembly: coreAssembly)
@@ -75,12 +76,14 @@ final class WalletCoreAssembly {
         )
     }
     
-    func nftSendController(_ nft: Collectible,
+    func nftSendController(nftAddress: Address,
                            recipient: Recipient,
                            comment: String?,
                            walletProvider: WalletProvider) -> SendController {
         sendAssembly.nftSendController(
-            nft,
+            api: tonAPI,
+            cacheURL: cacheURL,
+            nftAddress: nftAddress,
             recipient: recipient,
             comment: comment,
             walletProvider: walletProvider)

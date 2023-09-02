@@ -52,8 +52,21 @@ struct SendMessageBuilder {
             return internalMessage
         }
     }
-
     
+    func sendNFTEstimateBoc(nftAddress: Address,
+                            recipientAddress: Address,
+                            transferAmount: BigUInt) async throws -> String {
+        return try await externalMessageBoc { sender in
+            let internalMessage = try NFTTransferMessage.internalMessage(
+                nftAddress: nftAddress,
+                nftTransferAmount: transferAmount,
+                to: recipientAddress,
+                from: sender,
+                forwardPayload: nil)
+            return internalMessage
+        }
+    }
+
     func externalMessageBoc(internalMessage: (_ sender: Address) throws -> MessageRelaxed) async throws -> String {
         let wallet = try walletProvider.activeWallet
         let walletPublicKey = try wallet.publicKey
@@ -81,6 +94,5 @@ struct SendMessageBuilder {
                                                body: transferCell)
         let cell = try Builder().store(externalMessage).endCell()
         return try cell.toBoc().base64EncodedString()
-
     }
 }

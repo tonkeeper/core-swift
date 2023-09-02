@@ -43,8 +43,8 @@ public final class WalletCoreContainer {
                                                    recipient: recipient,
                                                    comment: comment,
                                                    walletProvider: keeperController())
-        case .nft(let collectible):
-            walletCoreAssembly.nftSendController(collectible,
+        case .nft(let nftAddress):
+            walletCoreAssembly.nftSendController(nftAddress: nftAddress,
                                                  recipient: recipient,
                                                  comment: comment,
                                                  walletProvider: keeperController())

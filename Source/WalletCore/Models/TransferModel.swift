@@ -11,7 +11,7 @@ import BigInt
 
 public enum TransferModel {
     case token(TokenTransferModel)
-    case nft(Collectible)
+    case nft(nftAddress: Address)
 }
 
 public struct TokenTransferModel {

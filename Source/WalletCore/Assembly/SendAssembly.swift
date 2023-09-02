@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TonSwift
 import TonAPI
 
 final class SendAssembly {
@@ -13,15 +14,18 @@ final class SendAssembly {
     let formattersAssembly: FormattersAssembly
     let ratesAssembly: RatesAssembly
     let balanceAssembly: WalletBalanceAssembly
+    let servicesAssembly: ServicesAssembly
     let coreAssembly: CoreAssembly
     
     init(formattersAssembly: FormattersAssembly,
          ratesAssembly: RatesAssembly,
          balanceAssembly: WalletBalanceAssembly,
+         servicesAssembly: ServicesAssembly,
          coreAssembly: CoreAssembly) {
         self.formattersAssembly = formattersAssembly
         self.ratesAssembly = ratesAssembly
         self.balanceAssembly = balanceAssembly
+        self.servicesAssembly = servicesAssembly
         self.coreAssembly = coreAssembly
     }
     
@@ -54,11 +58,23 @@ final class SendAssembly {
             bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
     
-    func nftSendController(_ nft: Collectible,
+    func nftSendController(api: API,
+                           cacheURL: URL,
+                           nftAddress: Address,
                            recipient: Recipient,
                            comment: String?,
                            walletProvider: WalletProvider) -> SendController {
-        return NFTSendController(collectible: nft)
+        let sendService = sendService(api: api)
+        return NFTSendController(
+            nftAddress: nftAddress,
+            recipient: recipient,
+            comment: comment,
+            sendService: sendService,
+            rateService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
+            collectibleService: servicesAssembly.collectiblesService,
+            sendMessageBuilder: sendMessageBuilder(walletProvider: walletProvider, sendService: sendService),
+            intAmountFormatter: formattersAssembly.intAmountFormatter,
+            bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
     
     func sendRecipientController(api: API) -> SendRecipientController {

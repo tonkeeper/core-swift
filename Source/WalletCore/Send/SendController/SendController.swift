@@ -12,10 +12,18 @@ import BigInt
 public enum SendControllerError: Swift.Error {
     case failedToPrepareTransaction
     case failedToEmulateTransaction
+    case failedToSendTransaction
 }
 
-public protocol SendController {
-    func getInitialTransactionModel() -> SendTransactionViewModel
-    func loadTransactionModel() async throws -> SendTransactionViewModel
+public protocol SendControllerDelegate: AnyObject {
+    func sendControllerDidStartLoadInitialData(_ sendController: SendController)
+    func sendController(_ sendController: SendController, didUpdate model: SendTransactionViewModel)
+    func sendControllerFailed(_ sendController: SendController, error: SendControllerError)
+}
+
+public protocol SendController: AnyObject {
+    var delegate: SendControllerDelegate? { get set }
+    
+    func prepareTransaction()
     func sendTransaction() async throws
 }
