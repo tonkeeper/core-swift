@@ -34,8 +34,22 @@ public final class WalletCoreContainer {
         walletCoreAssembly.sendInputController(walletProvider: keeperController())
     }
     
-    public func sendController() -> SendController {
-        walletCoreAssembly.sendController(walletProvider: keeperController())
+    public func sendController(transferModel: TransferModel,
+                               recipient: Recipient,
+                               comment: String?) -> SendController {
+        switch transferModel {
+        case .token(let tokenTransferModel):
+            walletCoreAssembly.tokenSendController(tokenTransferModel: tokenTransferModel,
+                                                   recipient: recipient,
+                                                   comment: comment,
+                                                   walletProvider: keeperController())
+        case .nft(let nftAddress):
+            walletCoreAssembly.nftSendController(nftAddress: nftAddress,
+                                                 recipient: recipient,
+                                                 comment: comment,
+                                                 walletProvider: keeperController())
+        }
+        
     }
     
     public func sendRecipientController() -> SendRecipientController {
@@ -65,6 +79,11 @@ public final class WalletCoreContainer {
     
     public func activityListTokenEventsController(tokenInfo: TokenInfo) -> ActivityListController {
         walletCoreAssembly.activityListTokenEventsController(walletProvider: keeperController(), tokenInfo: tokenInfo)
+    }
+    
+    public func activityController() -> ActivityController {
+        walletCoreAssembly
+            .activityController()
     }
     
     public func chartController() -> ChartController {

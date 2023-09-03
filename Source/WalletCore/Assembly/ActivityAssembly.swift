@@ -9,11 +9,14 @@ import Foundation
 import TonAPI
 
 struct ActivityAssembly {
+    let servicesAssembly: ServicesAssembly
     let formattersAssembly: FormattersAssembly
     let coreAssembly: CoreAssembly
     
-    init(coreAssembly: CoreAssembly,
+    init(servicesAssembly: ServicesAssembly,
+         coreAssembly: CoreAssembly,
          formattersAssembly: FormattersAssembly) {
+        self.servicesAssembly = servicesAssembly
         self.coreAssembly = coreAssembly
         self.formattersAssembly = formattersAssembly
     }
@@ -52,6 +55,10 @@ struct ActivityAssembly {
                                       contractBuilder: WalletContractBuilder(),
                                       activityEventMapper: activityEventMapper()
         )
+    }
+    
+    func activityController() -> ActivityController {
+        ActivityController(collectiblesService: servicesAssembly.collectiblesService)
     }
 }
 

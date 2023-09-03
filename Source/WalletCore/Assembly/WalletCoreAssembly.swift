@@ -24,6 +24,7 @@ final class WalletCoreAssembly {
     private lazy var sendAssembly = SendAssembly(formattersAssembly: formattersAssembly,
                                                  ratesAssembly: ratesAssembly,
                                                  balanceAssembly: walletBalanceAssembly,
+                                                 servicesAssembly: servicesAssembly,
                                                  coreAssembly: coreAssembly)
     private lazy var receiveAssembly = ReceiveAssembly()
     private lazy var keeperInfoAssembly = KeeperInfoAssembly(coreAssembly: coreAssembly)
@@ -39,6 +40,9 @@ final class WalletCoreAssembly {
                                                          coreAssembly: coreAssembly,
                                                          cacheURL: cacheURL)
     private lazy var collectibleAssembly = CollectibleAssembly(servicesAssembly: servicesAssembly)
+    private lazy var activityAssembly = ActivityAssembly(servicesAssembly: servicesAssembly,
+                                                         coreAssembly: coreAssembly,
+                                                         formattersAssembly: formattersAssembly)
     
     private let cacheURL: URL
     init(cacheURL: URL) {
@@ -61,12 +65,31 @@ final class WalletCoreAssembly {
         sendAssembly.sendInputController(api: tonAPI, cacheURL: cacheURL, walletProvider: walletProvider)
     }
     
-    func sendController(walletProvider: WalletProvider) -> SendController {
-        sendAssembly.sendController(
+    func tokenSendController(tokenTransferModel: TokenTransferModel,
+                             recipient: Recipient,
+                             comment: String?,
+                             walletProvider: WalletProvider) -> SendController {
+        sendAssembly.tokenSendController(
             api: tonAPI,
             cacheURL: cacheURL,
+            tokenTransferModel: tokenTransferModel,
+            recipient: recipient,
+            comment: comment,
             walletProvider: walletProvider
         )
+    }
+    
+    func nftSendController(nftAddress: Address,
+                           recipient: Recipient,
+                           comment: String?,
+                           walletProvider: WalletProvider) -> SendController {
+        sendAssembly.nftSendController(
+            api: tonAPI,
+            cacheURL: cacheURL,
+            nftAddress: nftAddress,
+            recipient: recipient,
+            comment: comment,
+            walletProvider: walletProvider)
     }
     
     func sendRecipientController() -> SendRecipientController {
@@ -96,17 +119,15 @@ final class WalletCoreAssembly {
     }
     
     func activityListController(walletProvider: WalletProvider) -> ActivityListController {
-        ActivityAssembly(coreAssembly: coreAssembly,
-                         formattersAssembly: formattersAssembly)
-        .activityListController(api: tonAPI, 
+        activityAssembly
+        .activityListController(api: tonAPI,
                                 walletProvider: walletProvider,
                                 cacheURL: cacheURL
         )
     }
     
     func activityListTonEventsController(walletProvider: WalletProvider) -> ActivityListController {
-        ActivityAssembly(coreAssembly: coreAssembly,
-                         formattersAssembly: formattersAssembly)
+        activityAssembly
         .activityListTonEventsController(
             api: tonAPI,
             walletProvider: walletProvider,
@@ -115,8 +136,7 @@ final class WalletCoreAssembly {
     }
     
     func activityListTokenEventsController(walletProvider: WalletProvider, tokenInfo: TokenInfo) -> ActivityListController {
-        ActivityAssembly(coreAssembly: coreAssembly,
-                         formattersAssembly: formattersAssembly)
+        activityAssembly
         .activityListTokenEventsController(
             api: tonAPI,
             walletProvider: walletProvider,
@@ -125,12 +145,19 @@ final class WalletCoreAssembly {
         )
     }
     
+    func activityController() -> ActivityController {
+        activityAssembly
+            .activityController()
+    }
+    
     func chartController() -> ChartController {
         tokenDetailsAssembly.chartController(api: configurationAPI)
     }
     
     func collectibleDetailsController(collectibleAddress: Address) -> CollectibleDetailsController {
-        collectibleAssembly.collectibleDetailsController(collectibleAddress: collectibleAddress)
+        collectibleAssembly.collectibleDetailsController(collectibleAddress: collectibleAddress,
+                                                         walletProvider: keeperController,
+                                                         contractBuilder: WalletContractBuilder())
     }
     
     func deeplinkParser() -> DeeplinkParser {

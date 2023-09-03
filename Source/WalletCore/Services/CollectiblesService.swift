@@ -30,6 +30,7 @@ protocol CollectiblesService {
     func loadCollectibles(addresses: [Address]) async throws -> Collectibles
     func getCollectibles() throws -> Collectibles
     func getCollectible(address: Address) throws -> Collectible
+    func saveCollectible(collectible: Collectible) throws
     func loadCollectibles(address: Address,
                           collectionAddress: Address?,
                           limit: Int,
@@ -65,7 +66,7 @@ final class CollectiblesServiceImplementation: CollectiblesService {
                           offset: Int,
                           isIndirectOwnership: Bool) async throws -> [Collectible] {
         let request = AccountNFTsRequest(
-            accountId: address.toRaw(),
+            accountId: address.toString(),
             collection: collectionAddress?.toRaw(),
             limit: limit,
             offset: offset,
@@ -91,6 +92,10 @@ final class CollectiblesServiceImplementation: CollectiblesService {
     
     func getCollectible(address: Address) throws -> Collectible {
         return try localRepository.load(key: address.toString())
+    }
+    
+    func saveCollectible(collectible: Collectible) throws {
+        try localRepository.save(item: collectible)
     }
 }
 

@@ -15,8 +15,12 @@ struct CollectibleAssembly {
         self.servicesAssembly = servicesAssembly
     }
     
-    func collectibleDetailsController(collectibleAddress: Address) -> CollectibleDetailsController {
+    func collectibleDetailsController(collectibleAddress: Address,
+                                      walletProvider: WalletProvider,
+                                      contractBuilder: WalletContractBuilder) -> CollectibleDetailsController {
         CollectibleDetailsController(collectibleAddress: collectibleAddress,
+                                     walletProvider: walletProvider,
+                                     contractBuilder: contractBuilder,
                                      collectiblesService: servicesAssembly.collectiblesService,
                                      collectibleDetailsMapper: CollectibleDetailsMapper())
     }

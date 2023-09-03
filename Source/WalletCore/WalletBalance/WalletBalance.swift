@@ -92,7 +92,7 @@ enum AppTokenAmount {
     case token(TokenBalance)
 }
 
-struct Collectible: Codable {
+public struct Collectible: Codable {
     let address: Address
     let owner: WalletAccount?
     let name: String?
@@ -102,7 +102,8 @@ struct Collectible: Codable {
     let attributes: [Attribute]
     let collection: Collection?
     let dns: String?
-    
+    let sale: Sale?
+
     struct Marketplace {
         let name: String
         let url: URL?
@@ -125,6 +126,12 @@ struct Collectible: Codable {
         let size100: URL?
         let size500: URL?
         let size1500: URL?
+    }
+    
+    struct Sale: Codable {
+        let address: Address
+        let market: WalletAccount
+        let owner: WalletAccount?
     }
 }
 

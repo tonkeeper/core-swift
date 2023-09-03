@@ -15,17 +15,18 @@ struct SendConfirmationMapper {
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
     
-    func mapItemTransferModel(_ itemTransferModel: ItemTransferModel,
-                              recipientAddress: String?,
-                              recipientName: String?,
-                              fee: Int64?,
-                              comment: String?,
-                              rate: Rates.Rate?,
-                              tonRate: Rates.Rate?) -> SendTransactionViewModel {
+    func mapTokenTransfer(_ tokenTransferModel: TokenTransferModel,
+                          recipientAddress: String?,
+                          recipientName: String?,
+                          fee: Int64?,
+                          comment: String?,
+                          rate: Rates.Rate?,
+                          tonRate: Rates.Rate?,
+                          isInitial: Bool) -> SendTransactionViewModel.SendTokenModel {
         let token: FormatterTokenInfo
         let image: Image
         let name: String
-        switch itemTransferModel.transferItem {
+        switch tokenTransferModel.transferItem {
         case .token(_, let tokenInfo):
             name = "\(tokenInfo.symbol ?? "Token") Transfer"
             token = tokenInfo
@@ -36,91 +37,132 @@ struct SendConfirmationMapper {
             image = .ton
         }
         
-        return map(name: name,
-                   image: image,
-                   recipientAddress: recipientAddress,
-                   recipientName: recipientName,
-                   token: token,
-                   amount: itemTransferModel.amount,
-                   fee: fee,
-                   comment: comment,
-                   rate: rate,
-                   tonRate: tonRate)
-    }
-    
-    func mapAction(action: TransferTransactionInfo.Action,
-                   fee: Int64?,
-                   comment: String?,
-                   rate: Rates.Rate?,
-                   tonRate: Rates.Rate?) -> SendTransactionViewModel {
-        let itemTranferModel = ItemTransferModel(transferItem: action.transferItem,
-                                                 amount: action.amount)
-        return mapItemTransferModel(itemTranferModel,
-                                    recipientAddress: action.recipient.address?.shortString,
-                                    recipientName: action.recipient.name,
-                                    fee: fee,
-                                    comment: comment,
-                                    rate: rate,
-                                    tonRate: tonRate)
-    }
-}
-
-private extension SendConfirmationMapper {
-    func map(name: String,
-             image: Image,
-             recipientAddress: String?,
-             recipientName: String?,
-             token: FormatterTokenInfo,
-             amount: BigInt,
-             fee: Int64?,
-             comment: String?,
-             rate: Rates.Rate?,
-             tonRate: Rates.Rate?) -> SendTransactionViewModel {
-        let amountFormatted = bigIntAmountFormatter.format(amount: amount,
+        let amountFormatted = bigIntAmountFormatter.format(amount: tokenTransferModel.amount,
                                                            fractionDigits: token.fractionDigits,
                                                            maximumFractionDigits: token.fractionDigits,
                                                            symbol: nil)
         
-        let tonInfo = TonInfo()
+        let feeTon: SendTransactionViewModel.Item<String?>
+        let feeFiat: SendTransactionViewModel.Item<String?>
         
-        var feeTonString: String?
-        var feeFiatString: String?
-        var amountFiatString: String?
-        let rateConverter = RateConverter()
-        if let rate = rate {
-            let fiat = rateConverter.convert(amount: amount, amountFractionLength: token.fractionDigits, rate: rate)
-            let fiatFormatted = bigIntAmountFormatter.format(amount: fiat.amount,
-                                                             fractionDigits: fiat.fractionLength,
-                                                             maximumFractionDigits: 2,
-                                                             symbol: rate.currency.symbol)
-            amountFiatString = "≈\(fiatFormatted)"
+        if isInitial {
+            feeTon = .loading
+            feeFiat = .loading
+        } else {
+            let mappedFee = mapFee(fee, tonRate: tonRate)
+            feeTon = .value(mappedFee.mappedFee)
+            feeFiat = .value(mappedFee.mappedFiatFee)
         }
-        if let fee = fee {
-            let feeTon = bigIntAmountFormatter.format(amount: BigInt(fee),
-                                                      fractionDigits: tonInfo.fractionDigits,
-                                                      maximumFractionDigits: tonInfo.fractionDigits,
-                                                      symbol: nil)
-            feeTonString = "≈\(feeTon) \(tonInfo.symbol)"
-            if let tonRate = tonRate {
-                let feeFiat = rateConverter.convert(amount: fee, amountFractionLength: tonInfo.fractionDigits, rate: tonRate)
-                let feeFiatFormatted = bigIntAmountFormatter.format(amount: feeFiat.amount,
-                                                                    fractionDigits: feeFiat.fractionLength,
-                                                                    maximumFractionDigits: 2,
-                                                                    symbol: tonRate.currency.symbol)
-                feeFiatString = "≈\(feeFiatFormatted)"
-
+        
+        let fiatAmount: SendTransactionViewModel.Item<String?>
+        if let mappedFiatAmount = mapFiatAmount(
+            amount: tokenTransferModel.amount,
+            formatterInfo: token,
+            rate: rate) {
+            fiatAmount = .value(mappedFiatAmount)
+        } else if isInitial {
+            fiatAmount = .loading
+        } else {
+            fiatAmount = .value(nil)
+        }
+        
+        return SendTransactionViewModel.SendTokenModel(
+            title: name,
+            image: image,
+            recipientAddress: recipientAddress,
+            recipientName: recipientName,
+            amountToken: "\(amountFormatted) \(token.tokenSymbol ?? "")",
+            amountFiat: fiatAmount,
+            feeTon: feeTon,
+            feeFiat: feeFiat,
+            comment: comment)
+    }
+    
+    func mapNFT(_ nft: Collectible,
+                recipientAddress: String?,
+                recipientName: String?,
+                fee: Int64?,
+                comment: String?,
+                tonRate: Rates.Rate?,
+                isInitial: Bool) -> SendTransactionViewModel.SendNFTModel {
+        
+        var description = ""
+        if let name = nft.name {
+            description = name
+        }
+        if let collectionName = nft.collection?.name {
+            if !description.isEmpty {
+                description.append(" · ")
             }
+            description.append(collectionName)
         }
         
-        return SendTransactionViewModel(title: name,
-                                        image: image,
-                                        recipientAddress: recipientAddress,
-                                        recipientName: recipientName,
-                                        amountToken: "\(amountFormatted) \(token.tokenSymbol ?? "")",
-                                        amountFiat: amountFiatString,
-                                        feeTon: feeTonString,
-                                        feeFiat: feeFiatString,
-                                        comment: comment)
+        let feeTon: SendTransactionViewModel.Item<String?>
+        let feeFiat: SendTransactionViewModel.Item<String?>
         
+        if isInitial {
+            feeTon = .loading
+            feeFiat = .loading
+        } else {
+            let mappedFee = mapFee(fee, tonRate: tonRate)
+            feeTon = .value(mappedFee.mappedFee)
+            feeFiat = .value(mappedFee.mappedFiatFee)
+        }
+        
+        return SendTransactionViewModel.SendNFTModel(
+            title: "NFT Transfer",
+            description: description,
+            image: .url(nft.preview.size500),
+            recipientAddress: recipientAddress,
+            recipientName: recipientName,
+            feeTon: feeTon,
+            feeFiat: feeFiat,
+            comment: comment,
+            nftId: nft.address.shortString,
+            nftCollectionId: nft.collection?.address.shortString)
+    }
+}
+
+private extension SendConfirmationMapper {
+    func mapFee(_ fee: Int64?, tonRate: Rates.Rate?) -> (mappedFee: String?, mappedFiatFee: String?) {
+        guard let fee = fee else { return ("?", nil) }
+        let tonInfo = TonInfo()
+        var mappedFee = bigIntAmountFormatter.format(amount: BigInt(fee),
+                                                     fractionDigits: tonInfo.fractionDigits,
+                                                     maximumFractionDigits: tonInfo.fractionDigits,
+                                                     symbol: nil)
+        mappedFee = "≈\(mappedFee) \(tonInfo.symbol)"
+        
+        var mappedFiatFee: String?
+        if let tonRate = tonRate {
+            let rateConverter = RateConverter()
+            let feeFiat = rateConverter.convert(amount: fee, amountFractionLength: tonInfo.fractionDigits, rate: tonRate)
+            let feeFiatFormatted = bigIntAmountFormatter.format(amount: feeFiat.amount,
+                                                                fractionDigits: feeFiat.fractionLength,
+                                                                maximumFractionDigits: 2,
+                                                                symbol: tonRate.currency.symbol)
+            mappedFiatFee = "≈\(feeFiatFormatted)"
+        }
+        return (mappedFee, mappedFiatFee)
+    }
+    
+    func mapFiatAmount(amount: BigInt,
+                       formatterInfo: FormatterTokenInfo,
+                       rate: Rates.Rate?) -> String? {
+        guard let rate = rate else { return nil }
+        let rateConverter = RateConverter()
+        let fiatConverted = rateConverter.convert(
+            amount: amount,
+            amountFractionLength: formatterInfo.fractionDigits,
+            rate: rate
+        )
+        let fiatAmountFormatted = bigIntAmountFormatter.format(
+            amount: fiatConverted.amount,
+            fractionDigits: fiatConverted.fractionLength,
+            maximumFractionDigits: 2,
+            symbol: rate.currency.symbol
+        )
+        
+        return fiatAmountFormatted
     }
 }

@@ -68,7 +68,7 @@ public actor ActivityListController {
                 limit: limit
             )
             try Task.checkCancellation()
-            let collectibles = try await loadEventsCollectibles(events: loadedEvents.events)
+            let collectibles = await handleEventsWithNFTs(events: loadedEvents.events)
             try Task.checkCancellation()
             self.nextFrom = loadedEvents.events.count < limit ? 0 : loadedEvents.nextFrom
             return (loadedEvents, collectibles)
@@ -165,20 +165,25 @@ private extension ActivityListController {
         return viewModels
     }
     
-    func loadEventsCollectibles(events: [ActivityEvent]) async throws -> Collectibles {
-        let nftItemsAddresses = events.map { event in
-            return event.actions.compactMap { action -> Address? in
-                guard case let .nftItemTransfer(nftItem) = action.type else { return nil }
-                return nftItem.nftAddress
+    func handleEventsWithNFTs(events: [ActivityEvent]) async -> Collectibles {
+        let actions = events.flatMap { $0.actions }
+        var nftAddressesToLoad = Set<Address>()
+        var nfts = [Address: Collectible]()
+        for action in actions {
+            switch action.type {
+            case .nftItemTransfer(let nftItemTransfer):
+                nftAddressesToLoad.insert(nftItemTransfer.nftAddress)
+            case .nftPurchase(let nftPurchase):
+                nfts[nftPurchase.collectible.address] = nftPurchase.collectible
+                try? collectiblesService.saveCollectible(collectible: nftPurchase.collectible)
+            default: continue
             }
-        }.flatMap { $0 }
-        guard !nftItemsAddresses.isEmpty else { return Collectibles(collectibles: [:]) }
-        
-        do {
-            return try await collectiblesService.loadCollectibles(addresses: nftItemsAddresses)
-        } catch {
-            guard let cachedCollectibles = try? collectiblesService.getCollectibles() else { return Collectibles(collectibles: [:]) }
-            return cachedCollectibles
         }
+        
+        if let loadedNFTs = try? await collectiblesService.loadCollectibles(addresses: Array(nftAddressesToLoad)) {
+            nfts.merge(loadedNFTs.collectibles, uniquingKeysWith: { $1 })
+        }
+        
+        return Collectibles(collectibles: nfts)
     }
 }
