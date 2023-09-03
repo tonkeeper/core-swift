@@ -23,8 +23,8 @@
         "package": "TonSwift",
         "repositoryURL": "https://github.com/tonkeeper/ton-swift",
         "state": {
-          "branch": "feature/jetton_transfer",
-          "revision": "8de358bb6d85ac806c7e42cf9824b18332d3c5d5",
+          "branch": "feature/nft_transfer",
+          "revision": "5ca17b6c98be35ef05a0e83791c081c35adbec7c",
           "version": null
         }
       },
