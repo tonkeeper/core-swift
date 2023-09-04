@@ -42,8 +42,8 @@ struct SendConfirmationMapper {
                                                            maximumFractionDigits: token.fractionDigits,
                                                            symbol: nil)
         
-        let feeTon: SendTransactionViewModel.Item<String?>
-        let feeFiat: SendTransactionViewModel.Item<String?>
+        let feeTon: ViewModelLoadableItem<String?>
+        let feeFiat: ViewModelLoadableItem<String?>
         
         if isInitial {
             feeTon = .loading
@@ -54,7 +54,7 @@ struct SendConfirmationMapper {
             feeFiat = .value(mappedFee.mappedFiatFee)
         }
         
-        let fiatAmount: SendTransactionViewModel.Item<String?>
+        let fiatAmount: ViewModelLoadableItem<String?>
         if let mappedFiatAmount = mapFiatAmount(
             amount: tokenTransferModel.amount,
             formatterInfo: token,
@@ -97,8 +97,8 @@ struct SendConfirmationMapper {
             description.append(collectionName)
         }
         
-        let feeTon: SendTransactionViewModel.Item<String?>
-        let feeFiat: SendTransactionViewModel.Item<String?>
+        let feeTon: ViewModelLoadableItem<String?>
+        let feeFiat: ViewModelLoadableItem<String?>
         
         if isInitial {
             feeTon = .loading

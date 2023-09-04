@@ -42,4 +42,7 @@ public struct CollectibleDetailsViewModel {
     public let details: Details
     public let isTransferEnable: Bool
     public let isOnSale: Bool
+    public let linkedAddress: ViewModelLoadableItem<String?>
+    public let expirationDateItem: ViewModelLoadableItem<String>?
+    public let daysExpiration: Int?
 }

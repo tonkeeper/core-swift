@@ -11,13 +11,13 @@ import TonSwift
 
 protocol DNSService {
     func resolveDomainName(_ domainName: String) async throws -> Recipient
+    func loadDomainExpirationDate(_ domainName: String) async throws -> Date?
 }
 
 final class DNSServiceImplementation: DNSService {
     enum Error: Swift.Error {
         case noWalletData
     }
-    
     
     private let api: API
     
@@ -34,6 +34,14 @@ final class DNSServiceImplementation: DNSService {
         }
         let address = try Address.parse(wallet.address)
         return Recipient(address: address, domain: parsedDomainName)
+    }
+    
+    func loadDomainExpirationDate(_ domainName: String) async throws -> Date? {
+        let parsedDomainName = parseDomainName(domainName)
+        let request = DNSInfoRequest(domainName: parsedDomainName)
+        let response = try await api.send(request: request)
+        guard let expiringAt = response.entity.expiringAt else { return nil }
+        return Date(timeIntervalSince1970: TimeInterval(integerLiteral: Int64(expiringAt)))
     }
 }
 

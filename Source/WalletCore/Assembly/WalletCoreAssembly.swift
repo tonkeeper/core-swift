@@ -39,7 +39,8 @@ final class WalletCoreAssembly {
                                                          tonkeeperAPI: configurationAPI,
                                                          coreAssembly: coreAssembly,
                                                          cacheURL: cacheURL)
-    private lazy var collectibleAssembly = CollectibleAssembly(servicesAssembly: servicesAssembly)
+    private lazy var collectibleAssembly = CollectibleAssembly(servicesAssembly: servicesAssembly,
+                                                               formattersAssembly: formattersAssembly)
     private lazy var activityAssembly = ActivityAssembly(servicesAssembly: servicesAssembly,
                                                          coreAssembly: coreAssembly,
                                                          formattersAssembly: formattersAssembly)

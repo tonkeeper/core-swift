@@ -10,9 +10,12 @@ import TonSwift
 
 struct CollectibleAssembly {
     let servicesAssembly: ServicesAssembly
+    let formattersAssembly: FormattersAssembly
     
-    init(servicesAssembly: ServicesAssembly) {
+    init(servicesAssembly: ServicesAssembly,
+         formattersAssembly: FormattersAssembly) {
         self.servicesAssembly = servicesAssembly
+        self.formattersAssembly = formattersAssembly
     }
     
     func collectibleDetailsController(collectibleAddress: Address,
@@ -22,6 +25,7 @@ struct CollectibleAssembly {
                                      walletProvider: walletProvider,
                                      contractBuilder: contractBuilder,
                                      collectiblesService: servicesAssembly.collectiblesService,
-                                     collectibleDetailsMapper: CollectibleDetailsMapper())
+                                     dnsService: servicesAssembly.dnsService,
+                                     collectibleDetailsMapper: CollectibleDetailsMapper(dateFormatter: formattersAssembly.dateFormatter))
     }
 }
