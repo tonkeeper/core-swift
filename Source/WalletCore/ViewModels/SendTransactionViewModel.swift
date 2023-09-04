@@ -10,21 +10,16 @@ import Foundation
 public enum SendTransactionViewModel {
     case token(SendTokenModel)
     case nft(SendNFTModel)
-    
-    public enum Item<T> {
-        case loading
-        case value(T)
-    }
-    
+
     public struct SendTokenModel {
         public let title: String
         public let image: Image
         public let recipientAddress: String?
         public let recipientName: String?
         public let amountToken: String?
-        public let amountFiat: Item<String?>
-        public let feeTon: Item<String?>
-        public let feeFiat: Item<String?>
+        public let amountFiat: ViewModelLoadableItem<String?>
+        public let feeTon: ViewModelLoadableItem<String?>
+        public let feeFiat: ViewModelLoadableItem<String?>
         public let comment: String?
     }
     
@@ -34,8 +29,8 @@ public enum SendTransactionViewModel {
         public let image: Image
         public let recipientAddress: String?
         public let recipientName: String?
-        public let feeTon: Item<String?>
-        public let feeFiat: Item<String?>
+        public let feeTon: ViewModelLoadableItem<String?>
+        public let feeFiat: ViewModelLoadableItem<String?>
         public let comment: String?
         public let nftId: String?
         public let nftCollectionId: String?

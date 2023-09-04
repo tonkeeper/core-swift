@@ -17,6 +17,10 @@ struct ServicesAssembly {
     var collectiblesService: CollectiblesService {
         CollectiblesServiceImplementation(api: tonAPI, localRepository: localRepository())
     }
+    
+    var dnsService: DNSService {
+        DNSServiceImplementation(api: tonAPI)
+    }
 }
 
 private extension ServicesAssembly {

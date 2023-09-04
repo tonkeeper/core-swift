@@ -39,17 +39,16 @@ public final class WalletCoreContainer {
                                comment: String?) -> SendController {
         switch transferModel {
         case .token(let tokenTransferModel):
-            walletCoreAssembly.tokenSendController(tokenTransferModel: tokenTransferModel,
+            return walletCoreAssembly.tokenSendController(tokenTransferModel: tokenTransferModel,
                                                    recipient: recipient,
                                                    comment: comment,
                                                    walletProvider: keeperController())
         case .nft(let nftAddress):
-            walletCoreAssembly.nftSendController(nftAddress: nftAddress,
+            return walletCoreAssembly.nftSendController(nftAddress: nftAddress,
                                                  recipient: recipient,
                                                  comment: comment,
                                                  walletProvider: keeperController())
         }
-        
     }
     
     public func sendRecipientController() -> SendRecipientController {

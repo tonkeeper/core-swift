@@ -6,9 +6,43 @@
 //
 
 import Foundation
+import TonSwift
 
 struct CollectibleDetailsMapper {
-    func map(collectible: Collectible, isOwner: Bool) -> CollectibleDetailsViewModel {
+    
+    private let dateFormatter: DateFormatter
+    
+    init(dateFormatter: DateFormatter) {
+        self.dateFormatter = dateFormatter
+        dateFormatter.dateFormat = "dd MMM yyyy"
+    }
+    
+    func map(collectible: Collectible,
+             isOwner: Bool,
+             linkedAddress: Address?,
+             expirationDate: Date?,
+             isInitial: Bool) -> CollectibleDetailsViewModel {
+        
+        let linkedAddressItem: ViewModelLoadableItem<String?>
+        if let linkedAddress = linkedAddress {
+            linkedAddressItem = .value(linkedAddress.shortString)
+        } else if isInitial {
+            linkedAddressItem = .loading
+        } else {
+            linkedAddressItem = .value(nil)
+        }
+        
+        let expirationDateItem: ViewModelLoadableItem<String>?
+        let daysExpiration: Int?
+        if let expirationDate = expirationDate {
+            let formattedDate = dateFormatter.string(from: expirationDate)
+            expirationDateItem = .value(formattedDate)
+            daysExpiration = calculateDaysNumberToExpire(expirationDate: expirationDate)
+        } else {
+            expirationDateItem = nil
+            daysExpiration = nil
+        }
+        
         return CollectibleDetailsViewModel(
             title: collectible.name,
             collectibleDetails: mapCollectibleDetails(collectible: collectible),
@@ -16,7 +50,10 @@ struct CollectibleDetailsMapper {
             properties: mapProperties(collectible: collectible),
             details: mapDetails(collectible: collectible),
             isTransferEnable: mapIsTransferEnable(collectible: collectible, isOwner: isOwner),
-            isOnSale: collectible.sale != nil)
+            isOnSale: collectible.sale != nil,
+            linkedAddress: linkedAddressItem,
+            expirationDateItem: expirationDateItem,
+            daysExpiration: daysExpiration)
     }
     
     private func mapCollectibleDetails(collectible: Collectible) -> CollectibleDetailsViewModel.CollectibleDetails {
@@ -40,14 +77,10 @@ struct CollectibleDetailsMapper {
     private func mapCollectionDetails(collectible: Collectible) -> CollectibleDetailsViewModel.CollectionDetails {
         var title: String?
         var description: String?
-        if collectible.dns != nil {
-            title = "About TON DNS"
-            description = .tonDNSDescription
-        } else if let collectionName = collectible.collection?.name {
+        if let collectionName = collectible.collection?.name {
             title = "About \(collectionName)"
             description = collectible.collection?.description
         }
-        
         return CollectibleDetailsViewModel.CollectionDetails(
             title: title,
             description: description
@@ -74,14 +107,14 @@ struct CollectibleDetailsMapper {
         isOwner: Bool) -> Bool {
             return collectible.sale == nil && isOwner
     }
+    
+    private func calculateDaysNumberToExpire(expirationDate: Date) -> Int {
+        let calendar = Calendar.current
+        let numberOfDays = calendar.dateComponents([.day], from: Date(), to: expirationDate)
+        return (numberOfDays.day ?? 0)
+    }
 }
 
 private extension URL {
     static let tonviewerURL = URL(string: "https://tonviewer.com/")!
-}
-
-private extension String {
-    static let tonDNSDescription = """
-    TON DNS is a service that allows users to assign a human-readable name to crypto wallets, smart contracts, and websites.\n\nWith TON DNS, access to decentralized services is analogous to access to websites on the internet.
-    """
 }
