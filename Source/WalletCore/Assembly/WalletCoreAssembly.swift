@@ -32,6 +32,7 @@ final class WalletCoreAssembly {
     
     private lazy var tonAPI: API = apiAssembly.tonAPI(requestInterceptors: [accessTokenProvider])
     private lazy var configurationAPI: API = apiAssembly.configurationAPI()
+    private lazy var streamingAPI: StreamingAPI = apiAssembly.streamingAPI(requestInterceptors: [accessTokenProvider])
     
     lazy var keeperController: KeeperController = keeperInfoAssembly.keeperController(cacheURL: cacheURL)
     
@@ -59,7 +60,8 @@ final class WalletCoreAssembly {
             balanceService: walletBalanceAssembly.walletBalanceService(api: tonAPI, cacheURL: cacheURL),
             ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: cacheURL),
             walletProvider: keeperController,
-            walletBalanceMapper: walletBalanceAssembly.walletBalanceMapper())
+            walletBalanceMapper: walletBalanceAssembly.walletBalanceMapper(),
+            transactionsUpdatePublishService: TransactionsUpdateServiceImplementation(streamingAPI: streamingAPI))
     }
     
     func sendInputController(walletProvider: WalletProvider) -> SendInputController {

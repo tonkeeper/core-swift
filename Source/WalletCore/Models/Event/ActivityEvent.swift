@@ -47,9 +47,9 @@ extension ActivityEvent {
                     actionType = .auctionBid(try .init(auctionBid: auctionBid))
                 } else if let nftPurchase = action.nftPurchase {
                     actionType = .nftPurchase(try .init(nftPurchase: nftPurchase))
-                } else if let depositStake = action.depositStake {
+                } else if let depositStake = action.electionsDepositStake {
                     actionType = .depositStake(try .init(depositStake: depositStake))
-                } else if let recoverStake = action.recoverStake {
+                } else if let recoverStake = action.electionsRecoverStake {
                     actionType = .recoverStake(try .init(recoverStake: recoverStake))
                 } else if let jettonSwap = action.jettonSwap {
                     actionType = .jettonSwap(try .init(jettonSwap: jettonSwap))

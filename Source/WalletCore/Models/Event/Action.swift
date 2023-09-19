@@ -112,10 +112,8 @@ struct Action {
         let amountOut: BigInt
         let user: WalletAccount
         let router: WalletAccount
-        let tokenWalletIn: Address
-        let tokenWalletOut: Address
-        let tokenInfoIn: TokenInfo
-        let tokenInfoOut: TokenInfo
+        let tokenInfoIn: TokenInfo?
+        let tokenInfoOut: TokenInfo?
     }
 
     struct SmartContractExec {

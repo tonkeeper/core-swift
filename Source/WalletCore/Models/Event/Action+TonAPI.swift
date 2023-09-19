@@ -133,14 +133,14 @@ extension Action.NFTPurchase {
 }
 
 extension Action.DepositStake {
-    init(depositStake: DepositStakeAction) throws {
+    init(depositStake: ElectionsDepositStakeAction) throws {
         self.amount = depositStake.amount
         self.staker = try WalletAccount(accountAddress: depositStake.staker)
     }
 }
 
 extension Action.RecoverStake {
-    init(recoverStake: RecoverStakeAction) throws {
+    init(recoverStake: ElectionsRecoverStakeAction) throws {
         self.amount = recoverStake.amount
         self.staker = try WalletAccount(accountAddress: recoverStake.staker)
     }
@@ -153,10 +153,16 @@ extension Action.JettonSwap {
         self.amountOut = BigInt(stringLiteral: jettonSwap.amountOut)
         self.user = try WalletAccount(accountAddress: jettonSwap.userWallet)
         self.router = try WalletAccount(accountAddress: jettonSwap.router)
-        self.tokenWalletIn = try Address.parse(jettonSwap.jettonWalletIn)
-        self.tokenWalletOut = try Address.parse(jettonSwap.jettonWalletOut)
-        self.tokenInfoIn = try TokenInfo(jettonPreview: jettonSwap.jettonMasterIn)
-        self.tokenInfoOut = try TokenInfo(jettonPreview: jettonSwap.jettonMasterOut)
+        if let jettonMasterIn = jettonSwap.jettonMasterIn {
+            self.tokenInfoIn = try TokenInfo(jettonPreview: jettonMasterIn)
+        } else {
+            self.tokenInfoIn = nil
+        }
+        if let jettonMasterOut = jettonSwap.jettonMasterOut {
+            self.tokenInfoOut = try TokenInfo(jettonPreview: jettonMasterOut)
+        } else {
+            self.tokenInfoOut = nil
+        }
     }
 }
 
