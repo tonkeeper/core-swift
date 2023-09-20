@@ -50,8 +50,6 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
     }
     
     func start(addresses: [Address]) {
-        task?.cancel()
-        task = nil
         let addressesStrings = addresses.map { $0.toString() }
         let request = TransactionsStreamingRequest(accounts: addressesStrings)
         let task = Task {
@@ -68,6 +66,7 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
                     )
                     didReceiveTransactionUpdate(transactionUpdate)
                 }
+                guard !Task.isCancelled else { return }
                 start(addresses: addresses)
             } catch {
                 state = .closed(error)
@@ -108,10 +107,6 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
 }
 
 private extension TransactionsUpdateServiceImplementation {
-    func checkIfNeedToReconnect(response: HTTPResponse) -> Bool {
-        (200..<300).contains(response.statusCode)
-    }
-    
     func removeStateUpdateObserver(uuid: UUID) {
         stateUpdateObserversContinuations.removeValue(forKey: uuid)
     }

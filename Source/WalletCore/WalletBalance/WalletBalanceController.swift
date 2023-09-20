@@ -58,7 +58,7 @@ public class WalletBalanceController {
             let stateStream = await transactionsUpdatePublishService.getStateObservationStream()
             let eventStream = await transactionsUpdatePublishService.getEventStream()
             Task {
-                for try await state in stateStream {
+                for await state in stateStream {
                     let controllerState = self.getState(with: state)
                     connectionStateStreamContinuation?.yield(controllerState)
                     Task {
@@ -70,7 +70,7 @@ public class WalletBalanceController {
                 }
             }
             Task {
-                for try await _ in eventStream {
+                for await _ in eventStream {
                     let loadedBalance = try await loadWalletBalance()
                     balanceStreamContinuation?.yield(loadedBalance)
                 }
@@ -78,6 +78,12 @@ public class WalletBalanceController {
             
             let address = try walletAddress
             await transactionsUpdatePublishService.start(addresses: [address])
+        }
+    }
+    
+    public func stopUpdate() {
+        Task {
+            await transactionsUpdatePublishService.stop()
         }
     }
     
