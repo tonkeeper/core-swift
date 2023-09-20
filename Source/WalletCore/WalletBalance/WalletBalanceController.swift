@@ -56,18 +56,23 @@ public class WalletBalanceController {
     public func startUpdate() {
         Task {
             guard case .closed = await transactionsUpdatePublishService.state else { return }
+            connectionStateStreamContinuation?.yield(.connecting)
+            do {
+                let loadedBalance = try await loadWalletBalance()
+                balanceStreamContinuation?.yield(loadedBalance)
+            } catch {
+                connectionStateStreamContinuation?.yield(.failed)
+                guard let model = (try? getWalletBalance()) ?? (try? emptyWalletBalance()) else { return }
+                balanceStreamContinuation?.yield(model)
+                return
+            }
+            
             let stateStream = await transactionsUpdatePublishService.getStateObservationStream()
             let eventStream = await transactionsUpdatePublishService.getEventStream()
             Task {
                 for await state in stateStream {
                     let controllerState = self.getState(with: state)
                     connectionStateStreamContinuation?.yield(controllerState)
-                    Task {
-                        if case .connecting = state {
-                            let loadedBalance = try await loadWalletBalance()
-                            balanceStreamContinuation?.yield(loadedBalance)
-                        }
-                    }
                 }
             }
             Task {
@@ -145,7 +150,10 @@ private extension WalletBalanceController {
         case .connected:
             return .connected
         case .closed(let error):
-            if error?.isNoConnectionError == true {
+            guard let error = error else {
+                return .connecting
+            }
+            if error.isNoConnectionError {
                 return .noInternet
             } else {
                 return .failed
