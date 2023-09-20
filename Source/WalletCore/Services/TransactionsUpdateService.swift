@@ -37,7 +37,7 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
     private let streamingAPI: StreamingAPI
     
     private var task: Task<(), Never>?
-    private(set) var state: TransactionsUpdateServiceState = .connecting {
+    private(set) var state: TransactionsUpdateServiceState = .closed(nil) {
         didSet {
             didUpdateState()
         }

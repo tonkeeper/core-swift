@@ -55,6 +55,7 @@ public class WalletBalanceController {
     
     public func startUpdate() {
         Task {
+            guard case .closed = await transactionsUpdatePublishService.state else { return }
             let stateStream = await transactionsUpdatePublishService.getStateObservationStream()
             let eventStream = await transactionsUpdatePublishService.getEventStream()
             Task {
