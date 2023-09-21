@@ -9,7 +9,16 @@ import Foundation
 import TonSwift
 
 public actor ActivityListController {
+    public typealias Stream = AsyncStream<Event>
     
+    public enum Event {
+        case startLoading
+        case updateEvents(_ eventsSections: [String: ActivityEventViewModel])
+        case startPagination
+        case stopPagination
+        case paginationFailed
+    }
+
     public enum Error: Swift.Error {
         case noCollectible(sectionIndex: Int, eventIndex: Int, actionIndex: Int)
     }
@@ -27,6 +36,7 @@ public actor ActivityListController {
     private let walletProvider: WalletProvider
     private let contractBuilder: WalletContractBuilder
     private let activityEventMapper: ActivityEventMapper
+    private let transactionsUpdatePublishService: TransactionsUpdateService
     
     // MARK: - State
     
@@ -42,53 +52,72 @@ public actor ActivityListController {
     public private(set) var eventsSections = [EventsSection]()
     private var eventsSectionIndexTable = [Date: Int]()
     private var events = [String: ActivityEvent]()
+    
+    private var streamContinuation: Stream.Continuation?
 
     init(activityListLoader: ActivityListLoader,
          collectiblesService: CollectiblesService,
          walletProvider: WalletProvider,
          contractBuilder: WalletContractBuilder,
-         activityEventMapper: ActivityEventMapper) {
+         activityEventMapper: ActivityEventMapper,
+         transactionsUpdatePublishService: TransactionsUpdateService) {
         self.activityListLoader = activityListLoader
         self.collectiblesService = collectiblesService
         self.walletProvider = walletProvider
         self.contractBuilder = contractBuilder
         self.activityEventMapper = activityEventMapper
+        self.transactionsUpdatePublishService = transactionsUpdatePublishService
     }
     
-    public func loadNextEvents() async throws -> [String: ActivityEventViewModel] {
-        loadEventsTask?.cancel()
-        let task = Task {
+    deinit {
+        streamContinuation?.finish()
+        streamContinuation = nil
+    }
+    
+    public func start() {
+        reset()
+        Task {
+            streamContinuation?.yield(.startLoading)
             defer {
                 isLoading = false
             }
             isLoading = true
-            let loadedEvents = try await activityListLoader.loadEvents(
-                address: try getAddress(),
-                beforeLt: nextFrom,
-                limit: limit
-            )
-            try Task.checkCancellation()
-            let collectibles = await handleEventsWithNFTs(events: loadedEvents.events)
-            try Task.checkCancellation()
-            self.nextFrom = loadedEvents.events.count < limit ? 0 : loadedEvents.nextFrom
-            return (loadedEvents, collectibles)
+            do {
+                let sections = try await loadNextEvents()
+                streamContinuation?.yield(.updateEvents(sections))
+            } catch {
+                streamContinuation?.yield(.updateEvents([:]))
+            }
+            for try await _ in await transactionsUpdatePublishService.getEventStream() {
+                reset()
+                let sections = try await loadNextEvents()
+                streamContinuation?.yield(.updateEvents(sections))
+            }
         }
-        let taskValue = try await task.value
-        if taskValue.0.events.isEmpty && taskValue.0.nextFrom != 0 {
-            return try await loadNextEvents()
-        }
-        let viewModels = handleLoadedEvents(loadedEvents: taskValue.0.events, collectibles: taskValue.1)
-        return viewModels
     }
     
-    public func reset() {
-        loadEventsTask?.cancel()
-        loadEventsTask = nil
-        isLoading = false
-        nextFrom = nil
-        eventsSections = []
-        eventsSectionIndexTable = [:]
-        events = [:]
+    public func fetchNext() {
+        streamContinuation?.yield(.startPagination)
+        Task {
+            do {
+                let sections = try await loadNextEvents()
+                streamContinuation?.yield(.updateEvents(sections))
+                streamContinuation?.yield(.stopPagination)
+            } catch {
+                streamContinuation?.yield(.stopPagination)
+                streamContinuation?.yield(.paginationFailed)
+            }
+        }
+    }
+    
+    public func eventsStream() -> Stream {
+        return Stream { continuation in
+            streamContinuation = continuation
+            continuation.onTermination = { [weak self] termination in
+                guard let self = self else { return }
+                Task { await self.resetContinuation() }
+            }
+        }
     }
     
     public func getCollectibleAddress(sectionIndex: Int,
@@ -119,6 +148,42 @@ public actor ActivityListController {
 }
 
 private extension ActivityListController {
+    func reset() {
+        loadEventsTask?.cancel()
+        loadEventsTask = nil
+        isLoading = false
+        nextFrom = nil
+        eventsSections = []
+        eventsSectionIndexTable = [:]
+        events = [:]
+    }
+    
+    func loadNextEvents() async throws -> [String: ActivityEventViewModel] {
+        loadEventsTask?.cancel()
+        let task = Task {
+            defer {
+                isLoading = false
+            }
+            isLoading = true
+            let loadedEvents = try await activityListLoader.loadEvents(
+                address: try getAddress(),
+                beforeLt: nextFrom,
+                limit: limit
+            )
+            try Task.checkCancellation()
+            let collectibles = await handleEventsWithNFTs(events: loadedEvents.events)
+            try Task.checkCancellation()
+            self.nextFrom = loadedEvents.events.count < limit ? 0 : loadedEvents.nextFrom
+            return (loadedEvents, collectibles)
+        }
+        let taskValue = try await task.value
+        if taskValue.0.events.isEmpty && taskValue.0.nextFrom != 0 {
+            return try await loadNextEvents()
+        }
+        let viewModels = handleLoadedEvents(loadedEvents: taskValue.0.events, collectibles: taskValue.1)
+        return viewModels
+    }
+    
     func getAddress() throws -> Address {
         let wallet = try walletProvider.activeWallet
         let publicKey = try wallet.publicKey
@@ -185,5 +250,9 @@ private extension ActivityListController {
         }
         
         return Collectibles(collectibles: nfts)
+    }
+    
+    func resetContinuation() {
+        streamContinuation = nil
     }
 }

@@ -28,7 +28,8 @@ struct ActivityAssembly {
                                       collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
                                       walletProvider: walletProvider,
                                       contractBuilder: WalletContractBuilder(),
-                                      activityEventMapper: activityEventMapper()
+                                      activityEventMapper: activityEventMapper(),
+                                      transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )
     }
     
@@ -39,7 +40,8 @@ struct ActivityAssembly {
                                       collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
                                       walletProvider: walletProvider,
                                       contractBuilder: WalletContractBuilder(),
-                                      activityEventMapper: activityEventMapper()
+                                      activityEventMapper: activityEventMapper(),
+                                      transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )
     }
     
@@ -53,7 +55,8 @@ struct ActivityAssembly {
                                       collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
                                       walletProvider: walletProvider,
                                       contractBuilder: WalletContractBuilder(),
-                                      activityEventMapper: activityEventMapper()
+                                      activityEventMapper: activityEventMapper(),
+                                      transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )
     }
     

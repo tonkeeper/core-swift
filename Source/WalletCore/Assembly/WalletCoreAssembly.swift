@@ -38,6 +38,7 @@ final class WalletCoreAssembly {
     
     private lazy var servicesAssembly = ServicesAssembly(tonAPI: tonAPI,
                                                          tonkeeperAPI: configurationAPI,
+                                                         streamingAPI: streamingAPI,
                                                          coreAssembly: coreAssembly,
                                                          cacheURL: cacheURL)
     private lazy var collectibleAssembly = CollectibleAssembly(servicesAssembly: servicesAssembly,
@@ -61,7 +62,7 @@ final class WalletCoreAssembly {
             ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: cacheURL),
             walletProvider: keeperController,
             walletBalanceMapper: walletBalanceAssembly.walletBalanceMapper(),
-            transactionsUpdatePublishService: TransactionsUpdateServiceImplementation(streamingAPI: streamingAPI))
+            transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService)
     }
     
     func sendInputController(walletProvider: WalletProvider) -> SendInputController {
