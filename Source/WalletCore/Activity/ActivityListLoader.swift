@@ -10,6 +10,7 @@ import TonSwift
 
 protocol ActivityListLoader {
     func loadEvents(address: Address, beforeLt: Int64?, limit: Int) async throws -> ActivityEvents
+    func loadEvent(address: Address, eventId: String) async throws -> ActivityEvent
 }
 
 struct ActivityListAllEventsLoader: ActivityListLoader {
@@ -23,6 +24,10 @@ struct ActivityListAllEventsLoader: ActivityListLoader {
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents {
         return try await activityService.loadEvents(address: address, beforeLt: beforeLt, limit: limit)
+    }
+    
+    func loadEvent(address: Address, eventId: String) async throws -> ActivityEvent {
+        return try await activityService.loadEvent(accountAddress: address, eventId: eventId)
     }
 }
 
@@ -65,6 +70,10 @@ struct ActivityListTonEventsLoader: ActivityListLoader {
             nextFrom: loadedEvents.nextFrom
         )
     }
+    
+    func loadEvent(address: Address, eventId: String) async throws -> ActivityEvent {
+        return try await activityService.loadEvent(accountAddress: address, eventId: eventId)
+    }
 }
 
 struct ActivityListTokenEventsLoader: ActivityListLoader {
@@ -86,5 +95,9 @@ struct ActivityListTokenEventsLoader: ActivityListLoader {
             beforeLt: beforeLt,
             limit: limit
         )
+    }
+    
+    func loadEvent(address: Address, eventId: String) async throws -> ActivityEvent {
+        return try await activityService.loadEvent(accountAddress: address, eventId: eventId)
     }
 }

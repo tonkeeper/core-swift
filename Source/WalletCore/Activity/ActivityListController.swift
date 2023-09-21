@@ -88,9 +88,10 @@ public actor ActivityListController {
             } catch {
                 streamContinuation?.yield(.updateEvents([:]))
             }
-            for try await _ in await transactionsUpdatePublishService.getEventStream() {
-                reset()
-                let sections = try await loadNextEvents()
+            for try await transaction in await transactionsUpdatePublishService.getEventStream() {
+                let event = try await activityListLoader.loadEvent(address: try getAddress(), eventId: transaction.txHash)
+                let collectibles = await handleEventsWithNFTs(events: [event])
+                let sections = handleLoadedEvents(loadedEvents: [event], collectibles: collectibles)
                 streamContinuation?.yield(.updateEvents(sections))
             }
         }
@@ -215,15 +216,21 @@ private extension ActivityListController {
             
             guard let groupDate = calendar.date(from: dateComponents) else { continue }
             
+            events[event.eventId] = event
+            
             if let index = eventsSectionIndexTable[groupDate] {
                 eventsSections[index].eventsIds.append(event.eventId)
+                eventsSections[index].eventsIds.sort { lEventId, rEventId in
+                    guard let lTimestamp = events[lEventId]?.timestamp,
+                          let rTimestamp = events[rEventId]?.timestamp else { return false }
+                    return lTimestamp > rTimestamp
+                }
             } else {
                 let title = activityEventMapper.mapEventsSectionDate(groupDate)
                 eventsSections.append(EventsSection(date: groupDate, title: title, eventsIds: [event.eventId]))
                 eventsSectionIndexTable[groupDate] = eventsSections.count - 1
             }
 
-            events[event.eventId] = event
             viewModels[event.eventId] = activityEventMapper.mapActivityEvent(event, dateFormat: dateFormat, collectibles: collectibles)
         }
         

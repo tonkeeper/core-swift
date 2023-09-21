@@ -17,6 +17,8 @@ protocol ActivityService {
                     tokenInfo: TokenInfo,
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents
+    func loadEvent(accountAddress: Address,
+                   eventId: String) async throws -> ActivityEvent
 }
 
 final class ActivityServiceImplementation: ActivityService {
@@ -68,6 +70,13 @@ final class ActivityServiceImplementation: ActivityService {
         return ActivityEvents(events: events, 
                               startFrom: beforeLt ?? 0,
                               nextFrom: response.entity.nextFrom)
+    }
+    
+    func loadEvent(accountAddress: Address, 
+                   eventId: String) async throws -> ActivityEvent {
+        let request = AccountEventRequest(accountId: accountAddress.toString(), eventId: eventId)
+        let response = try await api.send(request: request)
+        return try ActivityEvent(accountEvent: response.entity)
     }
 }
 
