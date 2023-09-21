@@ -61,7 +61,8 @@ public class WalletBalanceController {
                 let loadedBalance = try await loadWalletBalance()
                 balanceStreamContinuation?.yield(loadedBalance)
             } catch {
-                connectionStateStreamContinuation?.yield(.failed)
+                let controllerState = self.getState(with: .closed(error))
+                connectionStateStreamContinuation?.yield(controllerState)
                 guard let model = (try? getWalletBalance()) ?? (try? emptyWalletBalance()) else { return }
                 balanceStreamContinuation?.yield(model)
                 return

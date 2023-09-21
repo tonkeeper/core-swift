@@ -47,7 +47,14 @@ private extension APIAssembly {
     }
     
     func eventSource(requestInterceptors: [RequestInterceptor]) -> EventSource {
-        EventSource(networkClient: networkClient(requestInterceptors: requestInterceptors))
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = TimeInterval(Int.max)
+        configuration.timeoutIntervalForResource = TimeInterval(Int.max)
+        let transport = URLSessionHTTPTransport(urlSessionConfiguration: configuration)
+        let networkClient = NetworkClient(httpTransport: transport,
+                                          urlRequestBuilder: urlRequestBuilder,
+                                          requestInterceptors: requestInterceptors)
+        return EventSource(networkClient: networkClient)
     }
     
     var tonAPIConfiguration: URLSessionConfiguration {
