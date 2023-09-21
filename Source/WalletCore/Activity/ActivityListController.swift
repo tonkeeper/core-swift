@@ -219,7 +219,9 @@ private extension ActivityListController {
             events[event.eventId] = event
             
             if let index = eventsSectionIndexTable[groupDate] {
-                eventsSections[index].eventsIds.append(event.eventId)
+                if !eventsSections[index].eventsIds.contains(event.eventId) {
+                    eventsSections[index].eventsIds.append(event.eventId)
+                }
                 eventsSections[index].eventsIds.sort { lEventId, rEventId in
                     guard let lTimestamp = events[lEventId]?.timestamp,
                           let rTimestamp = events[rEventId]?.timestamp else { return false }
