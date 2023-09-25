@@ -95,6 +95,20 @@ public actor ChartController {
             diff: .init(percent: percentage, fiat: fiat, direction: diffDirection),
             date: date)
     }
+  
+    public func getMaximumValue() -> String {
+        guard let coordinate = coordinates.max(by: { $0.y < $1.y }) else {
+            return ""
+        }
+        return String(format: "\(Currency.USD.symbol ?? "")%.2f", coordinate.y)
+    }
+    
+    public func getMinimumValue() -> String {
+        guard let coordinate = coordinates.max(by: { $0.y > $1.y }) else {
+            return ""
+        }
+        return String(format: "\(Currency.USD.symbol ?? "")%.2f", coordinate.y)
+    }
 }
 
 private extension ChartController {
@@ -117,9 +131,9 @@ private extension ChartController {
         
         let dateFormat: String
         switch period {
-        case .hour: dateFormat = "E',' d MMM hh:mm"
-        case .day: dateFormat = "E',' d MMM hh:mm"
-        case .week: dateFormat = "E',' d MMM hh:mm"
+        case .hour: dateFormat = "E',' d MMM HH:mm"
+        case .day: dateFormat = "E',' d MMM HH:mm"
+        case .week: dateFormat = "E',' d MMM HH:mm"
         case .month: dateFormat = "E',' d MMM"
         case .halfYear: dateFormat = "yyyy E',' d MMM"
         case .year: dateFormat = "yyyy E',' d MMM"
