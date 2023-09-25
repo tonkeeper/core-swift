@@ -17,41 +17,62 @@ final class APIAssembly {
     }
     
     func tonAPI(requestInterceptors: [RequestInterceptor]) -> API {
-        DefaultAPI(transport: transport(requestInterceptors: requestInterceptors),
+        DefaultAPI(networkClient: networkClient(requestInterceptors: requestInterceptors),
                    baseURL: tonAPIURL,
                    responseDecoder: responseDecoder)
     }
     
     func configurationAPI() -> API {
-        DefaultAPI(transport: transport(requestInterceptors: []),
+        DefaultAPI(networkClient: networkClient(requestInterceptors: []),
                    baseURL: configurationAPIURL,
                    responseDecoder: responseDecoder)
+    }
+    
+    func streamingAPI(requestInterceptors: [RequestInterceptor]) -> StreamingAPI {
+        DefaultStreamingAPI(eventSource: eventSource(requestInterceptors: requestInterceptors),
+                            baseURL: tonAPIURL,
+                            decoder: streamingResponseDecoder)
     }
 }
 
 private extension APIAssembly {
-    func transport(requestInterceptors: [RequestInterceptor]) -> URLSessionTransport {
-        URLSessionTransport(urlSession: urlSession,
-                            urlRequestBuilder: urlRequestBuilder,
-                            responseBuilder: responseBuilder,
-                            requestInterceptors: requestInterceptors)
+    func networkClient(requestInterceptors: [RequestInterceptor]) -> NetworkClient {
+        NetworkClient(httpTransport: transport(),
+                      urlRequestBuilder: urlRequestBuilder,
+                      requestInterceptors: requestInterceptors)
+    }
+
+    func transport() -> HTTPTransport {
+        URLSessionHTTPTransport(urlSessionConfiguration: tonAPIConfiguration)
     }
     
-    var urlSession: URLSession {
+    func eventSource(requestInterceptors: [RequestInterceptor]) -> EventSource {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = TimeInterval(Int.max)
+        configuration.timeoutIntervalForResource = TimeInterval(Int.max)
+        let transport = URLSessionHTTPTransport(urlSessionConfiguration: configuration)
+        let networkClient = NetworkClient(httpTransport: transport,
+                                          urlRequestBuilder: urlRequestBuilder,
+                                          requestInterceptors: requestInterceptors)
+        return EventSource(networkClient: networkClient)
+    }
+    
+    var tonAPIConfiguration: URLSessionConfiguration {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 15
-        return URLSession(configuration: configuration)
+        return configuration
     }
+    
     var urlRequestBuilder: URLRequestBuilder {
         URLRequestBuilder()
     }
     
-    var responseBuilder: ResponseBuilder {
-        ResponseBuilder()
-    }
-    
     var responseDecoder: APIResponseDecoder {
         APIResponseDecoder(jsonDecoder: coreAssembly.decoder)
+    }
+    
+    var streamingResponseDecoder: StreamingAPIDecoder {
+        StreamingAPIDecoder(jsonDecoder: coreAssembly.decoder)
     }
     
     var tonAPIURL: URL {

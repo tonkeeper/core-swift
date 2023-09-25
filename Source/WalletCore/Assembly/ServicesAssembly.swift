@@ -8,11 +8,24 @@
 import Foundation
 import TonAPI
 
-struct ServicesAssembly {
+final class ServicesAssembly {
     let tonAPI: API
     let tonkeeperAPI: API
+    let streamingAPI: StreamingAPI
     let coreAssembly: CoreAssembly
     let cacheURL: URL
+    
+    init(tonAPI: API, 
+         tonkeeperAPI: API,
+         streamingAPI: StreamingAPI,
+         coreAssembly: CoreAssembly,
+         cacheURL: URL) {
+        self.tonAPI = tonAPI
+        self.tonkeeperAPI = tonkeeperAPI
+        self.streamingAPI = streamingAPI
+        self.coreAssembly = coreAssembly
+        self.cacheURL = cacheURL
+    }
     
     var collectiblesService: CollectiblesService {
         CollectiblesServiceImplementation(api: tonAPI, localRepository: localRepository())
@@ -21,6 +34,10 @@ struct ServicesAssembly {
     var dnsService: DNSService {
         DNSServiceImplementation(api: tonAPI)
     }
+    
+    lazy var transactionsUpdateService: TransactionsUpdateService = {
+        TransactionsUpdateServiceImplementation(streamingAPI: streamingAPI)
+    }()
 }
 
 private extension ServicesAssembly {
