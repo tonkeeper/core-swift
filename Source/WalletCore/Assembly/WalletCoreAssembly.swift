@@ -34,22 +34,25 @@ final class WalletCoreAssembly {
     private lazy var configurationAPI: API = apiAssembly.configurationAPI()
     private lazy var streamingAPI: StreamingAPI = apiAssembly.streamingAPI(requestInterceptors: [accessTokenProvider])
     
-    lazy var keeperController: KeeperController = keeperInfoAssembly.keeperController(cacheURL: cacheURL)
+    lazy var keeperController: KeeperController = keeperInfoAssembly
+        .keeperController(cacheURL: dependencies.sharedCacheURL,
+                          keychainGroup: dependencies.sharedKeychainGroup)
     
     private lazy var servicesAssembly = ServicesAssembly(tonAPI: tonAPI,
                                                          tonkeeperAPI: configurationAPI,
                                                          streamingAPI: streamingAPI,
                                                          coreAssembly: coreAssembly,
-                                                         cacheURL: cacheURL)
+                                                         cacheURL: dependencies.cacheURL)
     private lazy var collectibleAssembly = CollectibleAssembly(servicesAssembly: servicesAssembly,
                                                                formattersAssembly: formattersAssembly)
     private lazy var activityAssembly = ActivityAssembly(servicesAssembly: servicesAssembly,
                                                          coreAssembly: coreAssembly,
                                                          formattersAssembly: formattersAssembly)
     
-    private let cacheURL: URL
-    init(cacheURL: URL) {
-        self.cacheURL = cacheURL
+    private let dependencies: Dependencies
+
+    init(dependencies: Dependencies) {
+        self.dependencies = dependencies
     }
     
     func passcodeController() -> PasscodeController {
@@ -58,15 +61,15 @@ final class WalletCoreAssembly {
     
     func walletBalanceController() -> WalletBalanceController {
         WalletBalanceController(
-            balanceService: walletBalanceAssembly.walletBalanceService(api: tonAPI, cacheURL: cacheURL),
-            ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: cacheURL),
+            balanceService: walletBalanceAssembly.walletBalanceService(api: tonAPI, cacheURL: dependencies.cacheURL),
+            ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: dependencies.cacheURL),
             walletProvider: keeperController,
             walletBalanceMapper: walletBalanceAssembly.walletBalanceMapper(),
             transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService)
     }
     
     func sendInputController(walletProvider: WalletProvider) -> SendInputController {
-        sendAssembly.sendInputController(api: tonAPI, cacheURL: cacheURL, walletProvider: walletProvider)
+        sendAssembly.sendInputController(api: tonAPI, cacheURL: dependencies.cacheURL, walletProvider: walletProvider)
     }
     
     func tokenSendController(tokenTransferModel: TokenTransferModel,
@@ -75,11 +78,12 @@ final class WalletCoreAssembly {
                              walletProvider: WalletProvider) -> SendController {
         sendAssembly.tokenSendController(
             api: tonAPI,
-            cacheURL: cacheURL,
+            cacheURL: dependencies.cacheURL,
             tokenTransferModel: tokenTransferModel,
             recipient: recipient,
             comment: comment,
-            walletProvider: walletProvider
+            walletProvider: walletProvider,
+            keychainGroup: dependencies.sharedKeychainGroup
         )
     }
     
@@ -89,11 +93,13 @@ final class WalletCoreAssembly {
                            walletProvider: WalletProvider) -> SendController {
         sendAssembly.nftSendController(
             api: tonAPI,
-            cacheURL: cacheURL,
+            cacheURL: dependencies.cacheURL,
             nftAddress: nftAddress,
             recipient: recipient,
             comment: comment,
-            walletProvider: walletProvider)
+            walletProvider: walletProvider,
+            keychainGroup: dependencies.sharedKeychainGroup
+        )
     }
     
     func sendRecipientController() -> SendRecipientController {
@@ -106,8 +112,8 @@ final class WalletCoreAssembly {
     
     func tokenDetailsTonController(walletProvider: WalletProvider) -> TokenDetailsController {
         tokenDetailsAssembly.tokenDetailsTonController(
-            ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: cacheURL),
-            balaceService: walletBalanceAssembly.walletBalanceService(api: tonAPI, cacheURL: cacheURL),
+            ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: dependencies.cacheURL),
+            balaceService: walletBalanceAssembly.walletBalanceService(api: tonAPI, cacheURL: dependencies.cacheURL),
             walletProvider: walletProvider
         )
     }
@@ -116,8 +122,8 @@ final class WalletCoreAssembly {
                                      walletProvider: WalletProvider) -> TokenDetailsController {
         tokenDetailsAssembly.tokenDetailsTokenController(
             tokenInfo,
-            ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: cacheURL),
-            balaceService: walletBalanceAssembly.walletBalanceService(api: tonAPI, cacheURL: cacheURL),
+            ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: dependencies.cacheURL),
+            balaceService: walletBalanceAssembly.walletBalanceService(api: tonAPI, cacheURL: dependencies.cacheURL),
             walletProvider: walletProvider
         )
     }
@@ -126,7 +132,7 @@ final class WalletCoreAssembly {
         activityAssembly
         .activityListController(api: tonAPI,
                                 walletProvider: walletProvider,
-                                cacheURL: cacheURL
+                                cacheURL: dependencies.cacheURL
         )
     }
     
@@ -135,7 +141,7 @@ final class WalletCoreAssembly {
         .activityListTonEventsController(
             api: tonAPI,
             walletProvider: walletProvider,
-            cacheURL: cacheURL
+            cacheURL: dependencies.cacheURL
         )
     }
     
@@ -144,7 +150,7 @@ final class WalletCoreAssembly {
         .activityListTokenEventsController(
             api: tonAPI,
             walletProvider: walletProvider,
-            cacheURL: cacheURL,
+            cacheURL: dependencies.cacheURL,
             tokenInfo: tokenInfo
         )
     }
@@ -179,6 +185,6 @@ final class WalletCoreAssembly {
 
 private extension WalletCoreAssembly {
     var accessTokenProvider: AccessTokenProvider {
-        AccessTokenProvider(configurationController: confifurationAssembly.configurationController(api: configurationAPI, cacheURL: cacheURL))
+        AccessTokenProvider(configurationController: confifurationAssembly.configurationController(api: configurationAPI, cacheURL: dependencies.cacheURL))
     }
 }

@@ -12,13 +12,16 @@ import BigInt
 struct SendMessageBuilder {
     private let walletProvider: WalletProvider
     private let keychainManager: KeychainManager
+    private let keychainGroup: String
     private let sendService: SendService
     
     init(walletProvider: WalletProvider, 
          keychainManager: KeychainManager,
+         keychainGroup: String,
          sendService: SendService) {
         self.walletProvider = walletProvider
         self.keychainManager = keychainManager
+        self.keychainGroup = keychainGroup
         self.sendService = sendService
     }
     
@@ -70,7 +73,10 @@ struct SendMessageBuilder {
     func externalMessageBoc(internalMessage: (_ sender: Address) throws -> MessageRelaxed) async throws -> String {
         let wallet = try walletProvider.activeWallet
         let walletPublicKey = try wallet.publicKey
-        let mnemonicVault = try KeychainMnemonicVault(keychainManager: keychainManager, walletID: wallet.identity.id())
+        let mnemonicVault = try KeychainMnemonicVault(
+            keychainManager: keychainManager,
+            walletID: wallet.identity.id(),
+            keychainGroup: keychainGroup)
         let contractBuilder = WalletContractBuilder()
         let contract = try contractBuilder.walletContract(with: walletPublicKey,
                                                           contractVersion: wallet.contractVersion)

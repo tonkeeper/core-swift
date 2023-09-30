@@ -8,16 +8,28 @@
 import Foundation
 import TonSwift
 
+public struct Dependencies {
+    public let cacheURL: URL
+    public let sharedCacheURL: URL
+    public let sharedKeychainGroup: String
+    
+    public init(cacheURL: URL,
+                sharedCacheURL: URL,
+                sharedKeychainGroup: String) {
+        self.cacheURL = cacheURL
+        self.sharedCacheURL = sharedCacheURL
+        self.sharedKeychainGroup = sharedKeychainGroup
+    }
+}
+
 public final class WalletCoreContainer {
     
-    private let cacheURL: URL
+    let walletCoreAssembly: WalletCoreAssembly
     
-    lazy var walletCoreAssembly = WalletCoreAssembly(cacheURL: cacheURL)
-    
-    public init(cacheURL: URL) {
-        self.cacheURL = cacheURL
+    public init(dependencies: Dependencies) {
+        walletCoreAssembly = WalletCoreAssembly(dependencies: dependencies)
     }
-    
+
     public func keeperController() -> KeeperController {
         walletCoreAssembly.keeperController
     }

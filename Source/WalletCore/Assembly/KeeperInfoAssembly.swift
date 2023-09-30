@@ -14,9 +14,11 @@ final class KeeperInfoAssembly {
         self.coreAssembly = coreAssembly
     }
     
-    func keeperController(cacheURL: URL) -> KeeperController {
+    func keeperController(cacheURL: URL,
+                          keychainGroup: String) -> KeeperController {
         KeeperController(keeperService: keeperInfoService(cacheURL: cacheURL),
-                         keychainManager: coreAssembly.keychainManager)
+                         keychainManager: coreAssembly.keychainManager,
+                         keychainGroup: keychainGroup)
     }
 }
 

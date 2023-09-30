@@ -15,15 +15,18 @@ protocol WalletProvider {
 public final class KeeperController: WalletProvider {
     private let keeperService: KeeperInfoService
     private let keychainManager: KeychainManager
+    private let keychainGroup: String
     
     public var hasWallets: Bool {
         checkIfKeeperHasValidWallets()
     }
     
     init(keeperService: KeeperInfoService,
-         keychainManager: KeychainManager) {
+         keychainManager: KeychainManager,
+         keychainGroup: String) {
         self.keeperService = keeperService
         self.keychainManager = keychainManager
+        self.keychainGroup = keychainGroup
     }
     
     public var activeWallet: Wallet {
@@ -39,7 +42,11 @@ public final class KeeperController: WalletProvider {
                                                      kind: .Regular(keyPair.publicKey)),
                             notificationSettings: .init(),
                             backupSettings: .init(enabled: true, revision: 1, voucher: nil), contractVersion: .v4R2)
-        let mnemonicVault = KeychainMnemonicVault(keychainManager: keychainManager, walletID: try wallet.identity.id())
+        let mnemonicVault = KeychainMnemonicVault(
+            keychainManager: keychainManager,
+            walletID: try wallet.identity.id(),
+            keychainGroup: keychainGroup
+        )
         try mnemonicVault.save(value: mnemonic, for: keyPair.publicKey)
         try updateKeeperInfo(with: wallet)
     }
@@ -81,7 +88,10 @@ private extension KeeperController {
     
     func checkIfMnenomicExists(publicKey: TonSwift.PublicKey, wallet: Wallet) -> Bool {
         do {
-            let mnemonicVault = KeychainMnemonicVault(keychainManager: keychainManager, walletID: try wallet.identity.id())
+            let mnemonicVault = KeychainMnemonicVault(
+                keychainManager: keychainManager,
+                walletID: try wallet.identity.id(),
+                keychainGroup: keychainGroup)
             let mnemonic = try mnemonicVault.loadValue(key: publicKey)
             return Mnemonic.mnemonicValidate(mnemonicArray: mnemonic)
         } catch {
