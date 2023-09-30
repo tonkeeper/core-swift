@@ -49,6 +49,10 @@ final class WalletCoreAssembly {
                                                          coreAssembly: coreAssembly,
                                                          formattersAssembly: formattersAssembly)
     
+    private lazy var widgetAssembly = WidgetAssembly(formattersAssembly: formattersAssembly,
+                                                     walletBalanceAssembly: walletBalanceAssembly,
+                                                     ratesAssembly: ratesAssembly)
+    
     private let dependencies: Dependencies
 
     init(dependencies: Dependencies) {
@@ -168,6 +172,13 @@ final class WalletCoreAssembly {
         collectibleAssembly.collectibleDetailsController(collectibleAddress: collectibleAddress,
                                                          walletProvider: keeperController,
                                                          contractBuilder: WalletContractBuilder())
+    }
+    
+    func balanceWidgetController() -> BalanceWidgetController {
+        widgetAssembly.balanceWidgetController(
+            walletProvider: keeperController,
+            api: tonAPI,
+            cacheURL: dependencies.cacheURL)
     }
     
     func deeplinkParser() -> DeeplinkParser {

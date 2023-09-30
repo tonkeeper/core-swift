@@ -8,6 +8,10 @@
 import Foundation
 
 final class FormattersAssembly {
+    var amountFormatter: AmountFormatter {
+        AmountFormatter(bigIntFormatter: bigIntAmountFormatter)
+    }
+    
     var shortNumberFormatter: NumberFormatter {
         NumberFormatter.shortNumberFormatter()
     }
