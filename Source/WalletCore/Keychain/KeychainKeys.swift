@@ -16,6 +16,10 @@ struct KeychainKeys {
         kSecAttrAccessible.string
     }
     
+    static var attrAccessGroup: String {
+        kSecAttrAccessGroup.string
+    }
+    
     static var valueData: String {
         kSecValueData.string
     }

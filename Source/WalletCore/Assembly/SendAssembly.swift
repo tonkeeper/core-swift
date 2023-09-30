@@ -45,7 +45,8 @@ final class SendAssembly {
                              tokenTransferModel: TokenTransferModel,
                              recipient: Recipient,
                              comment: String?,
-                             walletProvider: WalletProvider) -> SendController {
+                             walletProvider: WalletProvider,
+                             keychainGroup: String) -> SendController {
         let sendService = sendService(api: api)
         return TokenSendController(
             tokenTransferModel: tokenTransferModel,
@@ -53,7 +54,10 @@ final class SendAssembly {
             comment: comment,
             sendService: sendService,
             rateService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
-            sendMessageBuilder: sendMessageBuilder(walletProvider: walletProvider, sendService: sendService),
+            sendMessageBuilder: sendMessageBuilder(
+                walletProvider: walletProvider,
+                keychainGroup: keychainGroup,
+                sendService: sendService),
             intAmountFormatter: formattersAssembly.intAmountFormatter,
             bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
@@ -63,7 +67,8 @@ final class SendAssembly {
                            nftAddress: Address,
                            recipient: Recipient,
                            comment: String?,
-                           walletProvider: WalletProvider) -> SendController {
+                           walletProvider: WalletProvider,
+                           keychainGroup: String) -> SendController {
         let sendService = sendService(api: api)
         return NFTSendController(
             nftAddress: nftAddress,
@@ -72,7 +77,10 @@ final class SendAssembly {
             sendService: sendService,
             rateService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
             collectibleService: servicesAssembly.collectiblesService,
-            sendMessageBuilder: sendMessageBuilder(walletProvider: walletProvider, sendService: sendService),
+            sendMessageBuilder: sendMessageBuilder(
+                walletProvider: walletProvider,
+                keychainGroup: keychainGroup,
+                sendService: sendService),
             intAmountFormatter: formattersAssembly.intAmountFormatter,
             bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
@@ -102,10 +110,12 @@ private extension SendAssembly {
                         bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
     
-    func sendMessageBuilder(walletProvider: WalletProvider, 
+    func sendMessageBuilder(walletProvider: WalletProvider,
+                            keychainGroup: String,
                             sendService: SendService) -> SendMessageBuilder {
         SendMessageBuilder(walletProvider: walletProvider,
                            keychainManager: coreAssembly.keychainManager,
+                           keychainGroup: keychainGroup,
                            sendService: sendService)
     }
 }

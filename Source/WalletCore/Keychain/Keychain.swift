@@ -75,13 +75,15 @@ struct KeychainQuery {
     }
     
     var accessible: Accessible
+    var accessGroup: String?
     var `class`: Class
     var returnData: Bool
     var data: Data?
     
-    init(class: Class, accessible: Accessible, returnData: Bool = true) {
+    init(class: Class, accessible: Accessible, accessGroup: String? = nil, returnData: Bool = true) {
         self.class = `class`
         self.accessible = accessible
+        self.accessGroup = accessGroup
         self.returnData = returnData
     }
     
@@ -89,6 +91,9 @@ struct KeychainQuery {
         var result = [String: AnyObject]()
         result[KeychainKeys.attrAccessible] = accessible.keychainKey as AnyObject
         result.merge(`class`.queryItems, uniquingKeysWith: { (_, new) in new })
+        if let accessGroup = accessGroup {
+            result[KeychainKeys.attrAccessGroup] = accessGroup as AnyObject
+        }
         if returnData {
             result[KeychainKeys.returnData] = true as AnyObject
         }
