@@ -54,7 +54,7 @@ final class ActivityServiceImplementation: ActivityService {
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents {
         let request = AccountJettonHistoryRequest(
-            accountId: address.toString(),
+            accountId: address.toRaw(),
             jettonId: tokenInfo.address.toRaw(),
             beforeLt: beforeLt,
             limit: limit,
