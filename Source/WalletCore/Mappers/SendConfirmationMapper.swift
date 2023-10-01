@@ -118,8 +118,8 @@ struct SendConfirmationMapper {
             feeTon: feeTon,
             feeFiat: feeFiat,
             comment: comment,
-            nftId: nft.address.shortString,
-            nftCollectionId: nft.collection?.address.shortString)
+            nftId: nft.address.toShortString(bounceable: false),
+            nftCollectionId: nft.collection?.address.toShortString(bounceable: false))
     }
 }
 

@@ -84,8 +84,8 @@ struct WalletBalanceMapper {
         
         return WalletBalanceModel(
             header: .init(amount: "\(Currency.USD.symbol ?? "")0",
-                          fullAddress: address.toString(),
-                          shortAddress: address.shortString),
+                          fullAddress: address.toString(bounceable: false),
+                          shortAddress: address.toShortString(bounceable: false)),
             pages: [page])
     }
 }
@@ -115,7 +115,11 @@ private extension WalletBalanceMapper {
         )
         let address = walletBalance.walletAddress
     
-        return .init(amount: totalBalanceFormatted, fullAddress: address.toString(), shortAddress: address.shortString)
+        return WalletBalanceModel.Header(
+            amount: totalBalanceFormatted,
+            fullAddress: address.toString(bounceable: false),
+            shortAddress: address.toShortString(bounceable: false)
+        )
     }
     
     func mapTokens(_ tokens: [TokenBalance], tokenRates: [Rates.TokenRate]) -> [WalletItemViewModel] {

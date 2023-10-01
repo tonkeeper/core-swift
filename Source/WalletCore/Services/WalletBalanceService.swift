@@ -40,7 +40,7 @@ final class WalletBalanceServiceImplementation: WalletBalanceService {
             contractVersion: wallet.contractVersion
         )
         let address = try contract.address()
-        return try localRepository.load(fileName: address.toString())
+        return try localRepository.load(fileName: address.toRaw())
     }
     
     func loadWalletBalance(wallet: Wallet) async throws -> WalletBalance {

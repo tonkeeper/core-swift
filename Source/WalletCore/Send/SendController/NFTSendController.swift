@@ -118,7 +118,7 @@ private extension NFTSendController {
         
         let model = mapper.mapNFT(
             nft,
-            recipientAddress: recipient.address.shortString,
+            recipientAddress: recipient.address.toShortString(bounceable: false),
             recipientName: recipient.domain,
             fee: nil,
             comment: comment,
@@ -136,7 +136,7 @@ private extension NFTSendController {
         
         let model = mapper.mapNFT(
             nft,
-            recipientAddress: recipient.address.shortString,
+            recipientAddress: recipient.address.toShortString(bounceable: false),
             recipientName: recipient.domain,
             fee: fee,
             comment: comment,

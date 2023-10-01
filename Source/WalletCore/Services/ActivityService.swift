@@ -32,7 +32,7 @@ final class ActivityServiceImplementation: ActivityService {
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents {
         let request = AccountEventsRequest(
-            accountId: address.toString(),
+            accountId: address.toRaw(),
             beforeLt: beforeLt,
             limit: limit,
             startDate: nil,
@@ -55,7 +55,7 @@ final class ActivityServiceImplementation: ActivityService {
                     limit: Int) async throws -> ActivityEvents {
         let request = AccountJettonHistoryRequest(
             accountId: address.toString(),
-            jettonId: tokenInfo.address.toString(),
+            jettonId: tokenInfo.address.toRaw(),
             beforeLt: beforeLt,
             limit: limit,
             startDate: nil,
@@ -74,7 +74,7 @@ final class ActivityServiceImplementation: ActivityService {
     
     func loadEvent(accountAddress: Address, 
                    eventId: String) async throws -> ActivityEvent {
-        let request = AccountEventRequest(accountId: accountAddress.toString(), eventId: eventId)
+        let request = AccountEventRequest(accountId: accountAddress.toRaw(), eventId: eventId)
         let response = try await api.send(request: request)
         return try ActivityEvent(accountEvent: response.entity)
     }

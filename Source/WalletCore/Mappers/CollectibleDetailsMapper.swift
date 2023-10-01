@@ -25,7 +25,7 @@ struct CollectibleDetailsMapper {
         
         let linkedAddressItem: ViewModelLoadableItem<String?>
         if let linkedAddress = linkedAddress {
-            linkedAddressItem = .value(linkedAddress.shortString)
+            linkedAddressItem = .value(linkedAddress.toShortString(bounceable: false))
         } else if isInitial {
             linkedAddressItem = .loading
         } else {
@@ -94,11 +94,11 @@ struct CollectibleDetailsMapper {
     private func mapDetails(collectible: Collectible) -> CollectibleDetailsViewModel.Details {
         var items = [CollectibleDetailsViewModel.Details.Item]()
         if let owner = collectible.owner {
-            items.append(.init(title: "Owner", value: owner.address.shortString))
+            items.append(.init(title: "Owner", value: owner.address.toShortString(bounceable: false)))
         }
-        items.append(.init(title: "Contract address", value: collectible.address.shortString))
+        items.append(.init(title: "Contract address", value: collectible.address.toShortString(bounceable: false)))
         
-        let url = URL.tonviewerURL.appendingPathComponent(collectible.address.toString())
+        let url = URL.tonviewerURL.appendingPathComponent(collectible.address.toRaw())
         return CollectibleDetailsViewModel.Details(items: items, url: url)
     }
     

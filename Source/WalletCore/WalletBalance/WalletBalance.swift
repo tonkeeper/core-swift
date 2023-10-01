@@ -19,7 +19,7 @@ struct WalletBalance: Codable, LocalStorable {
     typealias KeyType = String
     
     var key: String {
-        walletAddress.toString()
+        walletAddress.toRaw()
     }
 }
 
