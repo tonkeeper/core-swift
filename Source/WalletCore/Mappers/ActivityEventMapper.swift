@@ -233,15 +233,17 @@ private extension ActivityEventMapper {
                                             symbol: nil)
         amount = "\(sign) \(amount) \(tonInfo.symbol)"
         
-        return ActivityEventViewModel.ActionViewModel(eventType: .nftPurchase,
-                                                      amount: amount,
-                                                      leftTopDescription: action.seller.value,
-                                                      leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
-                                                      status: status,
-                                                      comment: nil,
-                                                      collectible: collectibleViewModel)
+        return ActivityEventViewModel.ActionViewModel(
+            eventType: .nftPurchase,
+            amount: amount,
+            leftTopDescription: action.seller.value,
+            leftBottomDescription: nil,
+            date: date,
+            rightTopDesription: date,
+            status: status,
+            comment: nil,
+            collectible: collectibleViewModel
+        )
     }
     
     func mapContractDeployAction(_ action: Action.ContractDeploy,
@@ -249,15 +251,17 @@ private extension ActivityEventMapper {
                                  preview: Action.SimplePreview,
                                  date: String,
                                  status: String?) -> ActivityEventViewModel.ActionViewModel {
-        return ActivityEventViewModel.ActionViewModel(eventType: .walletInitialized,
-                                                      amount: "-",
-                                                      leftTopDescription: action.address.shortString,
-                                                      leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
-                                                      status: status,
-                                                      comment: nil,
-                                                      collectible: nil)
+        return ActivityEventViewModel.ActionViewModel(
+            eventType: .walletInitialized,
+            amount: "-",
+            leftTopDescription: action.address.toShortString(bounceable: false),
+            leftBottomDescription: nil,
+            date: date,
+            rightTopDesription: date,
+            status: status,
+            comment: nil,
+            collectible: nil
+        )
     }
     
     func mapSmartContractExecAction(_ action: Action.SmartContractExec,
@@ -328,6 +332,6 @@ private extension ActivityEventMapper {
 private extension WalletAccount {
     var value: String {
         if let name = name { return name }
-        return address.shortString
+        return address.toShortString(bounceable: false)
     }
 }

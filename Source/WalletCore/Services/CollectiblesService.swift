@@ -22,7 +22,7 @@ struct Collectibles: LocalStorable {
 extension Collectible: LocalStorable {
     typealias KeyType = String
     var key: String {
-        address.toString()
+        address.toRaw()
     }
 }
 
@@ -49,7 +49,7 @@ final class CollectiblesServiceImplementation: CollectiblesService {
     }
     
     func loadCollectibles(addresses: [Address]) async throws -> Collectibles {
-        let request = NFTsBulkRequest(nftsAddresses: addresses.map { $0.toString() })
+        let request = NFTsBulkRequest(nftsAddresses: addresses.map { $0.toRaw() })
         let response = try await api.send(request: request)
         var collectibles = [Address: Collectible]()
         for item in response.entity.nftItems {
@@ -66,7 +66,7 @@ final class CollectiblesServiceImplementation: CollectiblesService {
                           offset: Int,
                           isIndirectOwnership: Bool) async throws -> [Collectible] {
         let request = AccountNFTsRequest(
-            accountId: address.toString(),
+            accountId: address.toRaw(),
             collection: collectionAddress?.toRaw(),
             limit: limit,
             offset: offset,
@@ -91,7 +91,7 @@ final class CollectiblesServiceImplementation: CollectiblesService {
     }
     
     func getCollectible(address: Address) throws -> Collectible {
-        return try localRepository.load(key: address.toString())
+        return try localRepository.load(key: address.toRaw())
     }
     
     func saveCollectible(collectible: Collectible) throws {

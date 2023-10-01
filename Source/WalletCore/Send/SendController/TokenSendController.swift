@@ -79,7 +79,7 @@ private extension TokenSendController {
         let rates = getCachedRates(for: tokenTransferModel)
         let model = mapper.mapTokenTransfer(
             tokenTransferModel,
-            recipientAddress: recipient.address.shortString,
+            recipientAddress: recipient.address.toShortString(bounceable: false),
             recipientName: recipient.domain,
             fee: nil,
             comment: comment,
@@ -95,7 +95,7 @@ private extension TokenSendController {
         let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
         let model = mapper.mapTokenTransfer(
             tokenTransferModel,
-            recipientAddress: recipient.address.shortString,
+            recipientAddress: recipient.address.toShortString(bounceable: false),
             recipientName: recipient.domain,
             fee: fee,
             comment: comment,
@@ -110,7 +110,7 @@ private extension TokenSendController {
         let rates = getCachedRates(for: tokenTransferModel)
         let model = mapper.mapTokenTransfer(
             tokenTransferModel,
-            recipientAddress: recipient.address.shortString,
+            recipientAddress: recipient.address.toShortString(bounceable: false),
             recipientName: recipient.domain,
             fee: nil,
             comment: comment,
@@ -149,7 +149,7 @@ private extension TokenSendController {
             )
         case .token(let tokenAddress, _):
             return try await sendMessageBuilder.sendTokenTransactionBoc(
-                tokenAddress: tokenAddress.toString(),
+                tokenAddress: tokenAddress.toRaw(),
                 value: tokenTransferModel.amount,
                 recipientAddress: recipientAddress,
                 comment: comment

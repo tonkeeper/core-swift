@@ -9,8 +9,8 @@ import Foundation
 import TonSwift
 
 public extension Address {
-    var shortString: String {
-        let string = self.toString()
+    func toShortString(bounceable: Bool) -> String {
+        let string = self.toString(bounceable: bounceable)
         let leftPart = string.prefix(4)
         let rightPart = string.suffix(4)
         return "\(leftPart)...\(rightPart)"

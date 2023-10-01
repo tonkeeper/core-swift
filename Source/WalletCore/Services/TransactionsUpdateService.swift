@@ -50,7 +50,7 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
     }
     
     func start(addresses: [Address]) {
-        let addressesStrings = addresses.map { $0.toString() }
+        let addressesStrings = addresses.map { $0.toRaw() }
         let request = TransactionsStreamingRequest(accounts: addressesStrings)
         let task = Task {
             do {

@@ -25,6 +25,6 @@ public final class ReceiveController {
             contractVersion: wallet.contractVersion
         )
         let address = try contract.address()
-        return address.toString()
+        return address.toString(bounceable: false)
     }
 }

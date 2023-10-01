@@ -79,7 +79,7 @@ public final class BalanceWidgetController {
             return Model(
                 tonBalance: formattedBalance,
                 fiatBalance: formattedFiatBalance,
-                address: try contract.address().shortString
+                address: try contract.address().toShortString(bounceable: false)
             )
         } catch {
             throw Error.failedToLoad

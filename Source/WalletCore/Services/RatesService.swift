@@ -30,7 +30,7 @@ actor RatesServiceImplementation: RatesService {
     }
     
     func loadRates(tonInfo: TonInfo, tokens: [TokenInfo], currencies: [Currency]) async throws -> Rates {
-        let requestTokens: [String] = [tonInfo.symbol.lowercased()] + tokens.map { $0.address.toString() }
+        let requestTokens: [String] = [tonInfo.symbol.lowercased()] + tokens.map { $0.address.toRaw() }
         let requestCurrencies = currencies.map { $0.code }
         
         let request = RatesRequest(tokens: requestTokens, currencies: requestCurrencies)
