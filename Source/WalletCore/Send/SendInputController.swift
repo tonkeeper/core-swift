@@ -51,7 +51,7 @@ public final class SendInputController {
         }
         
         struct FiatState {
-            let fiat: Currency = .USD
+            let fiat: Currency
             var amount: BigInt
             var fractionalDigits: Int
         }
@@ -112,22 +112,31 @@ public final class SendInputController {
     public var didChangeToken: ((_ code: String?) -> Void)?
     
     private let bigIntAmountFormatter: BigIntAmountFormatter
+    private let amountFormatter: AmountFormatter
     private let ratesService: RatesService
     private let balanceService: WalletBalanceService
     private let tokenMapper: SendTokenMapper
     private let walletProvider: WalletProvider
     private let rateConverter: RateConverter
     
-    private var state = State(fiatState: .init(amount: 0, fractionalDigits: 0), tokenState: .init(amount: 0), active: .token)
+    private lazy var state: State = {
+        let currency = (try? walletProvider.activeWallet.currency) ?? .USD
+        return State(fiatState: .init(fiat: currency, amount: 0, fractionalDigits: 0),
+                     tokenState: .init(amount: 0),
+                     active: .token)
+    }()
+    
     public private(set) var isMax = false
     
     init(bigIntAmountFormatter: BigIntAmountFormatter,
+         amountFormatter: AmountFormatter,
          ratesService: RatesService,
          balanceService: WalletBalanceService,
          tokenMapper: SendTokenMapper,
          walletProvider: WalletProvider,
          rateConverter: RateConverter) {
         self.bigIntAmountFormatter = bigIntAmountFormatter
+        self.amountFormatter = amountFormatter
         self.ratesService = ratesService
         self.balanceService = balanceService
         self.tokenMapper = tokenMapper
@@ -248,16 +257,16 @@ public final class SendInputController {
         
         didChangeInputMaximumFractionLength?(state.inputMaximumFractionDigits)
         
-        let tokenAmount = bigIntAmountFormatter.format(
-            amount: state.tokenState.amount,
+        let tokenAmount = amountFormatter.formatAmount(
+            state.tokenState.amount,
             fractionDigits: state.tokenState.token.fractionalDigits,
-            maximumFractionDigits: state.inputMaximumFractionDigits,
-            symbol: nil)
-        let fiatAmount = bigIntAmountFormatter.format(
-            amount: state.fiatState.amount,
+            maximumFractionDigits: state.inputMaximumFractionDigits
+        )
+        let fiatAmount = amountFormatter.formatAmount(
+            state.fiatState.amount,
             fractionDigits: state.fiatState.fractionalDigits,
-            maximumFractionDigits: .fiatMaximumFractionalLength,
-            symbol: nil)
+            maximumFractionDigits: .fiatMaximumFractionalLength
+        )
         
         switch state.active {
         case .token:
@@ -308,11 +317,10 @@ public final class SendInputController {
             let maximumFractionDigits = available < tokenOneAmount
             ? activeTokenBalanceInfo.fractionalDigits
             : .inactiveMaximumFractionalLength
-            let formattedBalance = bigIntAmountFormatter.format(
-                amount: available,
+            let formattedBalance = amountFormatter.formatAmount(
+                available,
                 fractionDigits: state.tokenState.token.fractionalDigits,
-                maximumFractionDigits: maximumFractionDigits,
-                symbol: nil
+                maximumFractionDigits: maximumFractionDigits
             )
             let codeString = state.tokenState.token.code ?? ""
             resultString = "Remaining: \(formattedBalance) \(codeString)"
@@ -352,9 +360,8 @@ private extension SendInputController {
             let formatted = bigIntAmountFormatter.format(
                 amount: fiatAmount.amount,
                 fractionDigits: fiatAmount.fractionLength,
-                maximumFractionDigits: .fiatMaximumFractionalLength,
-                symbol: nil)
-            
+                maximumFractionDigits: .fiatMaximumFractionalLength
+            )
             self.didUpdateInactiveAmount?(formatted + " " + state.fiatState.fiat.code)
         }
     }
@@ -372,12 +379,12 @@ private extension SendInputController {
             let tokenAmount = convertedAmount.amount.shortBigInt(to: fractionalDiff)
 
             state.updateTokenAmount(tokenAmount)
-
-            let formatted = bigIntAmountFormatter.format(
-                amount: tokenAmount,
+            
+            let formatted = amountFormatter.formatAmount(
+                tokenAmount,
                 fractionDigits: state.tokenState.token.fractionalDigits,
-                maximumFractionDigits: .inactiveMaximumFractionalLength,
-                symbol: nil)
+                maximumFractionDigits: .inactiveMaximumFractionalLength
+            )
             var amountString = formatted
             if let code = state.tokenState.token.code {
                 amountString += " " + code

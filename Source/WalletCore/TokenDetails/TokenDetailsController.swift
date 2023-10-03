@@ -67,13 +67,13 @@ public final class TokenDetailsController {
         } catch {
             walletBalance = try balanceService.getEmptyWalletBalance(wallet: wallet)
         }
-        return tokenDetailsProvider.getHeader(walletBalance: walletBalance, currency: .USD)
+        return tokenDetailsProvider.getHeader(walletBalance: walletBalance, currency: wallet.currency)
     }
     
     public func reloadContent() async throws {
         let wallet = try walletProvider.activeWallet
         try await _ = balanceService.loadWalletBalance(wallet: wallet)
-        try await tokenDetailsProvider.reloadRate(currency: .USD)
+        try await tokenDetailsProvider.reloadRate(currency: wallet.currency)
     }
     
     public func handleRecieve() {

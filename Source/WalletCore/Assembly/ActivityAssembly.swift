@@ -77,7 +77,7 @@ private extension ActivityAssembly {
     
     func activityEventMapper() -> ActivityEventMapper {
         ActivityEventMapper(dateFormatter: formattersAssembly.dateFormatter,
-                            bigIntFormatter: formattersAssembly.bigIntAmountFormatter,
+                            amountFormatter: formattersAssembly.amountFormatter,
                             intAmountFormatter: formattersAssembly.intAmountFormatter)
     }
     

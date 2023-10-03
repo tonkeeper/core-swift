@@ -12,14 +12,14 @@ import BigInt
 struct SendTokenMapper {
     private let intAmountFormatter: IntAmountFormatter
     private let decimalAmountFormatter: DecimalAmountFormatter
-    private let bigIntAmountFormatter: BigIntAmountFormatter
+    private let amountFormatter: AmountFormatter
     
     init(intAmountFormatter: IntAmountFormatter,
          decimalAmountFormatter: DecimalAmountFormatter,
-         bigIntAmountFormatter: BigIntAmountFormatter) {
+         amountFormatter: AmountFormatter) {
         self.intAmountFormatter = intAmountFormatter
         self.decimalAmountFormatter = decimalAmountFormatter
-        self.bigIntAmountFormatter = bigIntAmountFormatter
+        self.amountFormatter = amountFormatter
     }
     
     func mapTon(tonBalance: TonBalance) -> TokenListModel.TokenModel {
@@ -32,11 +32,10 @@ struct SendTokenMapper {
     }
     
     func mapToken(tokenBalance: TokenBalance) -> TokenListModel.TokenModel {
-        let amount = bigIntAmountFormatter.format(
-            amount: tokenBalance.amount.quantity,
+        let amount = amountFormatter.formatAmount(
+            tokenBalance.amount.quantity,
             fractionDigits: tokenBalance.amount.tokenInfo.fractionDigits,
-            maximumFractionDigits: 16,
-            symbol: nil
+            maximumFractionDigits: 16
         )
         return TokenListModel.TokenModel(icon:.url(tokenBalance.amount.tokenInfo.imageURL),
                                          code: tokenBalance.amount.tokenInfo.symbol,

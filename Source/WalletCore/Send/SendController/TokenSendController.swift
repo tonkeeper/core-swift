@@ -16,28 +16,35 @@ public final class TokenSendController: SendController {
     private let tokenTransferModel: TokenTransferModel
     private let recipient: Recipient
     private let comment: String?
+    private let walletProvider: WalletProvider
     private let sendService: SendService
     private let rateService: RatesService
     private let sendMessageBuilder: SendMessageBuilder
     private let intAmountFormatter: IntAmountFormatter
-    private let bigIntAmountFormatter: BigIntAmountFormatter
+    private let amountFormatter: AmountFormatter
+    
+    private var currency: Currency {
+        (try? walletProvider.activeWallet.currency) ?? .USD
+    }
     
     init(tokenTransferModel: TokenTransferModel,
          recipient: Recipient,
          comment: String?,
+         walletProvider: WalletProvider,
          sendService: SendService,
          rateService: RatesService,
          sendMessageBuilder: SendMessageBuilder,
          intAmountFormatter: IntAmountFormatter,
-         bigIntAmountFormatter: BigIntAmountFormatter) {
+         amountFormatter: AmountFormatter) {
         self.tokenTransferModel = tokenTransferModel
         self.recipient = recipient
         self.comment = comment
+        self.walletProvider = walletProvider
         self.sendService = sendService
         self.rateService = rateService
         self.sendMessageBuilder = sendMessageBuilder
         self.intAmountFormatter = intAmountFormatter
-        self.bigIntAmountFormatter = bigIntAmountFormatter
+        self.amountFormatter = amountFormatter
     }
     
     // MARK: - SendController
@@ -75,7 +82,7 @@ public final class TokenSendController: SendController {
 
 private extension TokenSendController {
     func buildInitialModel() -> SendTransactionViewModel {
-        let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let mapper = SendConfirmationMapper(amountFormatter: amountFormatter)
         let rates = getCachedRates(for: tokenTransferModel)
         let model = mapper.mapTokenTransfer(
             tokenTransferModel,
@@ -92,7 +99,7 @@ private extension TokenSendController {
     func buildEmulationModel(fee: Int64?,
                              tonRates: Rates.Rate?,
                              tokenRates: Rates.Rate?) -> SendTransactionViewModel {
-        let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let mapper = SendConfirmationMapper(amountFormatter: amountFormatter)
         let model = mapper.mapTokenTransfer(
             tokenTransferModel,
             recipientAddress: recipient.address.toShortString(bounceable: false),
@@ -106,7 +113,7 @@ private extension TokenSendController {
     }
     
     func buildEmulationFailedModel() -> SendTransactionViewModel {
-        let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let mapper = SendConfirmationMapper(amountFormatter: amountFormatter)
         let rates = getCachedRates(for: tokenTransferModel)
         let model = mapper.mapTokenTransfer(
             tokenTransferModel,
@@ -165,7 +172,7 @@ private extension TokenSendController {
         case .token(_, let tokenInfo):
             tokens = [tokenInfo]
         }
-        if let rates = try? await rateService.loadRates(tonInfo: TonInfo(), tokens: tokens, currencies: [.USD]) {
+        if let rates = try? await rateService.loadRates(tonInfo: TonInfo(), tokens: tokens, currencies: [currency]) {
             return getRates(for: tokenTransferModel, rates: rates)
         } else {
             return getCachedRates(for: tokenTransferModel)
@@ -180,14 +187,14 @@ private extension TokenSendController {
     func getRates(for tokenTransferModel: TokenTransferModel, rates: Rates) -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {
         switch tokenTransferModel.transferItem {
         case .ton:
-            let tonRates = rates.ton.first(where: { $0.currency == .USD })
+            let tonRates = rates.ton.first(where: { $0.currency == currency })
             return (tonRates, tonRates)
         case .token(_, let tokenInfo):
             let tokenRates = rates.tokens
                 .first(where: { $0.tokenInfo == tokenInfo })?
                 .rates
-                .first(where: { $0.currency == .USD })
-            let tonRates = rates.ton.first(where: { $0.currency == .USD })
+                .first(where: { $0.currency == currency })
+            let tonRates = rates.ton.first(where: { $0.currency == currency })
             return (tokenRates, tonRates)
         }
     }

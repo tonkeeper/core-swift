@@ -9,10 +9,10 @@ import Foundation
 import BigInt
 
 struct SendConfirmationMapper {
-    private let bigIntAmountFormatter: BigIntAmountFormatter
+    private let amountFormatter: AmountFormatter
     
-    init(bigIntAmountFormatter: BigIntAmountFormatter) {
-        self.bigIntAmountFormatter = bigIntAmountFormatter
+    init(amountFormatter: AmountFormatter) {
+        self.amountFormatter = amountFormatter
     }
     
     func mapTokenTransfer(_ tokenTransferModel: TokenTransferModel,
@@ -37,10 +37,11 @@ struct SendConfirmationMapper {
             image = .ton
         }
         
-        let amountFormatted = bigIntAmountFormatter.format(amount: tokenTransferModel.amount,
-                                                           fractionDigits: token.fractionDigits,
-                                                           maximumFractionDigits: token.fractionDigits,
-                                                           symbol: nil)
+        let amountFormatted = amountFormatter.formatAmount(
+            tokenTransferModel.amount,
+            fractionDigits: token.fractionDigits,
+            maximumFractionDigits: token.fractionDigits
+        )
         
         let feeTon: ViewModelLoadableItem<String?>
         let feeFiat: ViewModelLoadableItem<String?>
@@ -127,20 +128,23 @@ private extension SendConfirmationMapper {
     func mapFee(_ fee: Int64?, tonRate: Rates.Rate?) -> (mappedFee: String?, mappedFiatFee: String?) {
         guard let fee = fee else { return ("?", nil) }
         let tonInfo = TonInfo()
-        var mappedFee = bigIntAmountFormatter.format(amount: BigInt(fee),
-                                                     fractionDigits: tonInfo.fractionDigits,
-                                                     maximumFractionDigits: tonInfo.fractionDigits,
-                                                     symbol: nil)
+        var mappedFee = amountFormatter.formatAmount(
+            BigInt(fee),
+            fractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: tonInfo.fractionDigits
+        )
         mappedFee = "≈\(mappedFee) \(tonInfo.symbol)"
         
         var mappedFiatFee: String?
         if let tonRate = tonRate {
             let rateConverter = RateConverter()
             let feeFiat = rateConverter.convert(amount: fee, amountFractionLength: tonInfo.fractionDigits, rate: tonRate)
-            let feeFiatFormatted = bigIntAmountFormatter.format(amount: feeFiat.amount,
-                                                                fractionDigits: feeFiat.fractionLength,
-                                                                maximumFractionDigits: 2,
-                                                                symbol: tonRate.currency.symbol)
+            let feeFiatFormatted = amountFormatter.formatAmount(
+                feeFiat.amount,
+                fractionDigits: feeFiat.fractionLength,
+                maximumFractionDigits: 2,
+                currency: tonRate.currency
+            )
             mappedFiatFee = "≈\(feeFiatFormatted)"
         }
         return (mappedFee, mappedFiatFee)
@@ -156,11 +160,11 @@ private extension SendConfirmationMapper {
             amountFractionLength: formatterInfo.fractionDigits,
             rate: rate
         )
-        let fiatAmountFormatted = bigIntAmountFormatter.format(
-            amount: fiatConverted.amount,
+        let fiatAmountFormatted = amountFormatter.formatAmount(
+            fiatConverted.amount,
             fractionDigits: fiatConverted.fractionLength,
             maximumFractionDigits: 2,
-            symbol: rate.currency.symbol
+            currency: rate.currency
         )
         
         return fiatAmountFormatted
