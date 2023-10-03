@@ -18,21 +18,35 @@ struct AmountFormatter {
     func formatAmount(_ amount: BigInt,
                       fractionDigits: Int,
                       maximumFractionDigits: Int,
-                      symbol: String? = nil) -> String {
-        bigIntFormatter.format(
+                      currency: Currency? = nil) -> String {
+        var formatted = bigIntFormatter.format(
             amount: amount,
             fractionDigits: fractionDigits,
-            maximumFractionDigits: maximumFractionDigits,
-            symbol: symbol)
+            maximumFractionDigits: maximumFractionDigits)
+        if let currency = currency {
+            let format: String
+            if currency.symbolOnLeft {
+                format = "\(currency.symbol) %@"
+            } else {
+                format = "%@ \(currency.symbol)"
+            }
+            formatted = String(format: format, formatted)
+        }
+        return formatted
     }
     
     func formatAmountWithoutFractionIfThousand(_ amount: BigInt,
                                                fractionDigits: Int,
                                                maximumFractionDigits: Int,
-                                               symbol: String? = nil) -> String {
+                                               currency: Currency? = nil) -> String {
         let isMoreThanThousand = isMoreThanThousand(amount: amount, fractionalDigits: fractionDigits)
         let maximumFractionDigits = isMoreThanThousand ? 0 : maximumFractionDigits
-        return formatAmount(amount, fractionDigits: fractionDigits, maximumFractionDigits: maximumFractionDigits, symbol: symbol)
+        return formatAmount(
+            amount,
+            fractionDigits: fractionDigits,
+            maximumFractionDigits: maximumFractionDigits,
+            currency: currency
+        )
     }
 }
 

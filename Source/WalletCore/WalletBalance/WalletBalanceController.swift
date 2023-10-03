@@ -51,6 +51,8 @@ public class WalletBalanceController {
         self.walletProvider = walletProvider
         self.walletBalanceMapper = walletBalanceMapper
         self.transactionsUpdatePublishService = transactionsUpdatePublishService
+        
+        walletProvider.addObserver(self)
     }
     
     public func startUpdate() {
@@ -116,7 +118,11 @@ public class WalletBalanceController {
         let wallet = try walletProvider.activeWallet
         let walletBalance = try balanceService.getWalletBalance(wallet: wallet)
         let rates = try ratesService.getRates()
-        let walletState = walletBalanceMapper.mapWalletBalance(walletBalance, rates: rates)
+        let walletState = walletBalanceMapper.mapWalletBalance(
+            walletBalance,
+            rates: rates,
+            currency: wallet.currency
+        )
         return walletState
     }
     
@@ -124,14 +130,29 @@ public class WalletBalanceController {
         let wallet = try walletProvider.activeWallet
         let walletBalance = try await balanceService.loadWalletBalance(wallet: wallet)
         let rates = try await loadRates(walletBalance: walletBalance)
-        let walletState = walletBalanceMapper.mapWalletBalance(walletBalance, rates: rates)
+        let walletState = walletBalanceMapper.mapWalletBalance(
+            walletBalance,
+            rates: rates,
+            currency: wallet.currency)
         return walletState
     }
     
     func emptyWalletBalance() throws -> WalletBalanceModel {
         let wallet = try walletProvider.activeWallet
         let walletBalance = try balanceService.getEmptyWalletBalance(wallet: wallet)
-        return walletBalanceMapper.mapWalletBalance(walletBalance, rates: Rates(ton: [], tokens: []))
+        return walletBalanceMapper.mapWalletBalance(
+            walletBalance,
+            rates: Rates(ton: [], tokens: []),
+            currency: wallet.currency)
+    }
+}
+
+extension WalletBalanceController: WalletProviderObserver {
+    public func didUpdateActiveWallet() {
+        Task {
+            let loadedBalance = try getWalletBalance()
+            balanceStreamContinuation?.yield(loadedBalance)
+        }
     }
 }
 

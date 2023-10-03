@@ -109,6 +109,10 @@ public final class WalletCoreContainer {
         walletCoreAssembly.balanceWidgetController()
     }
     
+    public func settingsController() -> SettingsController {
+        walletCoreAssembly.settingsController()
+    }
+    
     public func deeplinkParser() -> DeeplinkParser {
         walletCoreAssembly.deeplinkParser()
     }

@@ -48,7 +48,7 @@ actor RatesServiceImplementation: RatesService {
                 }
                 continue
             }
-            guard let tokenInfo = tokens.first(where: { $0.address.toRaw() == responseRate.key }) else { continue }
+            guard let tokenInfo = tokens.first(where: { $0.address.toString() == responseRate.key }) else { continue }
             let rates: [Rates.Rate] = responseRate.rates.compactMap {
                 guard let currrency = Currency(rawValue: $0.code) else { return nil }
                 return Rates.Rate(currency: currrency, rate: $0.rate)

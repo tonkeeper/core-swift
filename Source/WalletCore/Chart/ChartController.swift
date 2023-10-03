@@ -7,52 +7,70 @@
 
 import Foundation
 
-public actor ChartController {
-    public enum Period: CaseIterable {
-        case hour
-        case day
-        case week
-        case month
-        case halfYear
-        case year
-        
-        public var title: String {
-            switch self {
-            case .hour: return "H"
-            case .day: return "D"
-            case .week: return "W"
-            case .month: return "M"
-            case .halfYear: return "6M"
-            case .year: return "Y"
-            }
-        }
-        
-        var stringValue: String {
-            switch self {
-            case .hour: return "1H"
-            case .day: return "1D"
-            case .week: return "7D"
-            case .month: return "1M"
-            case .halfYear: return "6M"
-            case .year: return "1Y"
-            }
+public enum Period: CaseIterable {
+    case hour
+    case day
+    case week
+    case month
+    case halfYear
+    case year
+    
+    public var startDate: Date {
+        let calendar = Calendar.current
+        switch self {
+        case .day:
+            return calendar.date(byAdding: DateComponents(day: -1), to: Date())!
+        case .halfYear:
+            return calendar.date(byAdding: DateComponents(year: -6), to: Date())!
+        case .hour:
+            return calendar.date(byAdding: DateComponents(hour: -1), to: Date())!
+        case .month:
+            return calendar.date(byAdding: DateComponents(month: -1), to: Date())!
+        case .week:
+            return calendar.date(byAdding: DateComponents(day: -7), to: Date())!
+        case .year:
+            return calendar.date(byAdding: DateComponents(year: -1), to: Date())!
         }
     }
+        
+    public var endDate: Date {
+        Date()
+    }
     
+    public var title: String {
+        switch self {
+        case .hour: return "H"
+        case .day: return "D"
+        case .week: return "W"
+        case .month: return "M"
+        case .halfYear: return "6M"
+        case .year: return "Y"
+        }
+    }
+}
+
+public actor ChartController {
     private let chartService: ChartService
+    private let decimalAmountFormatter: DecimalAmountFormatter
     private let dateFormatter = DateFormatter()
     
     private var loadChartDataTask: Task<[Coordinate], Error>?
     public private(set) var coordinates = [Coordinate]()
-    
-    init(chartService: ChartService) {
+
+    init(chartService: ChartService,
+         decimalAmountFormatter: DecimalAmountFormatter) {
         self.chartService = chartService
+        self.decimalAmountFormatter = decimalAmountFormatter
     }
     
-    public func getChartData(period: Period) async throws -> [Coordinate] {
+    public func getChartData(period: Period,
+                             currency: Currency) async throws -> [Coordinate] {
         loadChartDataTask?.cancel()
         let task = Task {
-            let coordinates = try await chartService.loadChartData(period: period.stringValue)
+            let coordinates = try await chartService.loadChartData(
+                period: period,
+                token: "ton",
+            currency: currency)
             try Task.checkCancellation()
             loadChartDataTask = nil
             return coordinates
@@ -62,7 +80,7 @@ public actor ChartController {
         return self.coordinates
     }
     
-    public func getInformation(at index: Int, period: Period) -> ChartPointInformationViewModel {
+    public func getInformation(at index: Int, period: Period, currency: Currency) -> ChartPointInformationViewModel {
         guard index < coordinates.count else {
             return ChartPointInformationViewModel(
                 amount: "",
@@ -74,10 +92,15 @@ public actor ChartController {
         let percentageValue = calculatePercentageDiff(at: index)
         let fiatValue = calculateFiatDiff(percentage: percentageValue)
         
-        
-        let amount = String(format: "\(Currency.USD.symbol ?? "")%.4f", coordinate.y)
+        let amount = decimalAmountFormatter.format(
+            amount: Decimal(coordinate.y),
+            maximumFractionDigits: 4,
+            currency: currency)
         var percentage = String(format: "%.2f%%", percentageValue)
-        let fiat = String(format: "\(Currency.USD.symbol ?? "")%.2f", fiatValue)
+        let fiat = decimalAmountFormatter.format(
+            amount: Decimal(fiatValue),
+            maximumFractionDigits: 2,
+            currency: currency)
         let date = formatTimeInterval(coordinate.x, period: period) ?? ""
         
         let diffDirection: ChartPointInformationViewModel.Diff.Direction
@@ -96,18 +119,18 @@ public actor ChartController {
             date: date)
     }
   
-    public func getMaximumValue() -> String {
+    public func getMaximumValue(currency: Currency) -> String {
         guard let coordinate = coordinates.max(by: { $0.y < $1.y }) else {
             return ""
         }
-        return String(format: "\(Currency.USD.symbol ?? "")%.2f", coordinate.y)
+        return String(format: "\(currency.symbol)%.2f", coordinate.y)
     }
     
-    public func getMinimumValue() -> String {
+    public func getMinimumValue(currency: Currency) -> String {
         guard let coordinate = coordinates.max(by: { $0.y > $1.y }) else {
             return ""
         }
-        return String(format: "\(Currency.USD.symbol ?? "")%.2f", coordinate.y)
+        return String(format: "\(currency.symbol)%.2f", coordinate.y)
     }
 }
 

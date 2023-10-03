@@ -8,8 +8,15 @@
 import Foundation
 import TonSwift
 
-protocol WalletProvider {
+public protocol WalletProviderObserver: AnyObject {
+    func didUpdateActiveWallet()
+}
+
+public protocol WalletProvider {
     var activeWallet: Wallet { get throws }
+    
+    func addObserver(_ observer: WalletProviderObserver)
+    func removeObserver(_ observer: WalletProviderObserver)
 }
 
 public final class KeeperController: WalletProvider {
@@ -41,7 +48,9 @@ public final class KeeperController: WalletProvider {
         let wallet = Wallet(identity: WalletIdentity(network: .mainnet,
                                                      kind: .Regular(keyPair.publicKey)),
                             notificationSettings: .init(),
-                            backupSettings: .init(enabled: true, revision: 1, voucher: nil), contractVersion: .v4R2)
+                            backupSettings: .init(enabled: true, revision: 1, voucher: nil),
+                            currency: .USD,
+                            contractVersion: .v4R2)
         let mnemonicVault = KeychainMnemonicVault(
             keychainManager: keychainManager,
             walletID: try wallet.identity.id(),
@@ -49,6 +58,27 @@ public final class KeeperController: WalletProvider {
         )
         try mnemonicVault.save(value: mnemonic, for: keyPair.publicKey)
         try updateKeeperInfo(with: wallet)
+    }
+    
+    public func update(wallet: Wallet, currency: Currency) throws {
+        let updatedWallet = wallet.setCurrency(currency)
+        let keeperInfo = try keeperService.getKeeperInfo().updateWallet(updatedWallet)
+        try keeperService.saveKeeperInfo(keeperInfo)
+        notifyObservers()
+    }
+    
+    private var observers = [WalletProviderObserverWrapper]()
+    
+    struct WalletProviderObserverWrapper {
+      weak var observer: WalletProviderObserver?
+    }
+    
+    public func addObserver(_ observer: WalletProviderObserver) {
+        observers.append(.init(observer: observer))
+    }
+    
+    public func removeObserver(_ observer: WalletProviderObserver) {
+        observers = observers.filter { $0.observer !== observer }
     }
 }
 
@@ -97,5 +127,10 @@ private extension KeeperController {
         } catch {
             return false
         }
+    }
+    
+    func notifyObservers() {
+      observers = observers.filter { $0.observer != nil }
+      observers.forEach { $0.observer?.didUpdateActiveWallet() }
     }
 }

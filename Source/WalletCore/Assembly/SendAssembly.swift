@@ -33,6 +33,7 @@ final class SendAssembly {
                              cacheURL: URL,
                              walletProvider: WalletProvider) -> SendInputController {
         return SendInputController(bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter,
+                                   amountFormatter: formattersAssembly.amountFormatter,
                                    ratesService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
                                    balanceService: balanceAssembly.walletBalanceService(api: api, cacheURL: cacheURL),
                                    tokenMapper: sendTokenMapper(),
@@ -52,6 +53,7 @@ final class SendAssembly {
             tokenTransferModel: tokenTransferModel,
             recipient: recipient,
             comment: comment,
+            walletProvider: walletProvider,
             sendService: sendService,
             rateService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
             sendMessageBuilder: sendMessageBuilder(
@@ -59,7 +61,7 @@ final class SendAssembly {
                 keychainGroup: keychainGroup,
                 sendService: sendService),
             intAmountFormatter: formattersAssembly.intAmountFormatter,
-            bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
+            amountFormatter: formattersAssembly.amountFormatter)
     }
     
     func nftSendController(api: API,
@@ -74,6 +76,7 @@ final class SendAssembly {
             nftAddress: nftAddress,
             recipient: recipient,
             comment: comment,
+            walletProvider: walletProvider,
             sendService: sendService,
             rateService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
             collectibleService: servicesAssembly.collectiblesService,
@@ -81,7 +84,7 @@ final class SendAssembly {
                 walletProvider: walletProvider,
                 keychainGroup: keychainGroup,
                 sendService: sendService),
-            intAmountFormatter: formattersAssembly.intAmountFormatter,
+            amountFormatter: formattersAssembly.amountFormatter,
             bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
     
@@ -107,7 +110,7 @@ private extension SendAssembly {
     func sendTokenMapper() -> SendTokenMapper {
         SendTokenMapper(intAmountFormatter: formattersAssembly.intAmountFormatter,
                         decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
-                        bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
+                        amountFormatter: formattersAssembly.amountFormatter)
     }
     
     func sendMessageBuilder(walletProvider: WalletProvider,

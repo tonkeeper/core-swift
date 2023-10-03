@@ -13,12 +13,32 @@ struct BigIntAmountFormatter {
     enum Error: Swift.Error {
         case invalidInput(_ input: String)
     }
+//    
+//    func format(amount: BigInt,
+//                fractionDigits: Int,
+//                maximumFractionDigits: Int,
+//                symbol: String?) -> String {
+//        let symbolString = symbol ?? ""
+//        var initialString = amount.description
+//        if initialString.count < fractionDigits {
+//            initialString = String(repeating: "0", count: fractionDigits - initialString.count) + initialString
+//        }
+//        let fractional = String(initialString.suffix(fractionDigits))
+//        let fractionalLength = min(fractionDigits, maximumFractionDigits)
+//        let fractionalResult = String(fractional[fractional.startIndex..<fractional.index(fractional.startIndex, offsetBy: fractionalLength)])
+//            .replacingOccurrences(of: "0+$", with: "", options: .regularExpression)
+//        let integer = String(initialString.prefix(initialString.count - fractional.count))
+//        let separatedInteger = groups(string: integer.isEmpty ? "0" : integer, size: .groupSize).joined(separator: .groupSeparator)
+//        var result = symbolString + separatedInteger
+//        if fractionalResult.count > 0 {
+//            result += (.fractionalSeparator ?? ".") + fractionalResult
+//        }
+//        return result
+//    }
     
     func format(amount: BigInt,
                 fractionDigits: Int,
-                maximumFractionDigits: Int,
-                symbol: String?) -> String {
-        let symbolString = symbol ?? ""
+                maximumFractionDigits: Int) -> String {
         var initialString = amount.description
         if initialString.count < fractionDigits {
             initialString = String(repeating: "0", count: fractionDigits - initialString.count) + initialString
@@ -29,7 +49,7 @@ struct BigIntAmountFormatter {
             .replacingOccurrences(of: "0+$", with: "", options: .regularExpression)
         let integer = String(initialString.prefix(initialString.count - fractional.count))
         let separatedInteger = groups(string: integer.isEmpty ? "0" : integer, size: .groupSize).joined(separator: .groupSeparator)
-        var result = symbolString + separatedInteger
+        var result = separatedInteger
         if fractionalResult.count > 0 {
             result += (.fractionalSeparator ?? ".") + fractionalResult
         }

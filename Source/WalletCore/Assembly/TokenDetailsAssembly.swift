@@ -39,7 +39,8 @@ struct TokenDetailsAssembly {
     }
     
     func chartController(api: API) -> ChartController {
-        ChartController(chartService: chartService(api: api))
+        ChartController(chartService: chartService(api: api),
+                        decimalAmountFormatter: formattersAssembly.decimalAmountFormatter)
     }
 }
 
@@ -59,7 +60,7 @@ private extension TokenDetailsAssembly {
     func walletItemMapper() -> WalletItemMapper {
         WalletItemMapper(
             intAmountFormatter: formattersAssembly.intAmountFormatter,
-            bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter,
+            amountFormatter: formattersAssembly.amountFormatter,
             decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
             rateConverter: RateConverter()
         )

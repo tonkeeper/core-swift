@@ -18,12 +18,17 @@ public final class NFTSendController: SendController {
     private let nftAddress: Address
     private let recipient: Recipient
     private let comment: String?
+    private let walletProvider: WalletProvider
     private let sendService: SendService
     private let rateService: RatesService
     private let collectibleService: CollectiblesService
     private let sendMessageBuilder: SendMessageBuilder
-    private let intAmountFormatter: IntAmountFormatter
+    private let amountFormatter: AmountFormatter
     private let bigIntAmountFormatter: BigIntAmountFormatter
+    
+    private var currency: Currency {
+        (try? walletProvider.activeWallet.currency) ?? .USD
+    }
     
     // MARK: - State
     
@@ -33,20 +38,22 @@ public final class NFTSendController: SendController {
     init(nftAddress: Address,
          recipient: Recipient,
          comment: String?,
+         walletProvider: WalletProvider,
          sendService: SendService,
          rateService: RatesService,
          collectibleService: CollectiblesService,
          sendMessageBuilder: SendMessageBuilder,
-         intAmountFormatter: IntAmountFormatter,
+         amountFormatter: AmountFormatter,
          bigIntAmountFormatter: BigIntAmountFormatter) {
         self.nftAddress = nftAddress
         self.recipient = recipient
         self.comment = comment
+        self.walletProvider = walletProvider
         self.sendService = sendService
         self.rateService = rateService
         self.collectibleService = collectibleService
         self.sendMessageBuilder = sendMessageBuilder
-        self.intAmountFormatter = intAmountFormatter
+        self.amountFormatter = amountFormatter
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
     
@@ -114,7 +121,7 @@ public final class NFTSendController: SendController {
 
 private extension NFTSendController {
     func buildInitialModel(nft: Collectible) -> SendTransactionViewModel {
-        let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let mapper = SendConfirmationMapper(amountFormatter: amountFormatter)
         
         let model = mapper.mapNFT(
             nft,
@@ -132,7 +139,7 @@ private extension NFTSendController {
     func buildEmulationModel(nft: Collectible,
                              fee: Int64?,
                              tonRate: Rates.Rate?) -> SendTransactionViewModel {
-        let mapper = SendConfirmationMapper(bigIntAmountFormatter: bigIntAmountFormatter)
+        let mapper = SendConfirmationMapper(amountFormatter: amountFormatter)
         
         let model = mapper.mapNFT(
             nft,
@@ -198,10 +205,10 @@ private extension NFTSendController {
             let loadedRates = try await rateService.loadRates(
                 tonInfo: TonInfo(),
                 tokens: [],
-                currencies: [.USD])
-            return loadedRates.ton.first(where: { $0.currency == .USD })
+                currencies: [currency])
+            return loadedRates.ton.first(where: { $0.currency == currency })
         } catch {
-            return try? rateService.getRates().ton.first(where: { $0.currency == .USD })
+            return try? rateService.getRates().ton.first(where: { $0.currency == currency })
         }
     }
 }

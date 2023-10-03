@@ -11,16 +11,16 @@ import BigInt
 
 struct WalletItemMapper {
     private let intAmountFormatter: IntAmountFormatter
-    private let bigIntAmountFormatter: BigIntAmountFormatter
+    private let amountFormatter: AmountFormatter
     private let decimalAmountFormatter: DecimalAmountFormatter
     private let rateConverter: RateConverter
     
     init(intAmountFormatter: IntAmountFormatter,
-         bigIntAmountFormatter: BigIntAmountFormatter,
+         amountFormatter: AmountFormatter,
          decimalAmountFormatter: DecimalAmountFormatter,
          rateConverter: RateConverter) {
         self.intAmountFormatter = intAmountFormatter
-        self.bigIntAmountFormatter = bigIntAmountFormatter
+        self.amountFormatter = amountFormatter
         self.decimalAmountFormatter = decimalAmountFormatter
         self.rateConverter = rateConverter
     }
@@ -94,14 +94,17 @@ private extension WalletItemMapper {
                                              amountFractionLength: tonInfo.fractionDigits,
                                              rate: currencyRate)
             
-            fiatAmount = bigIntAmountFormatter.format(
-                amount: fiat.amount,
+            fiatAmount = amountFormatter.formatAmount(
+                fiat.amount,
                 fractionDigits: fiat.fractionLength,
                 maximumFractionDigits: 2,
-                symbol: currency.symbol
+                currency: currency
             )
             
-            price = decimalAmountFormatter.format(amount: currencyRate.rate, symbol: currency.symbol)
+            price = decimalAmountFormatter.format(
+                amount: currencyRate.rate,
+                currency: currency
+            )
         }
         
         return WalletItemViewModel(
@@ -121,11 +124,10 @@ private extension WalletItemMapper {
                                        tokenInfo: TokenInfo,
                                        currency: Currency,
                                        maximumFractionDigits: Int) -> WalletItemViewModel {
-        let tokenAmount = bigIntAmountFormatter.format(
-            amount: amount,
+        let tokenAmount = amountFormatter.formatAmount(
+            amount,
             fractionDigits: tokenInfo.fractionDigits,
-            maximumFractionDigits: maximumFractionDigits,
-            symbol: nil
+            maximumFractionDigits: maximumFractionDigits
         )
         
         var price: String?
@@ -136,12 +138,17 @@ private extension WalletItemMapper {
                                              amountFractionLength: tokenInfo.fractionDigits,
                                              rate: currencyRate)
             
-            fiatAmount = bigIntAmountFormatter.format(amount: fiat.amount,
-                                                      fractionDigits: fiat.fractionLength,
-                                                      maximumFractionDigits: maximumFractionDigits,
-                                                      symbol: currency.symbol)
+            fiatAmount = amountFormatter.formatAmount(
+                fiat.amount,
+                fractionDigits: fiat.fractionLength,
+                maximumFractionDigits: maximumFractionDigits,
+                currency: currency
+            )
             
-            price = decimalAmountFormatter.format(amount: currencyRate.rate, symbol: currency.symbol)
+            price = decimalAmountFormatter.format(
+                amount: currencyRate.rate, 
+                currency: currency
+            )
         }
         
         return WalletItemViewModel(

@@ -44,7 +44,7 @@ struct TokenDetailsTonProvider: TokenDetailsProvider {
     }
     
     func reloadRate(currency: Currency) async throws {
-        try await _ = ratesService.loadRates(tonInfo: TonInfo(), tokens: [], currencies: [currency])
+        try await _ = ratesService.loadRates(tonInfo: TonInfo(), tokens: [], currencies: Currency.allCases)
     }
     
     func handleRecieve() {

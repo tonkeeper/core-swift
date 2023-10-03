@@ -25,4 +25,19 @@ extension KeeperInfo {
                      assetsPolicy: self.assetsPolicy,
                      appCollection: self.appCollection)
     }
+    
+    func updateWallet(_ updatedWallet: Wallet) throws -> KeeperInfo {
+        var wallets = self.wallets
+        if let index = wallets.firstIndex(of: updatedWallet) {
+            wallets.remove(at: index)
+            wallets.insert(updatedWallet, at: index)
+        }
+        let currentWallet = self.currentWallet == updatedWallet ? updatedWallet : self.currentWallet
+        
+        return .init(wallets: wallets,
+                     currentWallet: currentWallet,
+                     securitySettings: self.securitySettings,
+                     assetsPolicy: self.assetsPolicy,
+                     appCollection: self.appCollection)
+    }
 }

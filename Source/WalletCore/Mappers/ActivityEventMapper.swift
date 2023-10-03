@@ -10,14 +10,14 @@ import BigInt
 
 struct ActivityEventMapper {
     private let dateFormatter: DateFormatter
-    private let bigIntFormatter: BigIntAmountFormatter
+    private let amountFormatter: AmountFormatter
     private let intAmountFormatter: IntAmountFormatter
     
     init(dateFormatter: DateFormatter,
-         bigIntFormatter: BigIntAmountFormatter,
+         amountFormatter: AmountFormatter,
          intAmountFormatter: IntAmountFormatter) {
         self.dateFormatter = dateFormatter
-        self.bigIntFormatter = bigIntFormatter
+        self.amountFormatter = amountFormatter
         self.intAmountFormatter = intAmountFormatter
     }
     
@@ -114,10 +114,11 @@ private extension ActivityEventMapper {
                               date: String,
                               status: String?) -> ActivityEventViewModel.ActionViewModel {
         let tonInfo = TonInfo()
-        let amount = bigIntFormatter.format(amount: BigInt(integerLiteral: action.amount),
-                                            fractionDigits: tonInfo.fractionDigits,
-                                            maximumFractionDigits: tonInfo.fractionDigits,
-                                            symbol: nil)
+        let amount = amountFormatter.formatAmount(
+            BigInt(integerLiteral: action.amount),
+            fractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: tonInfo.fractionDigits
+        )
         let eventType: ActivityEventViewModel.ActionViewModel.ActionType
         let leftTopDescription: String
         let sign: String
@@ -168,10 +169,10 @@ private extension ActivityEventMapper {
             sign = "-"
         }
         
-        var amount = sign + bigIntFormatter.format(amount: action.amount,
-                                                   fractionDigits: action.tokenInfo.fractionDigits,
-                                                   maximumFractionDigits: action.tokenInfo.fractionDigits,
-                                                   symbol: nil)
+        var amount = sign + amountFormatter.formatAmount(
+            action.amount,
+            fractionDigits: action.tokenInfo.fractionDigits,
+            maximumFractionDigits: action.tokenInfo.fractionDigits)
         if let symbol = action.tokenInfo.symbol {
             amount += " \(symbol)"
         }
@@ -227,10 +228,11 @@ private extension ActivityEventMapper {
         let sign = action.buyer == activityEvent.account ? "-" : "+"
         
         let tonInfo = TonInfo()
-        var amount = bigIntFormatter.format(amount: action.price,
-                                            fractionDigits: tonInfo.fractionDigits,
-                                            maximumFractionDigits: tonInfo.fractionDigits,
-                                            symbol: nil)
+        var amount = amountFormatter.formatAmount(
+            action.price,
+            fractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: tonInfo.fractionDigits
+        )
         amount = "\(sign) \(amount) \(tonInfo.symbol)"
         
         return ActivityEventViewModel.ActionViewModel(
@@ -271,10 +273,11 @@ private extension ActivityEventMapper {
                                     status: String?) -> ActivityEventViewModel.ActionViewModel {
         
         let tonInfo = TonInfo()
-        var amount = bigIntFormatter.format(amount: BigInt(integerLiteral: action.tonAttached),
-                                            fractionDigits: tonInfo.fractionDigits,
-                                            maximumFractionDigits: tonInfo.fractionDigits,
-                                            symbol: nil)
+        var amount = amountFormatter.formatAmount(
+            BigInt(integerLiteral: action.tonAttached),
+            fractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: tonInfo.fractionDigits
+        )
         
         let sign = action.executor == activityEvent.account ? "-" : "+"
         amount = "\(sign) \(amount) \(tonInfo.symbol)"
