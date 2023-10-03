@@ -97,7 +97,10 @@ public actor ChartController {
             maximumFractionDigits: 4,
             currency: currency)
         var percentage = String(format: "%.2f%%", percentageValue)
-        let fiat = String(format: "\(currency.symbol)%.2f", fiatValue)
+        let fiat = decimalAmountFormatter.format(
+            amount: Decimal(fiatValue),
+            maximumFractionDigits: 2,
+            currency: currency)
         let date = formatTimeInterval(coordinate.x, period: period) ?? ""
         
         let diffDirection: ChartPointInformationViewModel.Diff.Direction

@@ -41,7 +41,7 @@ public final class BalanceWidgetController {
         self.amountFormatter = amountFormatter
     }
     
-    public func loadBalance() async throws -> Model {
+    public func loadBalance(currency: Currency) async throws -> Model {
         guard let wallet = try? walletProvider.activeWallet else {
             throw Error.noWallet
         }
@@ -51,25 +51,25 @@ public final class BalanceWidgetController {
             async let balanceTask = balanceService.loadWalletBalance(wallet: wallet)
             async let ratesTask = ratesService.loadRates(tonInfo: TonInfo(),
                                                          tokens: [],
-                                                         currencies: [.USD])
+                                                         currencies: [currency])
             
             let balance = try await balanceTask
             let formattedFiatBalance: String
             if let rates = try? await ratesTask,
-               let tonUSDRate = rates.ton.first(where: { $0.currency == .USD }) {
+               let tonRate = rates.ton.first(where: { $0.currency == currency }) {
                 let fiatAmount = RateConverter().convert(
                     amount: balance.tonBalance.amount.quantity,
                     amountFractionLength: balance.tonBalance.amount.tonInfo.fractionDigits,
-                    rate: tonUSDRate
+                    rate: tonRate
                 )
                 formattedFiatBalance = amountFormatter.formatAmountWithoutFractionIfThousand(
                     fiatAmount.amount,
                     fractionDigits: fiatAmount.fractionLength,
                     maximumFractionDigits: 2,
-                    currency: Currency.USD
+                    currency: currency
                 )
             } else {
-                formattedFiatBalance = "\(Currency.USD.symbol)-----"
+                formattedFiatBalance = "\(currency.symbol)-----"
             }
             let formattedBalance = amountFormatter.formatAmount(
                 BigInt(integerLiteral: balance.tonBalance.amount.quantity),
