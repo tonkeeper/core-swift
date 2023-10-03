@@ -16,7 +16,7 @@ public enum Currency: String, Codable, CaseIterable {
     case IDR = "IDR"
     case INR = "INR"
     
-    var code: String {
+    public var code: String {
         self.rawValue
     }
     

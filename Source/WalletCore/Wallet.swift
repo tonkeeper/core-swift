@@ -100,7 +100,19 @@ struct LockupConfig: Equatable {
     // TBD: lockup-1.0 config
 }
 
-public struct Wallet: Codable {
+public struct Wallet: Codable, Hashable {
+    public static func == (lhs: Wallet, rhs: Wallet) -> Bool {
+        do {
+            return try lhs.identity.id() == rhs.identity.id()
+        } catch {
+            return false
+        }
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(try? identity.id())
+    }
+    
     /// Unique internal ID for this wallet
     let identity: WalletIdentity
     
@@ -132,6 +144,8 @@ public struct Wallet: Codable {
     func availableWalletVersions() -> [WalletContractVersion] {
         return []
     }
+    
+    
     
 //    func address() -> TonSwift.Address {
 //        // TBD: construct wallet with the given settings and version and return its address

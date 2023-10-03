@@ -8,7 +8,15 @@
 import Foundation
 
 final class SettingsAssembly {
-    func settingsController() -> SettingsController {
-        SettingsController()
+    
+    private var settingsController: SettingsController?
+    
+    func settingsController(keeperController: KeeperController) -> SettingsController {
+        guard let settingsController = settingsController else {
+            let settingsController = SettingsController(keeperController: keeperController)
+            self.settingsController = settingsController
+            return settingsController
+        }
+        return settingsController
     }
 }

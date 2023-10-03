@@ -184,7 +184,7 @@ final class WalletCoreAssembly {
     }
     
     func settingsController() -> SettingsController {
-        settingsAssembly.settingsController()
+        settingsAssembly.settingsController(keeperController: keeperController)
     }
     
     func deeplinkParser() -> DeeplinkParser {
