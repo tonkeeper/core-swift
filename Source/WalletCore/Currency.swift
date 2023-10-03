@@ -20,18 +20,29 @@ public enum Currency: String, Codable, CaseIterable {
         self.rawValue
     }
     
-    var symbol: String? {
+    var symbol: String {
         switch self {
+        case .TON: return "TON"
         case .USD: return "$"
-        default: return nil
+        case .JPY: return "¥"
+        case .AED: return rawValue
+        case .EUR: return "€"
+        case .CHF: return "₣"
+        case .CNY: return "¥"
+        case .GBP: return "£"
+        case .IDR: return "Rp"
+        case .INR: return "₹"
+        case .KRW: return "₩"
+        case .KZT: return "₸"
+        case .RUB: return "₽"
+        case .UAH: return "₴"
         }
     }
     
-    func formatter(locale: Locale = Locale.current) -> NumberFormatter {
-        let f = NumberFormatter()
-        f.locale = locale
-        f.currencyCode = self.rawValue
-        // TODO: customize TON representation to fit our needs.
-        return f
+    var symbolOnLeft: Bool {
+        switch self {
+        case .EUR, .USD, .GBP: return true
+        default: return false
+        }
     }
 }

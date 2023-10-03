@@ -11,26 +11,28 @@ import BigInt
 
 struct WalletBalanceMapper {
     private let walletItemMapper: WalletItemMapper
-    private let bigIntAmountFormatter: BigIntAmountFormatter
+    private let amountFormatter: AmountFormatter
     private let rateConverter: RateConverter
     
     init(walletItemMapper: WalletItemMapper,
-         bigIntAmountFormatter: BigIntAmountFormatter,
+         amountFormatter: AmountFormatter,
          rateConverter: RateConverter) {
         self.walletItemMapper = walletItemMapper
-        self.bigIntAmountFormatter = bigIntAmountFormatter
+        self.amountFormatter = amountFormatter
         self.rateConverter = rateConverter
     }
     
-    func mapWalletBalance(_ walletBalance: WalletBalance, rates: Rates) -> WalletBalanceModel {
-        let tonRate = rates.ton.first(where: { $0.currency == .USD })
+    func mapWalletBalance(_ walletBalance: WalletBalance,
+                          rates: Rates,
+                          currency: Currency) -> WalletBalanceModel {
+        let tonRate = rates.ton.first(where: { $0.currency == currency })
         
         let tokensRates = walletBalance.tokensBalance.reduce([Address: Rates.Rate]()) { dictionary, tokenBalance -> [Address: Rates.Rate] in
             var dictionary = dictionary
             if let rate = rates.tokens
                 .first(where: { $0.tokenInfo == tokenBalance.amount.tokenInfo })?
                 .rates
-                .first(where: { $0.currency == .USD }) {
+                .first(where: { $0.currency == currency }) {
                 dictionary[tokenBalance.amount.tokenInfo.address] = rate
             }
             return dictionary
@@ -38,20 +40,23 @@ struct WalletBalanceMapper {
         let header = mapWalletHeader(
             walletBalance: walletBalance,
             tonRate: tonRate,
-            tokensRates: tokensRates)
+            tokensRates: tokensRates,
+            currency: currency)
         
         var items = [WalletItemViewModel]()
         
         let tonBalanceToken = walletItemMapper.mapTon(amount: walletBalance.tonBalance.amount.quantity,
                                                       rates: rates.ton,
-                                                      currency: .USD)
+                                                      currency: currency)
         let previousRevisionsTokens = mapPreviousRevisionBalances(
             walletBalance.previousRevisionsBalances,
-            tonRates: rates.ton
+            tonRates: rates.ton,
+            currency: currency
         )
         let tokensTokens = mapTokens(
             walletBalance.tokensBalance,
-            tokenRates: rates.tokens
+            tokenRates: rates.tokens,
+            currency: currency
         )
         
         items.append(tonBalanceToken)
@@ -76,14 +81,14 @@ struct WalletBalanceMapper {
         )
         let address = try contract.address()
         
-        let item = walletItemMapper.mapTon(amount: 0, rates: [], currency: .USD)
+        let item = walletItemMapper.mapTon(amount: 0, rates: [], currency: wallet.currency)
         
         let section = WalletBalanceModel.Section.token([item])
         let page = WalletBalanceModel.Page(title: "",
                                            sections: [section])
         
         return WalletBalanceModel(
-            header: .init(amount: "\(Currency.USD.symbol ?? "")0",
+            header: .init(amount: "\(wallet.currency.symbol ?? "")0",
                           fullAddress: address.toString(bounceable: false),
                           shortAddress: address.toShortString(bounceable: false)),
             pages: [page])
@@ -91,27 +96,32 @@ struct WalletBalanceMapper {
 }
 
 private extension WalletBalanceMapper {
-    func mapPreviousRevisionBalances(_ balances: [TonBalance], tonRates: [Rates.Rate]) -> [WalletItemViewModel] {
+    func mapPreviousRevisionBalances(_ balances: [TonBalance],
+                                     tonRates: [Rates.Rate],
+                                     currency: Currency) -> [WalletItemViewModel] {
         balances
             .filter { $0.amount.quantity > 0 }
             .map { tonBalance in
                 walletItemMapper.mapOldWalletTon(amount: tonBalance.amount.quantity,
                                                  rates: tonRates,
-                                                 currency: .USD)
+                                                 currency: currency)
             }
     }
     
     func mapWalletHeader(walletBalance: WalletBalance,
                          tonRate: Rates.Rate?,
-                         tokensRates: [Address: Rates.Rate]) -> WalletBalanceModel.Header {
-        let totalBalanceAmount = calculateTotalBalance(walletBalance: walletBalance,
-                              tonRate: tonRate,
-                              tokensRates: tokensRates)
-        let totalBalanceFormatted = bigIntAmountFormatter.format(
-            amount: totalBalanceAmount.amount,
+                         tokensRates: [Address: Rates.Rate],
+                         currency: Currency) -> WalletBalanceModel.Header {
+        let totalBalanceAmount = calculateTotalBalance(
+            walletBalance: walletBalance,
+            tonRate: tonRate,
+            tokensRates: tokensRates
+        )
+        let totalBalanceFormatted = amountFormatter.formatAmountWithoutFractionIfThousand(
+            totalBalanceAmount.amount,
             fractionDigits: totalBalanceAmount.fractionLength,
             maximumFractionDigits: 2,
-            symbol: Currency.USD.symbol
+            currency: currency
         )
         let address = walletBalance.walletAddress
     
@@ -122,13 +132,15 @@ private extension WalletBalanceMapper {
         )
     }
     
-    func mapTokens(_ tokens: [TokenBalance], tokenRates: [Rates.TokenRate]) -> [WalletItemViewModel] {
+    func mapTokens(_ tokens: [TokenBalance], 
+                   tokenRates: [Rates.TokenRate],
+                   currency: Currency) -> [WalletItemViewModel] {
         tokens.map { token in
             let rates = tokenRates.first(where: { $0.tokenInfo == token.amount.tokenInfo })
             return walletItemMapper.mapToken(amount: token.amount.quantity,
                                              rates: rates?.rates ?? [],
                                              tokenInfo: token.amount.tokenInfo,
-                                             currency: .USD,
+                                             currency: currency,
                                              maximumFractionDigits: 2)
         }
     }

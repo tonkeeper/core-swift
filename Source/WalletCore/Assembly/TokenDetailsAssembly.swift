@@ -59,7 +59,7 @@ private extension TokenDetailsAssembly {
     func walletItemMapper() -> WalletItemMapper {
         WalletItemMapper(
             intAmountFormatter: formattersAssembly.intAmountFormatter,
-            bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter,
+            amountFormatter: formattersAssembly.amountFormatter,
             decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
             rateConverter: RateConverter()
         )

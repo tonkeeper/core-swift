@@ -66,10 +66,10 @@ public final class BalanceWidgetController {
                     fiatAmount.amount,
                     fractionDigits: fiatAmount.fractionLength,
                     maximumFractionDigits: 2,
-                    symbol: Currency.USD.symbol
+                    currency: Currency.USD
                 )
             } else {
-                formattedFiatBalance = "\(Currency.USD.symbol ?? "")-----"
+                formattedFiatBalance = "\(Currency.USD.symbol)-----"
             }
             let formattedBalance = amountFormatter.formatAmount(
                 BigInt(integerLiteral: balance.tonBalance.amount.quantity),

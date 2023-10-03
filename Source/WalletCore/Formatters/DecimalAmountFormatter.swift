@@ -15,17 +15,28 @@ struct DecimalAmountFormatter {
         self.numberFormatter = numberFormatter
     }
     
-    func format(amount: Decimal, symbol: String?, maximumFractionDigits: Int? = nil) -> String {
-        let formatterMaximumFractionDigits: Int
-        if let maximumFractionDigits = maximumFractionDigits {
-            formatterMaximumFractionDigits = maximumFractionDigits
+    func format(amount: Decimal,
+                maximumFractionDigits: Int? = nil,
+                currency: Currency? = nil) -> String {
+        let formatterMaximumFractionDigits: Int = maximumFractionDigits ?? calculateFractionalDigitsCount(amount: amount, maximumNotZeroFractionalCount: 2)
+        let formatFractional: String
+        if formatterMaximumFractionDigits == 0 {
+            formatFractional = ""
         } else {
-            formatterMaximumFractionDigits = calculateFractionalDigitsCount(amount: amount, maximumNotZeroFractionalCount: 2)
+            formatFractional = "." + String(repeating: "#", count: formatterMaximumFractionDigits)
         }
-        let formatFractional = String(repeating: "#", count: formatterMaximumFractionDigits)
         let decimalNumberAmount = NSDecimalNumber(decimal: amount)
-        numberFormatter.currencySymbol = symbol
-        numberFormatter.positiveFormat = "¤ #,##0.\(formatFractional)"
+        var format = "#,##0\(formatFractional)"
+        if let currency = currency {
+            numberFormatter.currencySymbol = currency.symbol
+            if currency.symbolOnLeft {
+                format = "¤ \(format)"
+            } else {
+                format = "\(format) ¤"
+            }
+        }
+        
+        numberFormatter.positiveFormat = format
         numberFormatter.roundingMode = .down
         return numberFormatter.string(from: decimalNumberAmount) ?? ""
     }
