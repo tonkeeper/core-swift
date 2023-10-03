@@ -53,6 +53,8 @@ final class WalletCoreAssembly {
                                                      walletBalanceAssembly: walletBalanceAssembly,
                                                      ratesAssembly: ratesAssembly)
     
+    private lazy var settingsAssembly = SettingsAssembly()
+    
     private let dependencies: Dependencies
 
     init(dependencies: Dependencies) {
@@ -179,6 +181,10 @@ final class WalletCoreAssembly {
             walletProvider: keeperController,
             api: tonAPI,
             cacheURL: dependencies.cacheURL)
+    }
+    
+    func settingsController() -> SettingsController {
+        settingsAssembly.settingsController()
     }
     
     func deeplinkParser() -> DeeplinkParser {
