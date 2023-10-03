@@ -148,7 +148,7 @@ public class WalletBalanceController {
 }
 
 extension WalletBalanceController: WalletProviderObserver {
-    func didUpdateActiveWallet() {
+    public func didUpdateActiveWallet() {
         Task {
             let loadedBalance = try getWalletBalance()
             balanceStreamContinuation?.yield(loadedBalance)

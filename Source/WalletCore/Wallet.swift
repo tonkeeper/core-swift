@@ -126,7 +126,7 @@ public struct Wallet: Codable, Hashable {
     let backupSettings: WalletBackupSettings
     
     /// Preferred currency for all asset prices : TON, USD, EUR etc.
-    let currency: Currency
+    public let currency: Currency
     
     /// List of remembered favorite addresses
     let addressBook: [AddressBookEntry]

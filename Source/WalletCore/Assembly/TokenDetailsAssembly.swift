@@ -39,7 +39,8 @@ struct TokenDetailsAssembly {
     }
     
     func chartController(api: API) -> ChartController {
-        ChartController(chartService: chartService(api: api))
+        ChartController(chartService: chartService(api: api),
+                        decimalAmountFormatter: formattersAssembly.decimalAmountFormatter)
     }
 }
 

@@ -8,11 +8,11 @@
 import Foundation
 import TonSwift
 
-protocol WalletProviderObserver: AnyObject {
+public protocol WalletProviderObserver: AnyObject {
     func didUpdateActiveWallet()
 }
 
-protocol WalletProvider {
+public protocol WalletProvider {
     var activeWallet: Wallet { get throws }
     
     func addObserver(_ observer: WalletProviderObserver)
@@ -73,11 +73,11 @@ public final class KeeperController: WalletProvider {
       weak var observer: WalletProviderObserver?
     }
     
-    func addObserver(_ observer: WalletProviderObserver) {
+    public func addObserver(_ observer: WalletProviderObserver) {
         observers.append(.init(observer: observer))
     }
     
-    func removeObserver(_ observer: WalletProviderObserver) {
+    public func removeObserver(_ observer: WalletProviderObserver) {
         observers = observers.filter { $0.observer !== observer }
     }
 }

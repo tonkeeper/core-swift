@@ -167,7 +167,7 @@ final class WalletCoreAssembly {
     }
     
     func chartController() -> ChartController {
-        tokenDetailsAssembly.chartController(api: configurationAPI)
+        tokenDetailsAssembly.chartController(api: tonAPI)
     }
     
     func collectibleDetailsController(collectibleAddress: Address) -> CollectibleDetailsController {
