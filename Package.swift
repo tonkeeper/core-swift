@@ -9,6 +9,7 @@ let package = Package(
     ],
     products: [
         .library(name: "WalletCore", targets: ["WalletCore"]),
+        .library(name: "WalletCoreDynamic", type: .dynamic, targets: ["WalletCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/tonkeeper/ton-swift", branch: "feature/nft_transfer"),
