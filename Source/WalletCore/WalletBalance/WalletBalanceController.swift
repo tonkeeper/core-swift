@@ -51,6 +51,8 @@ public class WalletBalanceController {
         self.walletProvider = walletProvider
         self.walletBalanceMapper = walletBalanceMapper
         self.transactionsUpdatePublishService = transactionsUpdatePublishService
+        
+        walletProvider.addObserver(self)
     }
     
     public func startUpdate() {
@@ -142,6 +144,15 @@ public class WalletBalanceController {
             walletBalance,
             rates: Rates(ton: [], tokens: []),
             currency: wallet.currency)
+    }
+}
+
+extension WalletBalanceController: WalletProviderObserver {
+    func didUpdateActiveWallet() {
+        Task {
+            let loadedBalance = try getWalletBalance()
+            balanceStreamContinuation?.yield(loadedBalance)
+        }
     }
 }
 

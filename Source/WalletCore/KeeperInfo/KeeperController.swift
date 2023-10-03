@@ -8,8 +8,15 @@
 import Foundation
 import TonSwift
 
+protocol WalletProviderObserver: AnyObject {
+    func didUpdateActiveWallet()
+}
+
 protocol WalletProvider {
     var activeWallet: Wallet { get throws }
+    
+    func addObserver(_ observer: WalletProviderObserver)
+    func removeObserver(_ observer: WalletProviderObserver)
 }
 
 public final class KeeperController: WalletProvider {
@@ -57,6 +64,21 @@ public final class KeeperController: WalletProvider {
         let updatedWallet = wallet.setCurrency(currency)
         let keeperInfo = try keeperService.getKeeperInfo().updateWallet(updatedWallet)
         try keeperService.saveKeeperInfo(keeperInfo)
+        notifyObservers()
+    }
+    
+    private var observers = [WalletProviderObserverWrapper]()
+    
+    struct WalletProviderObserverWrapper {
+      weak var observer: WalletProviderObserver?
+    }
+    
+    func addObserver(_ observer: WalletProviderObserver) {
+        observers.append(.init(observer: observer))
+    }
+    
+    func removeObserver(_ observer: WalletProviderObserver) {
+        observers = observers.filter { $0.observer !== observer }
     }
 }
 
@@ -105,5 +127,10 @@ private extension KeeperController {
         } catch {
             return false
         }
+    }
+    
+    func notifyObservers() {
+      observers = observers.filter { $0.observer != nil }
+      observers.forEach { $0.observer?.didUpdateActiveWallet() }
     }
 }
