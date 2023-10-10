@@ -40,4 +40,12 @@ extension KeeperInfo {
                      assetsPolicy: self.assetsPolicy,
                      appCollection: self.appCollection)
     }
+    
+    func updateSecuritySettings(_ securitySettings: SecuritySettings) -> KeeperInfo {
+        return .init(wallets: self.wallets,
+                     currentWallet: self.currentWallet,
+                     securitySettings: securitySettings,
+                     assetsPolicy: self.assetsPolicy,
+                     appCollection: self.appCollection)
+    }
 }

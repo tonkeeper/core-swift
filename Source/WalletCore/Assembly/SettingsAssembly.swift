@@ -13,7 +13,7 @@ final class SettingsAssembly {
     
     func settingsController(keeperController: KeeperController) -> SettingsController {
         guard let settingsController = settingsController else {
-            let settingsController = SettingsController(keeperController: keeperController)
+            let settingsController = SettingsControllerImplementation(keeperController: keeperController)
             self.settingsController = settingsController
             return settingsController
         }

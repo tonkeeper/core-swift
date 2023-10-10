@@ -46,7 +46,7 @@ struct AppConnection: Codable {
 
 /// Shared security settings for all wallets in the app
 struct SecuritySettings: Codable {
-    // biometrics
+    let isBiometryEnabled: Bool
     // passcode
     // lock screen
     // hidden balances
