@@ -37,6 +37,17 @@ public enum Period: CaseIterable {
         Date()
     }
     
+    var stringValue: String {
+        switch self {
+        case .hour: return "1H"
+        case .day: return "1D"
+        case .week: return "7D"
+        case .month: return "1M"
+        case .halfYear: return "6M"
+        case .year: return "1Y"
+        }
+    }
+    
     public var title: String {
         switch self {
         case .hour: return "H"
@@ -51,6 +62,7 @@ public enum Period: CaseIterable {
 
 public actor ChartController {
     private let chartService: ChartService
+    private let ratesService: RatesService
     private let decimalAmountFormatter: DecimalAmountFormatter
     private let dateFormatter = DateFormatter()
     
@@ -58,8 +70,10 @@ public actor ChartController {
     public private(set) var coordinates = [Coordinate]()
 
     init(chartService: ChartService,
+         ratesService: RatesService,
          decimalAmountFormatter: DecimalAmountFormatter) {
         self.chartService = chartService
+        self.ratesService = ratesService
         self.decimalAmountFormatter = decimalAmountFormatter
     }
     
@@ -67,13 +81,27 @@ public actor ChartController {
                              currency: Currency) async throws -> [Coordinate] {
         loadChartDataTask?.cancel()
         let task = Task {
-            let coordinates = try await chartService.loadChartData(
+            async let coordinatesTask = chartService.loadChartData(
                 period: period,
                 token: "ton",
-            currency: currency)
+                currency: currency)
+            async let ratesTask = ratesService.loadRates(
+                tonInfo: TonInfo(),
+                tokens: [],
+                currencies: Currency.allCases
+            )
+            
+            let coordinates = try await coordinatesTask
+            let rates = try await ratesTask
+            
             try Task.checkCancellation()
             loadChartDataTask = nil
-            return coordinates
+            let converted = convertCoordinates(
+                coordinates: coordinates,
+                rates: rates,
+                currency: currency
+            )
+            return converted
         }
         self.loadChartDataTask = task
         self.coordinates = try await task.value
@@ -166,5 +194,19 @@ private extension ChartController {
         dateFormatter.locale = Locale.init(identifier: "EN")
         
         return dateFormatter.string(from: Date(timeIntervalSince1970: timeInterval))
+    }
+    
+    // TODO: Remove once tonapi v2 chart request will fit requirements
+    func convertCoordinates(coordinates: [Coordinate],
+                            rates: Rates,
+                            currency: Currency) -> [Coordinate] {
+        guard let currencyRates = rates.ton.first(where: { $0.currency == currency }),
+              let usdRates = rates.ton.first(where: { $0.currency == .USD }) else {
+            return coordinates
+        }
+        let coeff = NSDecimalNumber(decimal: usdRates.rate / currencyRates.rate).doubleValue
+        return coordinates.map { coordinate in
+            return .init(x: coordinate.x, y: coordinate.y / coeff)
+        }
     }
 }

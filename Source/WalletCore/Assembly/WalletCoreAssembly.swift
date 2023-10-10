@@ -167,7 +167,10 @@ final class WalletCoreAssembly {
     }
     
     func chartController() -> ChartController {
-        tokenDetailsAssembly.chartController(api: tonAPI)
+        tokenDetailsAssembly.chartController(
+            api: configurationAPI,
+            ratesService: ratesAssembly.ratesService(api: tonAPI, cacheURL: dependencies.cacheURL)
+        )
     }
     
     func collectibleDetailsController(collectibleAddress: Address) -> CollectibleDetailsController {

@@ -38,8 +38,10 @@ struct TokenDetailsAssembly {
         return tokenDetailsController
     }
     
-    func chartController(api: API) -> ChartController {
+    func chartController(api: API,
+                         ratesService: RatesService) -> ChartController {
         ChartController(chartService: chartService(api: api),
+                        ratesService: ratesService,
                         decimalAmountFormatter: formattersAssembly.decimalAmountFormatter)
     }
 }
