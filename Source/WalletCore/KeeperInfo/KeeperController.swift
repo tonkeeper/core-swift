@@ -67,6 +67,17 @@ public final class KeeperController: WalletProvider {
         notifyObservers()
     }
     
+    func getSecuritySettings() throws -> SecuritySettings {
+        try keeperService.getKeeperInfo().securitySettings
+    }
+    
+    func setSecuritySettings(_ securitySettings: SecuritySettings) throws {
+        let keeperInfo = try keeperService
+            .getKeeperInfo()
+            .updateSecuritySettings(securitySettings)
+        try keeperService.saveKeeperInfo(keeperInfo)
+    }
+    
     private var observers = [WalletProviderObserverWrapper]()
     
     struct WalletProviderObserverWrapper {
@@ -91,7 +102,7 @@ private extension KeeperController {
         } catch {
             keeperInfo = KeeperInfo(wallets: [wallet],
                                     currentWallet: wallet,
-                                    securitySettings: .init(),
+                                    securitySettings: .init(isBiometryEnabled: false),
                                     assetsPolicy: .init(policies: [:], ordered: []),
                                     appCollection: .init(connected: [:], recent: [], pinned: []))
         }
