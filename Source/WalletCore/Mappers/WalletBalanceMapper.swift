@@ -42,9 +42,7 @@ struct WalletBalanceMapper {
             tonRate: tonRate,
             tokensRates: tokensRates,
             currency: currency)
-        
-        var items = [WalletItemViewModel]()
-        
+
         let tonBalanceToken = walletItemMapper.mapTon(amount: walletBalance.tonBalance.amount.quantity,
                                                       rates: rates.ton,
                                                       currency: currency)
@@ -59,13 +57,13 @@ struct WalletBalanceMapper {
             currency: currency
         )
         
-        items.append(tonBalanceToken)
-        items.append(contentsOf: previousRevisionsTokens)
-        items.append(contentsOf: tokensTokens)
-        
+        let tonItems = [tonBalanceToken] + previousRevisionsTokens
+          
         let collectibles = mapCollectibles(walletBalance.collectibles)
         
-        let pages = mapToPages(tokens: items, collectibles: collectibles)
+        let pages = mapToPages(ton: tonItems,
+                               tokens: tokensTokens,
+                               collectibles: collectibles)
         
         let walletState = WalletBalanceModel(header: header,
                                              pages: pages)
@@ -88,7 +86,7 @@ struct WalletBalanceMapper {
                                            sections: [section])
         
         return WalletBalanceModel(
-            header: .init(amount: "\(wallet.currency.symbol ?? "")0",
+            header: .init(amount: "\(wallet.currency.symbol)0",
                           fullAddress: address.toString(bounceable: false),
                           shortAddress: address.toShortString(bounceable: false)),
             pages: [page])
@@ -203,18 +201,21 @@ private extension WalletBalanceMapper {
         }
     }
     
-    func mapToPages(tokens: [WalletItemViewModel],
+    func mapToPages(ton: [WalletItemViewModel],
+                    tokens: [WalletItemViewModel],
                     collectibles: [WalletCollectibleItemViewModel]) -> [WalletBalanceModel.Page] {
         var pages = [WalletBalanceModel.Page]()
-        let tokensCount = tokens.count
+        let tokensCount = ton.count + tokens.count
         let collectiblesCount = Int(ceil(CGFloat(collectibles.count) / 3)) * 2
         
+        let tonSection = WalletBalanceModel.Section.token(ton)
         let tokensSection = WalletBalanceModel.Section.token(tokens)
         let collectiblesSection = WalletBalanceModel.Section.collectibles(collectibles)
         
         if tokensCount + collectiblesCount <= 10 {
             var sections = [WalletBalanceModel.Section]()
             if tokensCount > 0 {
+                sections.append(tonSection)
                 sections.append(tokensSection)
             }
             if collectiblesCount > 0 {
@@ -232,7 +233,10 @@ private extension WalletBalanceMapper {
         }
         
         var sections = [WalletBalanceModel.Section]()
-        if tokensCount > 0 { sections.append(tokensSection)}
+        if tokensCount > 0 {
+            sections.append(tonSection)
+            sections.append(tokensSection)
+        }
         
         let page = WalletBalanceModel.Page(
             title: .tokensTabTitle,
