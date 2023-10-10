@@ -13,6 +13,7 @@ public struct ActivityEventViewModel {
         public enum ActionType {
             case sent
             case receieved
+            case sentAndReceieved
             case spam
             case bounced
             case subscribed
@@ -37,6 +38,7 @@ public struct ActivityEventViewModel {
     
         public let eventType: ActionType
         public let amount: String?
+        public let subamount: String?
         public let leftTopDescription: String?
         public let leftBottomDescription: String?
         public let date: String

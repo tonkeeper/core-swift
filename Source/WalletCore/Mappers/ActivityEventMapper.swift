@@ -114,11 +114,6 @@ private extension ActivityEventMapper {
                               date: String,
                               status: String?) -> ActivityEventViewModel.ActionViewModel {
         let tonInfo = TonInfo()
-        let amount = amountFormatter.formatAmount(
-            BigInt(integerLiteral: action.amount),
-            fractionDigits: tonInfo.fractionDigits,
-            maximumFractionDigits: tonInfo.fractionDigits
-        )
         let eventType: ActivityEventViewModel.ActionViewModel.ActionType
         let leftTopDescription: String
         let sign: String
@@ -127,17 +122,34 @@ private extension ActivityEventMapper {
             leftTopDescription = action.sender.value
             sign = "+"
         } else if action.recipient == activityEvent.account {
-            eventType = .receieved
+            if action.recipient == action.sender {
+                eventType = .sentAndReceieved
+                sign = "-"
+            } else {
+                eventType = .receieved
+                sign = "+"
+            }
+            
             leftTopDescription = action.sender.value
-            sign = "+"
         } else {
             eventType = .sent
             leftTopDescription = action.recipient.value
             sign = "-"
         }
         
+        let amount = amountFormatter.formatAmount(
+            BigInt(integerLiteral: action.amount),
+            fractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: tonInfo.fractionDigits
+        )
+        let subamount: String? = {
+            guard eventType == .sentAndReceieved else { return nil }
+            return "+\(amount) \(tonInfo.symbol)"
+        }()
+        
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,
                                                       amount: "\(sign)\(amount) \(tonInfo.symbol)",
+                                                      subamount: subamount,
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
                                                       date: date,
@@ -179,6 +191,7 @@ private extension ActivityEventMapper {
         
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,
                                                       amount: amount,
+                                                      subamount: nil,
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
                                                       date: date,
@@ -204,6 +217,7 @@ private extension ActivityEventMapper {
         
         return ActivityEventViewModel.ActionViewModel(eventType: .bid,
                                                       amount: preview.value,
+                                                      subamount: nil,
                                                       leftTopDescription: action.bidder.value,
                                                       leftBottomDescription: nil,
                                                       date: date,
@@ -238,6 +252,7 @@ private extension ActivityEventMapper {
         return ActivityEventViewModel.ActionViewModel(
             eventType: .nftPurchase,
             amount: amount,
+            subamount: nil,
             leftTopDescription: action.seller.value,
             leftBottomDescription: nil,
             date: date,
@@ -256,6 +271,7 @@ private extension ActivityEventMapper {
         return ActivityEventViewModel.ActionViewModel(
             eventType: .walletInitialized,
             amount: "-",
+            subamount: nil,
             leftTopDescription: action.address.toShortString(bounceable: false),
             leftBottomDescription: nil,
             date: date,
@@ -284,6 +300,7 @@ private extension ActivityEventMapper {
         
         return ActivityEventViewModel.ActionViewModel(eventType: .contractExec,
                                                       amount: amount,
+                                                      subamount: nil,
                                                       leftTopDescription: action.contract.value,
                                                       leftBottomDescription: nil,
                                                       date: date,
@@ -322,6 +339,7 @@ private extension ActivityEventMapper {
         
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,
                                                       amount: "NFT",
+                                                      subamount: nil,
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
                                                       date: date,
