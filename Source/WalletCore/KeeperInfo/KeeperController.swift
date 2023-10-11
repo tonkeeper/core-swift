@@ -67,6 +67,21 @@ public final class KeeperController: WalletProvider {
         notifyObservers()
     }
     
+    public func getWalletMnemonic(_ wallet: Wallet) throws -> [String] {
+        let mnemonicVault = KeychainMnemonicVault(
+            keychainManager: keychainManager,
+            walletID: try wallet.identity.id(),
+            keychainGroup: keychainGroup
+        )
+        
+        switch wallet.identity.kind {
+        case .Regular(let publicKey):
+            return try mnemonicVault.loadValue(key: publicKey)
+        default:
+            return []
+        }
+    }
+    
     func getSecuritySettings() throws -> SecuritySettings {
         try keeperService.getKeeperInfo().securitySettings
     }
