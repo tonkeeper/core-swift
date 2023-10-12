@@ -113,6 +113,10 @@ public final class WalletCoreContainer {
         walletCoreAssembly.settingsController()
     }
     
+    public func logoutController() -> LogoutController {
+        walletCoreAssembly.logoutController()
+    }
+    
     public func deeplinkParser() -> DeeplinkParser {
         walletCoreAssembly.deeplinkParser()
     }

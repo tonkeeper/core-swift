@@ -115,6 +115,7 @@ protocol Keychain {
     func get(query: KeychainQuery) -> KeychainGetResult<Data?>
     func update(query: KeychainQuery, attributes: Attributes) -> KeychainResultCode
     func delete(query: KeychainQuery) -> KeychainResultCode
+    func deleteAll(group: String?) -> KeychainResultCode
 }
 
 protocol KeychainQueryable {
@@ -149,6 +150,15 @@ final class KeychainImplementation: Keychain {
 
     func delete(query: KeychainQuery) -> KeychainResultCode {
         let resultCode = SecItemDelete(query.query as CFDictionary)
+        return KeychainResultCode(status: resultCode)
+    }
+    
+    func deleteAll(group: String?) -> KeychainResultCode {
+        var dictionary: [String: AnyObject] = [KeychainKeys.class: kSecClassGenericPassword]
+        if let group = group {
+            dictionary[KeychainKeys.attrAccessGroup] = group as AnyObject
+        }
+        let resultCode = SecItemDelete(dictionary as CFDictionary)
         return KeychainResultCode(status: resultCode)
     }
 }

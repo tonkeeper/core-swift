@@ -66,4 +66,11 @@ final class KeychainManager {
             throw Error.error(deleteResult)
         }
     }
+    
+    func deleteAll(group: String?) throws {
+        let deleteResult = keychain.deleteAll(group: group)
+        if deleteResult != .success && deleteResult != .errSecItemNotFound {
+            throw Error.error(deleteResult)
+        }
+    }
 }
