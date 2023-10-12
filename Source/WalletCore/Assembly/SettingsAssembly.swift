@@ -19,4 +19,18 @@ final class SettingsAssembly {
         }
         return settingsController
     }
+    
+    func logoutController(cacheURL: URL,
+                          sharedCahedURL: URL,
+                          keychainGroup: String,
+                          fileManager: FileManager,
+                          keychainManager: KeychainManager) -> LogoutController {
+        LogoutController(
+            cacheURL: cacheURL,
+            sharedCahedURL: sharedCahedURL,
+            keychainGroup: keychainGroup,
+            fileManager: fileManager,
+            keychainManager: keychainManager
+        )
+    }
 }

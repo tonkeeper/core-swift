@@ -190,6 +190,16 @@ final class WalletCoreAssembly {
         settingsAssembly.settingsController(keeperController: keeperController)
     }
     
+    func logoutController() -> LogoutController {
+        settingsAssembly.logoutController(
+            cacheURL: dependencies.cacheURL,
+            sharedCahedURL: dependencies.sharedCacheURL,
+            keychainGroup: dependencies.sharedKeychainGroup,
+            fileManager: coreAssembly.fileManager,
+            keychainManager: coreAssembly.keychainManager
+        )
+    }
+    
     func deeplinkParser() -> DeeplinkParser {
         deeplinkAssembly.deeplinkParser
     }
