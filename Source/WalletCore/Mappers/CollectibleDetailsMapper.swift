@@ -96,7 +96,7 @@ struct CollectibleDetailsMapper {
         if let owner = collectible.owner {
             items.append(.init(title: "Owner", value: owner.address.toShortString(bounceable: false)))
         }
-        items.append(.init(title: "Contract address", value: collectible.address.toShortString(bounceable: false)))
+        items.append(.init(title: "Contract address", value: collectible.address.toShortString(bounceable: true)))
         
         let url = URL.tonviewerURL.appendingPathComponent(collectible.address.toRaw())
         return CollectibleDetailsViewModel.Details(items: items, url: url)

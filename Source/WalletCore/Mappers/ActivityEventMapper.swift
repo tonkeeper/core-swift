@@ -366,7 +366,7 @@ private extension ActivityEventMapper {
             eventType: .walletInitialized,
             amount: "-",
             subamount: nil,
-            leftTopDescription: action.address.toShortString(bounceable: false),
+            leftTopDescription: action.address.toShortString(bounceable: true),
             leftBottomDescription: nil,
             date: date,
             rightTopDesription: date,
@@ -447,6 +447,6 @@ private extension ActivityEventMapper {
 private extension WalletAccount {
     var value: String {
         if let name = name { return name }
-        return address.toShortString(bounceable: false)
+        return address.toShortString(bounceable: !isWallet)
     }
 }

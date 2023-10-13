@@ -13,6 +13,7 @@ struct WalletAccount: Equatable, Codable {
     let address: Address
     let name: String?
     let isScam: Bool
+    let isWallet: Bool
 }
 
 extension WalletAccount {
@@ -20,5 +21,6 @@ extension WalletAccount {
         address = try Address.parse(accountAddress.address)
         name = accountAddress.name
         isScam = accountAddress.isScam
+        isWallet = accountAddress.isWallet
     }
 }
