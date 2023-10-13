@@ -47,12 +47,14 @@ extension ActivityEvent {
                     actionType = .auctionBid(try .init(auctionBid: auctionBid))
                 } else if let nftPurchase = action.nftPurchase {
                     actionType = .nftPurchase(try .init(nftPurchase: nftPurchase))
-                } else if let depositStake = action.electionsDepositStake {
+                } else if let depositStake = action.depositStake {
                     actionType = .depositStake(try .init(depositStake: depositStake))
-                } else if let recoverStake = action.electionsRecoverStake {
-                    actionType = .recoverStake(try .init(recoverStake: recoverStake))
+                } else if let withdrawStake = action.withdrawStake {
+                    actionType = .withdrawStake(try .init(withdrawStake: withdrawStake))
                 } else if let jettonSwap = action.jettonSwap {
                     actionType = .jettonSwap(try .init(jettonSwap: jettonSwap))
+                } else if let jettonMint = action.jettonMint {
+                    actionType = .jettonMint(try .init(jettonMint: jettonMint))
                 } else if let smartContractExec = action.smartContractExec {
                     actionType = .smartContractExec(try .init(smartContractExec: smartContractExec))
                 } else {

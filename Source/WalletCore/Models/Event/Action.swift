@@ -33,8 +33,9 @@ struct Action {
         case auctionBid(AuctionBid)
         case nftPurchase(NFTPurchase)
         case depositStake(DepositStake)
-        case recoverStake(RecoverStake)
+        case withdrawStake(WithdrawStake)
         case jettonSwap(JettonSwap)
+        case jettonMint(JettonMint)
         case smartContractExec(SmartContractExec)
     }
     
@@ -99,6 +100,13 @@ struct Action {
     struct DepositStake {
         let amount: Int64
         let staker: WalletAccount
+        let pool: WalletAccount
+    }
+    
+    struct WithdrawStake {
+        let amount: Int64
+        let staker: WalletAccount
+        let pool: WalletAccount
     }
 
     struct RecoverStake {
@@ -114,6 +122,13 @@ struct Action {
         let router: WalletAccount
         let tokenInfoIn: TokenInfo?
         let tokenInfoOut: TokenInfo?
+    }
+    
+    struct JettonMint {
+        let recipient: WalletAccount
+        let recipientsWallet: Address
+        let amount: BigInt
+        let tokenInfo: TokenInfo
     }
 
     struct SmartContractExec {

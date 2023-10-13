@@ -13,6 +13,9 @@ public struct ActivityEventViewModel {
         public enum ActionType {
             case sent
             case receieved
+            case mint
+            case depositStake
+            case withdrawStake
             case sentAndReceieved
             case spam
             case bounced

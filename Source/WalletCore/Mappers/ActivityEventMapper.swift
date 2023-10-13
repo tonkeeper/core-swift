@@ -64,6 +64,12 @@ private extension ActivityEventMapper {
                                            preview: action.preview,
                                            date: date,
                                            status: action.status.rawValue)
+        case .jettonMint(let jettonMint):
+            return mapJettonMintAction(jettonMint,
+                                       activityEvent: activityEvent,
+                                       preview:action.preview,
+                                       date: date,
+                                       status: action.status.rawValue)
         case .auctionBid(let auctionBid):
             return mapAuctionBidAction(auctionBid,
                                        activityEvent: activityEvent,
@@ -96,10 +102,18 @@ private extension ActivityEventMapper {
                                          status: action.status.rawValue,
                                          collectibles: collectibles)
         case .depositStake(let depositStake):
-            return nil
+            return mapDepositStakeAction(depositStake,
+                                         activityEvent: activityEvent,
+                                         preview: action.preview,
+                                         date: date,
+                                         status: action.status.rawValue)
+        case .withdrawStake(let withdrawStake):
+            return mapWithdrawStakeAction(withdrawStake,
+                                          activityEvent: activityEvent,
+                                          preview: action.preview,
+                                          date: date,
+                                          status: action.status.rawValue)
         case .jettonSwap(let jettonSwap):
-            return nil
-        case .recoverStake(let recoverStake):
             return nil
         case .subscribe(let subscribe):
             return nil
@@ -198,6 +212,86 @@ private extension ActivityEventMapper {
                                                       rightTopDesription: date,
                                                       status: status,
                                                       comment: action.comment,
+                                                      collectible: nil)
+    }
+    
+    func mapJettonMintAction(_ action: Action.JettonMint,
+                             activityEvent: ActivityEvent,
+                             preview: Action.SimplePreview,
+                             date: String,
+                             status: String?) -> ActivityEventViewModel.ActionViewModel {
+        let eventType = ActivityEventViewModel.ActionViewModel.ActionType.mint
+        let leftTopDescription = action.tokenInfo.name
+        
+        var amount = "+" + amountFormatter.formatAmount(
+            action.amount,
+            fractionDigits: action.tokenInfo.fractionDigits,
+            maximumFractionDigits: action.tokenInfo.fractionDigits)
+        if let symbol = action.tokenInfo.symbol {
+            amount += " \(symbol)"
+        }
+        
+        return ActivityEventViewModel.ActionViewModel(eventType: eventType,
+                                                      amount: amount,
+                                                      subamount: nil,
+                                                      leftTopDescription: leftTopDescription,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: nil,
+                                                      collectible: nil)
+    }
+    
+    func mapDepositStakeAction(_ action: Action.DepositStake,
+                               activityEvent: ActivityEvent,
+                               preview: Action.SimplePreview,
+                               date: String,
+                               status: String?) -> ActivityEventViewModel.ActionViewModel {
+        let leftTopDescription = action.pool.name
+        
+        let tonInfo = TonInfo()
+        let amount = amountFormatter.formatAmount(
+            BigInt(integerLiteral: action.amount),
+            fractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: tonInfo.fractionDigits
+        )
+        
+        return ActivityEventViewModel.ActionViewModel(eventType: .depositStake,
+                                                      amount: amount,
+                                                      subamount: nil,
+                                                      leftTopDescription: leftTopDescription,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: nil,
+                                                      collectible: nil)
+    }
+    
+    func mapWithdrawStakeAction(_ action: Action.WithdrawStake,
+                                activityEvent: ActivityEvent,
+                                preview: Action.SimplePreview,
+                                date: String,
+                                status: String?) -> ActivityEventViewModel.ActionViewModel {
+        let leftTopDescription = action.pool.name
+        
+        let tonInfo = TonInfo()
+        let amount = amountFormatter.formatAmount(
+            BigInt(integerLiteral: action.amount),
+            fractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: tonInfo.fractionDigits
+        )
+        
+        return ActivityEventViewModel.ActionViewModel(eventType: .withdrawStake,
+                                                      amount: amount,
+                                                      subamount: nil,
+                                                      leftTopDescription: leftTopDescription,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: nil,
                                                       collectible: nil)
     }
     

@@ -133,9 +133,18 @@ extension Action.NFTPurchase {
 }
 
 extension Action.DepositStake {
-    init(depositStake: ElectionsDepositStakeAction) throws {
+    init(depositStake: DepositStakeAction) throws {
         self.amount = depositStake.amount
         self.staker = try WalletAccount(accountAddress: depositStake.staker)
+        self.pool = try WalletAccount(accountAddress: depositStake.pool)
+    }
+}
+
+extension Action.WithdrawStake {
+    init(withdrawStake: WithdrawStakeAction) throws {
+        self.amount = withdrawStake.amount
+        self.staker = try WalletAccount(accountAddress: withdrawStake.staker)
+        self.pool = try WalletAccount(accountAddress: withdrawStake.pool)
     }
 }
 
@@ -163,6 +172,15 @@ extension Action.JettonSwap {
         } else {
             self.tokenInfoOut = nil
         }
+    }
+}
+
+extension Action.JettonMint {
+    init(jettonMint: JettonMintAction) throws {
+        self.recipient = try WalletAccount(accountAddress: jettonMint.recipient)
+        self.recipientsWallet = try Address.parse(jettonMint.recipientsWallet)
+        self.amount = BigInt(stringLiteral: jettonMint.amount)
+        self.tokenInfo = try TokenInfo(jettonPreview: jettonMint.jetton)
     }
 }
 
