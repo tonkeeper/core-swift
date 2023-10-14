@@ -40,7 +40,7 @@ struct TokenDetailsTonProvider: TokenDetailsProvider {
                      fiatAmount: itemViewModel.rightSubvalue,
                      price: price,
                      image: .ton,
-                     buttons: [.send, .receive, .buy, .swap])
+                     buttons: [.send, .receive, .buy])
     }
     
     func reloadRate(currency: Currency) async throws {

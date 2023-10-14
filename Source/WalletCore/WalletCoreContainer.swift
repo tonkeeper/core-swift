@@ -117,6 +117,10 @@ public final class WalletCoreContainer {
         walletCoreAssembly.logoutController()
     }
     
+    public func fiatMethodsController() -> FiatMethodsController {
+        walletCoreAssembly.fiatMethodsController()
+    }
+    
     public func deeplinkParser() -> DeeplinkParser {
         walletCoreAssembly.deeplinkParser()
     }

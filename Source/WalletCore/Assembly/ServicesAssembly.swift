@@ -28,11 +28,21 @@ final class ServicesAssembly {
     }
     
     var collectiblesService: CollectiblesService {
-        CollectiblesServiceImplementation(api: tonAPI, localRepository: localRepository())
+        CollectiblesServiceImplementation(
+            api: tonAPI, 
+            localRepository: localRepository()
+        )
     }
     
     var dnsService: DNSService {
         DNSServiceImplementation(api: tonAPI)
+    }
+    
+    var fiatMethodsService: FiatMethodsService {
+        FiatMethodsServiceImplementation(
+            api: tonkeeperAPI,
+            localRepository: localRepository()
+        )
     }
     
     lazy var transactionsUpdateService: TransactionsUpdateService = {
