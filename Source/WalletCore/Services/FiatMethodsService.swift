@@ -27,6 +27,8 @@ actor FiatMethodsServiceImplementation: FiatMethodsService {
         let request = FiatMethodsRequest()
         let response = try await api.send(request: request)
         
+        try localRepository.save(item: response.entity.data)
+        
         return response.entity.data
     }
     

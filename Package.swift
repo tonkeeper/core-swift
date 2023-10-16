@@ -13,7 +13,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/tonkeeper/ton-swift", branch: "feature/nft_transfer"),
-        .package(url: "https://github.com/tonkeeper/ton-api-swift", from: "0.0.3")
+        .package(url: "https://github.com/tonkeeper/ton-api-swift", from: "0.0.15")
     ],
     targets: [
         .target(
