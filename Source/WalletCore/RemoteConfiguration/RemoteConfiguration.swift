@@ -12,11 +12,13 @@ struct RemoteConfiguration: Equatable {
     let tonapiV2Endpoint: String
     let tonapiTestnetHost: String
     let tonApiV2Key: String
+    let mercuryoSecret: String?
     
     enum CodingKeys: String, CodingKey {
         case tonapiV2Endpoint
         case tonapiTestnetHost
         case tonApiV2Key
+        case mercuryoSecret
     }
 }
 
@@ -27,7 +29,8 @@ extension RemoteConfiguration {
         RemoteConfiguration(
             tonapiV2Endpoint: "",
             tonapiTestnetHost: "",
-            tonApiV2Key: ""
+            tonApiV2Key: "",
+            mercuryoSecret: nil
         )
     }
 }

@@ -201,7 +201,11 @@ final class WalletCoreAssembly {
     }
     
     func fiatMethodsController() -> FiatMethodsController {
-        FiatMethodsController(fiatMethodsService: servicesAssembly.fiatMethodsService)
+        FiatMethodsController(
+            fiatMethodsService: servicesAssembly.fiatMethodsService,
+            walletProvider: keeperController,
+            configurationController: confifurationAssembly.configurationController(api: configurationAPI, cacheURL: dependencies.cacheURL)
+        )
     }
     
     func deeplinkParser() -> DeeplinkParser {
