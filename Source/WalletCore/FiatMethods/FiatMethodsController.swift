@@ -36,12 +36,15 @@ public actor FiatMethodsController {
         return sectionsModels
     }
     
-    public func urlForMethod(at section: Int, item: Int) async -> URL? {
+    public func urlForMethod(_ method: FiatMethodViewModel) async -> URL? {
+        return await handleMethodItem(method)
+    }
+    
+    public func fiatMethodViewModel(at section: Int, item: Int) async -> FiatMethodViewModel? {
         guard sectionsModels.count > section else { return nil }
         let sectionModel = sectionsModels[section]
         guard sectionModel.count > item else { return nil }
-        let itemModel = sectionModel[item]
-        return await handleMethodItem(itemModel)
+        return sectionModel[item]
     }
 }
 
