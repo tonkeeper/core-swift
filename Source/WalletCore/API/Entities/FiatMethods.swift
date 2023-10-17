@@ -20,6 +20,7 @@ struct FiatMethodItem: Codable {
         }
     }
     
+    
     let id: ID
     let title: String
     let isDisabled: Bool?
@@ -28,6 +29,7 @@ struct FiatMethodItem: Codable {
     let description: String?
     let iconURL: URL?
     let actionButton: ActionButton
+    let infoButtons: [ActionButton]
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -38,6 +40,7 @@ struct FiatMethodItem: Codable {
         case description
         case iconURL = "icon_url"
         case actionButton = "action_button"
+        case infoButtons = "info_buttons"
     }
 }
 

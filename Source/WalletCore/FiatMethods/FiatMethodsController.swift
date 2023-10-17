@@ -59,8 +59,8 @@ private extension FiatMethodsController {
                     description: item.description,
                     token: item.badge,
                     iconURL: item.iconURL,
-                    buttonTitle: item.actionButton.title,
-                    buttonUrl: item.actionButton.url
+                    actionButton: .init(title: item.actionButton.title, url: item.actionButton.url),
+                    infoButtons: item.infoButtons.map { .init(title: $0.title, url: $0.url) }
                 )
             }
         }
@@ -70,7 +70,7 @@ private extension FiatMethodsController {
     
     func handleMethodItem(_ item: FiatMethodViewModel) async -> URL? {
         let contractBuilder = WalletContractBuilder()
-        guard var urlString = item.buttonUrl,
+        guard var urlString = item.actionButton?.url,
               let wallet = try? walletProvider.activeWallet,
               let publicKey = try? wallet.publicKey,
               let addressString = try? contractBuilder
