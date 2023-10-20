@@ -113,6 +113,12 @@ private extension ActivityEventMapper {
                                           preview: action.preview,
                                           date: date,
                                           status: action.status.rawValue)
+        case .withdrawStakeRequest(let withdrawStakeRequest):
+            return mapWithdrawStakeRequestAction(withdrawStakeRequest,
+                                                 activityEvent: activityEvent,
+                                                 preview: action.preview,
+                                                 date: date,
+                                                 status: action.status.rawValue)
         case .jettonSwap(let jettonSwap):
             return mapJettonSwapAction(jettonSwap,
                                        activityEvent: activityEvent,
@@ -285,9 +291,35 @@ private extension ActivityEventMapper {
             BigInt(integerLiteral: action.amount),
             fractionDigits: tonInfo.fractionDigits,
             maximumFractionDigits: tonInfo.fractionDigits
-        )
+        ) + " \(tonInfo.symbol)"
         
         return ActivityEventViewModel.ActionViewModel(eventType: .withdrawStake,
+                                                      amount: amount,
+                                                      subamount: nil,
+                                                      leftTopDescription: leftTopDescription,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: nil,
+                                                      collectible: nil)
+    }
+    
+    func mapWithdrawStakeRequestAction(_ action: Action.WithdrawStakeRequest,
+                                       activityEvent: ActivityEvent,
+                                       preview: Action.SimplePreview,
+                                       date: String,
+                                       status: String?) -> ActivityEventViewModel.ActionViewModel {
+        let leftTopDescription = action.pool.name
+        
+        let tonInfo = TonInfo()
+        let amount = amountFormatter.formatAmount(
+            BigInt(integerLiteral: action.amount ?? 0),
+            fractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: tonInfo.fractionDigits
+        ) + " \(tonInfo.symbol)"
+        
+        return ActivityEventViewModel.ActionViewModel(eventType: .withdrawStakeRequest,
                                                       amount: amount,
                                                       subamount: nil,
                                                       leftTopDescription: leftTopDescription,

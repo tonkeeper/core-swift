@@ -148,6 +148,14 @@ extension Action.WithdrawStake {
     }
 }
 
+extension Action.WithdrawStakeRequest {
+    init(withdrawStakeRequest: WithdrawStakeRequestAction) throws {
+        self.amount = withdrawStakeRequest.amount
+        self.staker = try WalletAccount(accountAddress: withdrawStakeRequest.staker)
+        self.pool = try WalletAccount(accountAddress: withdrawStakeRequest.pool)
+    }
+}
+
 extension Action.RecoverStake {
     init(recoverStake: ElectionsRecoverStakeAction) throws {
         self.amount = recoverStake.amount

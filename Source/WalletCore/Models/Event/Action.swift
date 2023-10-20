@@ -34,6 +34,7 @@ struct Action {
         case nftPurchase(NFTPurchase)
         case depositStake(DepositStake)
         case withdrawStake(WithdrawStake)
+        case withdrawStakeRequest(WithdrawStakeRequest)
         case jettonSwap(JettonSwap)
         case jettonMint(JettonMint)
         case smartContractExec(SmartContractExec)
@@ -105,6 +106,12 @@ struct Action {
     
     struct WithdrawStake {
         let amount: Int64
+        let staker: WalletAccount
+        let pool: WalletAccount
+    }
+
+    struct WithdrawStakeRequest {
+        let amount: Int64?
         let staker: WalletAccount
         let pool: WalletAccount
     }

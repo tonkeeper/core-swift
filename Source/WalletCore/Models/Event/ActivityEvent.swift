@@ -51,6 +51,8 @@ extension ActivityEvent {
                     actionType = .depositStake(try .init(depositStake: depositStake))
                 } else if let withdrawStake = action.withdrawStake {
                     actionType = .withdrawStake(try .init(withdrawStake: withdrawStake))
+                } else if let withdrawStakeRequest = action.withdrawStakeRequest {
+                    actionType = .withdrawStakeRequest(try .init(withdrawStakeRequest: withdrawStakeRequest))
                 } else if let jettonSwap = action.jettonSwap {
                     actionType = .jettonSwap(try .init(jettonSwap: jettonSwap))
                 } else if let jettonMint = action.jettonMint {
