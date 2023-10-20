@@ -118,6 +118,8 @@ struct Action {
         let dex: String
         let amountIn: BigInt
         let amountOut: BigInt
+        let tonIn: Int64?
+        let tonOut: Int64?
         let user: WalletAccount
         let router: WalletAccount
         let tokenInfoIn: TokenInfo?

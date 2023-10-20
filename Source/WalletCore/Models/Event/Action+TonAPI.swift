@@ -160,6 +160,8 @@ extension Action.JettonSwap {
         self.dex = jettonSwap.dex
         self.amountIn = BigInt(stringLiteral: jettonSwap.amountIn)
         self.amountOut = BigInt(stringLiteral: jettonSwap.amountOut)
+        self.tonIn = jettonSwap.tonIn
+        self.tonOut = jettonSwap.tonOut
         self.user = try WalletAccount(accountAddress: jettonSwap.userWallet)
         self.router = try WalletAccount(accountAddress: jettonSwap.router)
         if let jettonMasterIn = jettonSwap.jettonMasterIn {

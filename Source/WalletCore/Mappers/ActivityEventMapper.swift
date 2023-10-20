@@ -114,7 +114,11 @@ private extension ActivityEventMapper {
                                           date: date,
                                           status: action.status.rawValue)
         case .jettonSwap(let jettonSwap):
-            return nil
+            return mapJettonSwapAction(jettonSwap,
+                                       activityEvent: activityEvent,
+                                       preview: action.preview,
+                                       date: date,
+                                       status: action.status.rawValue)
         case .subscribe(let subscribe):
             return nil
         case .unsubscribe(let unsubscribe):
@@ -441,6 +445,77 @@ private extension ActivityEventMapper {
                                                       status: status,
                                                       comment: action.comment,
                                                       collectible: collectible)
+    }
+    
+    func mapJettonSwapAction(_ action: Action.JettonSwap,
+                             activityEvent: ActivityEvent,
+                             preview: Action.SimplePreview,
+                             date: String,
+                             status: String?) -> ActivityEventViewModel.ActionViewModel {
+        
+        let tonInfo = TonInfo()
+        let outAmount: String? = {
+            let amount: BigInt
+            let fractionDigits: Int
+            let symbol: String?
+            if let tonOut = action.tonOut {
+                amount = BigInt(integerLiteral: tonOut)
+                fractionDigits = tonInfo.fractionDigits
+                symbol = tonInfo.symbol
+            } else if let tokenInfoOut = action.tokenInfoOut {
+                amount = action.amountOut
+                fractionDigits = tokenInfoOut.fractionDigits
+                symbol = tokenInfoOut.symbol
+            } else {
+                return nil
+            }
+            var result = "+" + amountFormatter.formatAmount(
+                amount,
+                fractionDigits: fractionDigits,
+                maximumFractionDigits: fractionDigits)
+            if let symbol = symbol {
+                result += " \(symbol)"
+            }
+            return result
+        }()
+        
+        let inAmount: String? = {
+            let amount: BigInt
+            let fractionDigits: Int
+            let symbol: String?
+            if let tonIn = action.tonIn {
+                amount = BigInt(integerLiteral: tonIn)
+                fractionDigits = tonInfo.fractionDigits
+                symbol = tonInfo.symbol
+            } else if let tokenInfoIn = action.tokenInfoIn {
+                amount = action.amountIn
+                fractionDigits = tokenInfoIn.fractionDigits
+                symbol = tokenInfoIn.symbol
+            } else {
+                return nil
+            }
+            var result = "-" + amountFormatter.formatAmount(
+                amount,
+                fractionDigits: fractionDigits,
+                maximumFractionDigits: fractionDigits)
+            if let symbol = symbol {
+                result += " \(symbol)"
+            }
+            return result
+        }()
+        
+        return ActivityEventViewModel.ActionViewModel(
+            eventType: .jettonSwap,
+            amount: outAmount,
+            subamount: inAmount,
+            leftTopDescription: action.user.value,
+            leftBottomDescription: nil,
+            date: date,
+            rightTopDesription: date,
+            status: status,
+            comment: nil,
+            collectible: nil
+        )
     }
 }
 
