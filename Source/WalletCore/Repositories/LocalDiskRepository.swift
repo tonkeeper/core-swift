@@ -66,6 +66,13 @@ struct LocalDiskRepository<T: Codable & LocalStorable>: LocalRepository {
             return try? load(fileName: name)
         }
     }
+    
+    func remove(fileName: String) throws {
+        let path = folderPath().appendingPathComponent(fileName)
+        if fileManager.fileExists(atPath: path.path) {
+            try fileManager.removeItem(at: path)
+        }
+    }
 }
 
 private extension LocalDiskRepository {

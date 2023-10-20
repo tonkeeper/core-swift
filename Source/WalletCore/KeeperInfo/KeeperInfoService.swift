@@ -10,6 +10,7 @@ import Foundation
 protocol KeeperInfoService {
     func getKeeperInfo() throws -> KeeperInfo
     func saveKeeperInfo(_ keeperInfo: KeeperInfo) throws
+    func removeKeeperInfo() throws
 }
 
 enum KeeperServiceError: Swift.Error {
@@ -34,5 +35,9 @@ final class KeeperInfoServiceImplementation: KeeperInfoService {
 
     func saveKeeperInfo(_ keeperInfo: KeeperInfo) throws {
         try localRepository.save(item: keeperInfo)
+    }
+    
+    func removeKeeperInfo() throws {
+        try localRepository.remove(fileName: KeeperInfo.fileName)
     }
 }

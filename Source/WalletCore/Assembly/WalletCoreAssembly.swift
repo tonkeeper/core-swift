@@ -42,7 +42,8 @@ final class WalletCoreAssembly {
                                                          tonkeeperAPI: configurationAPI,
                                                          streamingAPI: streamingAPI,
                                                          coreAssembly: coreAssembly,
-                                                         cacheURL: dependencies.cacheURL)
+                                                         cacheURL: dependencies.cacheURL,
+                                                         sharedCacheURL: dependencies.sharedCacheURL)
     private lazy var collectibleAssembly = CollectibleAssembly(servicesAssembly: servicesAssembly,
                                                                formattersAssembly: formattersAssembly)
     private lazy var activityAssembly = ActivityAssembly(servicesAssembly: servicesAssembly,
@@ -193,8 +194,8 @@ final class WalletCoreAssembly {
     func logoutController() -> LogoutController {
         settingsAssembly.logoutController(
             cacheURL: dependencies.cacheURL,
-            sharedCahedURL: dependencies.sharedCacheURL,
             keychainGroup: dependencies.sharedKeychainGroup,
+            keeperInfoService: servicesAssembly.keeperInfoService,
             fileManager: coreAssembly.fileManager,
             keychainManager: coreAssembly.keychainManager
         )

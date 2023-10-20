@@ -21,14 +21,14 @@ final class SettingsAssembly {
     }
     
     func logoutController(cacheURL: URL,
-                          sharedCahedURL: URL,
                           keychainGroup: String,
+                          keeperInfoService: KeeperInfoService,
                           fileManager: FileManager,
                           keychainManager: KeychainManager) -> LogoutController {
         LogoutController(
             cacheURL: cacheURL,
-            sharedCahedURL: sharedCahedURL,
             keychainGroup: keychainGroup,
+            keeperInfoService: keeperInfoService,
             fileManager: fileManager,
             keychainManager: keychainManager
         )

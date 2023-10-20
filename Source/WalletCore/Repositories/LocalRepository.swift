@@ -14,4 +14,5 @@ protocol LocalRepository<T> {
     func load(fileName: String) throws -> T
     func load(key: T.KeyType) throws -> T
     func loadAll() throws -> [T]
+    func remove(fileName: String) throws
 }

@@ -14,23 +14,26 @@ final class ServicesAssembly {
     let streamingAPI: StreamingAPI
     let coreAssembly: CoreAssembly
     let cacheURL: URL
+    let sharedCacheURL: URL
     
     init(tonAPI: API, 
          tonkeeperAPI: API,
          streamingAPI: StreamingAPI,
          coreAssembly: CoreAssembly,
-         cacheURL: URL) {
+         cacheURL: URL,
+         sharedCacheURL: URL) {
         self.tonAPI = tonAPI
         self.tonkeeperAPI = tonkeeperAPI
         self.streamingAPI = streamingAPI
         self.coreAssembly = coreAssembly
         self.cacheURL = cacheURL
+        self.sharedCacheURL = sharedCacheURL
     }
     
     var collectiblesService: CollectiblesService {
         CollectiblesServiceImplementation(
             api: tonAPI, 
-            localRepository: localRepository()
+            localRepository: localRepository(cacheURL: cacheURL)
         )
     }
     
@@ -41,8 +44,12 @@ final class ServicesAssembly {
     var fiatMethodsService: FiatMethodsService {
         FiatMethodsServiceImplementation(
             api: tonkeeperAPI,
-            localRepository: localRepository()
+            localRepository: localRepository(cacheURL: cacheURL)
         )
+    }
+    
+    var keeperInfoService: KeeperInfoService {
+        KeeperInfoServiceImplementation(localRepository: localRepository(cacheURL: sharedCacheURL))
     }
     
     lazy var transactionsUpdateService: TransactionsUpdateService = {
@@ -51,7 +58,7 @@ final class ServicesAssembly {
 }
 
 private extension ServicesAssembly {
-    func localRepository<T: LocalStorable>() -> any LocalRepository<T> {
+    func localRepository<T: LocalStorable>(cacheURL: URL) -> any LocalRepository<T> {
         LocalDiskRepository(fileManager: coreAssembly.fileManager,
                             directory: cacheURL,
                             encoder: coreAssembly.encoder,
