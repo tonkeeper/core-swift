@@ -28,7 +28,7 @@ public class WalletBalanceController {
     private var balanceStreamContinuation: BalanceModelStream.Continuation?
     private var connectionStateStreamContinuation: ConnectionStateStream.Continuation?
     
-    private var walletAddress: Address {
+    public var walletAddress: Address {
         get throws {
             let wallet = try walletProvider.activeWallet
             let publicKey = try wallet.publicKey

@@ -77,16 +77,16 @@ struct CollectibleDetailsMapper {
         )
     }
     
-    private func mapCollectionDetails(collectible: Collectible) -> CollectibleDetailsViewModel.CollectionDetails {
+    private func mapCollectionDetails(collectible: Collectible) -> CollectibleDetailsViewModel.CollectionDetails? {
+        guard let collection = collectible.collection else { return nil }
         var title: String?
-        var description: String?
-        if let collectionName = collectible.collection?.name {
+        if let collectionName = collection.name {
             title = "About \(collectionName)"
-            description = collectible.collection?.description
         }
+        
         return CollectibleDetailsViewModel.CollectionDetails(
             title: title,
-            description: description
+            description: collection.description
         )
     }
     

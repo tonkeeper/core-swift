@@ -37,7 +37,7 @@ public struct CollectibleDetailsViewModel {
     
     public let title: String?
     public let collectibleDetails: CollectibleDetails
-    public let collectionDetails: CollectionDetails
+    public let collectionDetails: CollectionDetails?
     public let properties: [Property]
     public let details: Details
     public let isTransferEnable: Bool
