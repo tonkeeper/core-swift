@@ -255,11 +255,11 @@ private extension ActivityEventMapper {
         let leftTopDescription = action.pool.name
         
         let tonInfo = TonInfo()
-        let amount = amountFormatter.formatAmount(
+        let amount = "-" + amountFormatter.formatAmount(
             BigInt(integerLiteral: action.amount),
             fractionDigits: tonInfo.fractionDigits,
             maximumFractionDigits: tonInfo.fractionDigits
-        )
+        ) + " \(tonInfo.symbol)"
         
         return ActivityEventViewModel.ActionViewModel(eventType: .depositStake,
                                                       amount: amount,
