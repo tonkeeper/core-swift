@@ -23,14 +23,16 @@ struct CollectibleDetailsMapper {
              expirationDate: Date?,
              isInitial: Bool) -> CollectibleDetailsViewModel {
         
-        let linkedAddressItem: ViewModelLoadableItem<String?>
-        if let linkedAddress = linkedAddress {
-            linkedAddressItem = .value(linkedAddress.toShortString(bounceable: false))
-        } else if isInitial {
-            linkedAddressItem = .loading
-        } else {
-            linkedAddressItem = .value(nil)
-        }
+        let linkedAddressItem: ViewModelLoadableItem<String?>? = {
+            guard collectible.dns != nil else { return nil }
+            if let linkedAddress = linkedAddress {
+                return .value(linkedAddress.toShortString(bounceable: false))
+            } else if isInitial {
+                return .loading
+            } else {
+                return .value(nil)
+            }
+        }()
         
         let expirationDateItem: ViewModelLoadableItem<String>?
         let daysExpiration: Int?
@@ -50,6 +52,7 @@ struct CollectibleDetailsMapper {
             properties: mapProperties(collectible: collectible),
             details: mapDetails(collectible: collectible),
             isTransferEnable: mapIsTransferEnable(collectible: collectible, isOwner: isOwner),
+            isDns: collectible.dns != nil,
             isOnSale: collectible.sale != nil,
             linkedAddress: linkedAddressItem,
             expirationDateItem: expirationDateItem,

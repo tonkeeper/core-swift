@@ -42,6 +42,7 @@ public final class CollectibleDetailsController {
         let collectible = try collectiblesService.getCollectible(address: collectibleAddress)
         let viewModel = buildInitialViewModel(collectible: collectible)
         delegate?.collectibleDetailsController(self, didUpdate: viewModel)
+        guard collectible.dns != nil else { return }
         Task {
             async let linkedAddressTask = getDNSLinkedAddress(collectible: collectible)
             async let expirationDateTask = getDNSExpirationDate(collectible: collectible)
