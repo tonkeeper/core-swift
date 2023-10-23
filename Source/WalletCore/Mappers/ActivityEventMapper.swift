@@ -144,21 +144,21 @@ private extension ActivityEventMapper {
         if activityEvent.isScam {
             eventType = .spam
             leftTopDescription = action.sender.value
-            sign = "+"
+            sign = .plusShortSpace
         } else if action.recipient == activityEvent.account {
             if action.recipient == action.sender {
                 eventType = .sentAndReceieved
-                sign = "-"
+                sign = .minusShortSpace
             } else {
                 eventType = .receieved
-                sign = "+"
+                sign = .plusShortSpace
             }
             
             leftTopDescription = action.sender.value
         } else {
             eventType = .sent
             leftTopDescription = action.recipient.value
-            sign = "-"
+            sign = .minusShortSpace
         }
         
         let amount = amountFormatter.formatAmount(
@@ -198,11 +198,11 @@ private extension ActivityEventMapper {
         } else if action.recipient == activityEvent.account {
             eventType = .receieved
             leftTopDescription = action.sender?.value ?? nil
-            sign = "+"
+            sign = .plusShortSpace
         } else {
             eventType = .sent
             leftTopDescription = action.recipient?.value ?? nil
-            sign = "-"
+            sign = .minusShortSpace
         }
         
         var amount = sign + amountFormatter.formatAmount(
@@ -233,7 +233,7 @@ private extension ActivityEventMapper {
         let eventType = ActivityEventViewModel.ActionViewModel.ActionType.mint
         let leftTopDescription = action.tokenInfo.name
         
-        var amount = "+" + amountFormatter.formatAmount(
+        var amount = .plusShortSpace + amountFormatter.formatAmount(
             action.amount,
             fractionDigits: action.tokenInfo.fractionDigits,
             maximumFractionDigits: action.tokenInfo.fractionDigits)
@@ -261,7 +261,7 @@ private extension ActivityEventMapper {
         let leftTopDescription = action.pool.name
         
         let tonInfo = TonInfo()
-        let amount = "-" + amountFormatter.formatAmount(
+        let amount = .minusShortSpace + amountFormatter.formatAmount(
             BigInt(integerLiteral: action.amount),
             fractionDigits: tonInfo.fractionDigits,
             maximumFractionDigits: tonInfo.fractionDigits
@@ -369,7 +369,7 @@ private extension ActivityEventMapper {
             image: .url(action.collectible.preview.size500)
         )
         
-        let sign = action.buyer == activityEvent.account ? "-" : "+"
+        let sign: String = action.buyer == activityEvent.account ? .minusShortSpace : .plusShortSpace
         
         let tonInfo = TonInfo()
         var amount = amountFormatter.formatAmount(
@@ -377,7 +377,7 @@ private extension ActivityEventMapper {
             fractionDigits: tonInfo.fractionDigits,
             maximumFractionDigits: tonInfo.fractionDigits
         )
-        amount = "\(sign) \(amount) \(tonInfo.symbol)"
+        amount = "\(sign)\(amount) \(tonInfo.symbol)"
         
         return ActivityEventViewModel.ActionViewModel(
             eventType: .nftPurchase,
@@ -425,8 +425,8 @@ private extension ActivityEventMapper {
             maximumFractionDigits: tonInfo.fractionDigits
         )
         
-        let sign = action.executor == activityEvent.account ? "-" : "+"
-        amount = "\(sign) \(amount) \(tonInfo.symbol)"
+        let sign: String = action.executor == activityEvent.account ? .minusShortSpace : .plusShortSpace
+        amount = "\(sign)\(amount) \(tonInfo.symbol)"
         
         return ActivityEventViewModel.ActionViewModel(eventType: .contractExec,
                                                       amount: amount,
@@ -501,7 +501,7 @@ private extension ActivityEventMapper {
             } else {
                 return nil
             }
-            var result = "+" + amountFormatter.formatAmount(
+            var result = .plusShortSpace + amountFormatter.formatAmount(
                 amount,
                 fractionDigits: fractionDigits,
                 maximumFractionDigits: fractionDigits)
@@ -526,7 +526,7 @@ private extension ActivityEventMapper {
             } else {
                 return nil
             }
-            var result = "-" + amountFormatter.formatAmount(
+            var result = .minusShortSpace + amountFormatter.formatAmount(
                 amount,
                 fractionDigits: fractionDigits,
                 maximumFractionDigits: fractionDigits)
@@ -556,4 +556,9 @@ private extension WalletAccount {
         if let name = name { return name }
         return address.toShortString(bounceable: !isWallet)
     }
+}
+
+private extension String {
+  static let minusShortSpace = "\u{2212}\u{2009}"
+  static let plusShortSpace = "\u{002B}\u{2009}"
 }
