@@ -67,7 +67,13 @@ private extension ActivityEventMapper {
         case .jettonMint(let jettonMint):
             return mapJettonMintAction(jettonMint,
                                        activityEvent: activityEvent,
-                                       preview:action.preview,
+                                       preview: action.preview,
+                                       date: date,
+                                       status: action.status.rawValue)
+        case .jettonBurn(let jettonBurn):
+            return mapJettonBurnAction(jettonBurn,
+                                       activityEvent: activityEvent,
+                                       preview: action.preview,
                                        date: date,
                                        status: action.status.rawValue)
         case .auctionBid(let auctionBid):
@@ -223,6 +229,34 @@ private extension ActivityEventMapper {
         let leftTopDescription = action.tokenInfo.name
         
         var amount = .plusShortSpace + amountFormatter.formatAmount(
+            action.amount,
+            fractionDigits: action.tokenInfo.fractionDigits,
+            maximumFractionDigits: action.tokenInfo.fractionDigits)
+        if let symbol = action.tokenInfo.symbol {
+            amount += " \(symbol)"
+        }
+        
+        return ActivityEventViewModel.ActionViewModel(eventType: eventType,
+                                                      amount: amount,
+                                                      subamount: nil,
+                                                      leftTopDescription: leftTopDescription,
+                                                      leftBottomDescription: nil,
+                                                      date: date,
+                                                      rightTopDesription: date,
+                                                      status: status,
+                                                      comment: nil,
+                                                      collectible: nil)
+    }
+    
+    func mapJettonBurnAction(_ action: Action.JettonBurn,
+                             activityEvent: ActivityEvent,
+                             preview: Action.SimplePreview,
+                             date: String,
+                             status: String?) -> ActivityEventViewModel.ActionViewModel {
+        let eventType = ActivityEventViewModel.ActionViewModel.ActionType.burn
+        let leftTopDescription = action.tokenInfo.name
+        
+        var amount = .minusShortSpace + amountFormatter.formatAmount(
             action.amount,
             fractionDigits: action.tokenInfo.fractionDigits,
             maximumFractionDigits: action.tokenInfo.fractionDigits)

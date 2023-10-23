@@ -194,6 +194,15 @@ extension Action.JettonMint {
     }
 }
 
+extension Action.JettonBurn {
+    init(jettonBurn: JettonBurnAction) throws {
+        self.sender = try WalletAccount(accountAddress: jettonBurn.sender)
+        self.senderWallet = try Address.parse(jettonBurn.sendersWallet)
+        self.amount = BigInt(stringLiteral: jettonBurn.amount)
+        self.tokenInfo = try TokenInfo(jettonPreview: jettonBurn.jetton)
+    }
+}
+
 extension Action.SmartContractExec {
     init(smartContractExec: SmartContractAction) throws {
         self.executor = try WalletAccount(accountAddress: smartContractExec.executor)

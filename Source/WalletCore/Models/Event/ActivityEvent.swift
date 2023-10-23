@@ -57,6 +57,8 @@ extension ActivityEvent {
                     actionType = .jettonSwap(try .init(jettonSwap: jettonSwap))
                 } else if let jettonMint = action.jettonMint {
                     actionType = .jettonMint(try .init(jettonMint: jettonMint))
+                } else if let jettonBurn = action.jettonBurn {
+                    actionType = .jettonBurn(try .init(jettonBurn: jettonBurn))
                 } else if let smartContractExec = action.smartContractExec {
                     actionType = .smartContractExec(try .init(smartContractExec: smartContractExec))
                 } else {

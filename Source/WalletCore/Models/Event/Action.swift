@@ -37,6 +37,7 @@ struct Action {
         case withdrawStakeRequest(WithdrawStakeRequest)
         case jettonSwap(JettonSwap)
         case jettonMint(JettonMint)
+        case jettonBurn(JettonBurn)
         case smartContractExec(SmartContractExec)
     }
     
@@ -136,6 +137,13 @@ struct Action {
     struct JettonMint {
         let recipient: WalletAccount
         let recipientsWallet: Address
+        let amount: BigInt
+        let tokenInfo: TokenInfo
+    }
+    
+    struct JettonBurn {
+        let sender: WalletAccount
+        let senderWallet: Address
         let amount: BigInt
         let tokenInfo: TokenInfo
     }
