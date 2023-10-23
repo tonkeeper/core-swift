@@ -17,7 +17,6 @@ public struct ActivityEventViewModel {
             case depositStake
             case withdrawStake
             case withdrawStakeRequest
-            case sentAndReceieved
             case spam
             case jettonSwap
             case bounced

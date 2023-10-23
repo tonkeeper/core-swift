@@ -146,19 +146,13 @@ private extension ActivityEventMapper {
             leftTopDescription = action.sender.value
             sign = .plusShortSpace
         } else if action.recipient == activityEvent.account {
-            if action.recipient == action.sender {
-                eventType = .sentAndReceieved
-                sign = .minusShortSpace
-            } else {
-                eventType = .receieved
-                sign = .plusShortSpace
-            }
-            
+            eventType = .receieved
+            sign = .plusShortSpace
             leftTopDescription = action.sender.value
         } else {
             eventType = .sent
-            leftTopDescription = action.recipient.value
             sign = .minusShortSpace
+            leftTopDescription = action.recipient.value
         }
         
         let amount = amountFormatter.formatAmount(
@@ -166,14 +160,9 @@ private extension ActivityEventMapper {
             fractionDigits: tonInfo.fractionDigits,
             maximumFractionDigits: tonInfo.fractionDigits
         )
-        let subamount: String? = {
-            guard eventType == .sentAndReceieved else { return nil }
-            return "+\(amount) \(tonInfo.symbol)"
-        }()
-        
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,
                                                       amount: "\(sign)\(amount) \(tonInfo.symbol)",
-                                                      subamount: subamount,
+                                                      subamount: nil,
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
                                                       date: date,
