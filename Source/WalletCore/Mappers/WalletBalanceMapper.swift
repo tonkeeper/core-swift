@@ -195,7 +195,7 @@ private extension WalletBalanceMapper {
     func mapCollectibles(_ collectibles: [Collectible]) -> [WalletCollectibleItemViewModel] {
         return collectibles.map { collectible in
             walletItemMapper.mapCollectible(title: collectible.name,
-                                            subtitle: collectible.collection?.name,
+                                            subtitle: collectible.collection?.name ?? .singleNFT,
                                             imageURL: collectible.preview.size500,
                                             address: collectible.address)
         }
@@ -252,4 +252,5 @@ private extension WalletBalanceMapper {
 private extension String {
     static let collectiblesTabTitle = "Collectibles"
     static let tokensTabTitle = "Tokens"
+    static let singleNFT = "Single NFT"
 }
