@@ -17,10 +17,10 @@ struct WalletAccount: Equatable, Codable {
 }
 
 extension WalletAccount {
-    init(accountAddress: AccountAddress) throws {
+    init(accountAddress: Components.Schemas.AccountAddress) throws {
         address = try Address.parse(accountAddress.address)
         name = accountAddress.name
-        isScam = accountAddress.isScam
-        isWallet = accountAddress.isWallet
+        isScam = accountAddress.is_scam
+        isWallet = accountAddress.is_wallet
     }
 }

@@ -1,8 +1,8 @@
 //
-//  AccessTokenProvider.swift
+//  APIHostUrlProvider.swift
 //  
 //
-//  Created by Grigory on 21.6.23..
+//  Created by Grigory Serebryanyy on 25.10.2023.
 //
 
 import Foundation
@@ -10,7 +10,7 @@ import TonAPI
 import OpenAPIRuntime
 import HTTPTypes
 
-final class AuthTokenProvider: ClientMiddleware {
+final class APIHostUrlProvider: ClientMiddleware {
     private let configurationController: ConfigurationController
     
     init(configurationController: ConfigurationController) {
@@ -26,12 +26,13 @@ final class AuthTokenProvider: ClientMiddleware {
     async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
         var mutableRequest = request
         let configuration = await configurationController.configuration
+        let url = URL(string: configuration.tonapiV2Endpoint) ?? baseURL
         mutableRequest
             .headerFields
             .append(
                 .init(name: .authorization,
                       value: "Bearer \(configuration.tonApiV2Key)")
             )
-        return try await next(mutableRequest, body, baseURL)
+        return try await next(mutableRequest, body, url)
     }
 }

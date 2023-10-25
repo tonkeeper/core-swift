@@ -14,22 +14,19 @@ protocol FiatMethodsService {
 }
 
 actor FiatMethodsServiceImplementation: FiatMethodsService {
-    private let api: API
+    private let api: LegacyAPI
     private let localRepository: any LocalRepository<FiatMethods>
     
-    init(api: API,
+    init(api: LegacyAPI,
          localRepository: any LocalRepository<FiatMethods>) {
         self.api = api
         self.localRepository = localRepository
     }
     
     func loadFiatMethods() async throws -> FiatMethods {
-        let request = FiatMethodsRequest()
-        let response = try await api.send(request: request)
-        
-        try localRepository.save(item: response.entity.data)
-        
-        return response.entity.data
+        let fiatMethods = try await api.loadFiatMethods()
+        try localRepository.save(item: fiatMethods)
+        return fiatMethods
     }
     
     func getFiatMethods() async throws -> FiatMethods {

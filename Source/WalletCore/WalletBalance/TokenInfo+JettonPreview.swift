@@ -10,7 +10,7 @@ import TonAPI
 import TonSwift
 
 extension TokenInfo {
-    init(jettonPreview: JettonPreview) throws {
+    init(jettonPreview: Components.Schemas.JettonPreview) throws {
         let tokenAddress = try Address.parse(jettonPreview.address)
         address = tokenAddress
         fractionDigits = jettonPreview.decimals

@@ -23,53 +23,16 @@ final class SendServiceImplementation: SendService {
     }
     
     func loadSeqno(address: Address) async throws -> UInt64 {
-        let request = GetSeqnoRequest(accountId: address.toRaw())
-        let response = try await api.send(request: request)
-        return response.entity.seqno
+        try await UInt64(api.getSeqno(address: address))
     }
     
     func loadTransactionInfo(boc: String) async throws -> TransferTransactionInfo {
-        let request = WalletEmulateRequest(boc: boc)
-        let response = try await api.send(request: request)
-        return TransferTransactionInfo(accountEvent: response.entity.event,
-                                       risk: response.entity.risk,
-                                       transaction: response.entity.trace.transaction)
+        try await api
+            .emulateMessageWallet(boc: boc)
     }
     
     func sendTransaction(boc: String) async throws {
-        let request = BlockchainMessageRequest(boc: boc)
-        _ = try await api.send(request: request)
+        try await api
+            .sendTransaction(boc: boc)
     }
-}
-
-private struct GetSeqnoRequest: APIRequest {
-    typealias Entity = Seqno
-    
-    var request: TonAPI.Request {
-        Request(
-            path: path,
-            method: .GET,
-            headers: [],
-            queryItems: queryItems,
-            bodyParameter: [:]
-        )
-    }
-    
-    var path: String {
-        "/v1/wallet/getSeqno"
-    }
-    
-    var queryItems: [URLQueryItem] {
-        [.init(name: "account", value: accountId)]
-    }
-    
-    let accountId: String
-    
-    init(accountId: String) {
-        self.accountId = accountId
-    }
-}
-
-private struct Seqno: Codable {
-    let seqno: UInt64
 }

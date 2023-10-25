@@ -27,21 +27,12 @@ final class DNSServiceImplementation: DNSService {
     
     func resolveDomainName(_ domainName: String) async throws -> Recipient {
         let parsedDomainName = parseDomainName(domainName)
-        let request = ResolveDNSRequest(domainName: parsedDomainName)
-        let response = try await api.send(request: request)
-        guard let wallet = response.entity.wallet else {
-            throw Error.noWalletData
-        }
-        let address = try Address.parse(wallet.address)
-        return Recipient(address: address, domain: parsedDomainName)
+        return try await api.resolveDomainName(parsedDomainName)
     }
     
     func loadDomainExpirationDate(_ domainName: String) async throws -> Date? {
         let parsedDomainName = parseDomainName(domainName)
-        let request = DNSInfoRequest(domainName: parsedDomainName)
-        let response = try await api.send(request: request)
-        guard let expiringAt = response.entity.expiringAt else { return nil }
-        return Date(timeIntervalSince1970: TimeInterval(integerLiteral: Int64(expiringAt)))
+        return try await api.getDomainExpirationDate(parsedDomainName)
     }
 }
 

@@ -22,9 +22,7 @@ final class AccountInfoServiceImplementation: AccountInfoService {
     }
     
     func loadAccountInfo(address: Address) async throws -> Account {
-        let request = AccountRequest(accountId: address.toRaw())
-        let response = try await api.send(request: request)
-        return response.entity
+        try await api.getAccountInfo(address: address)
     }
 }
 

@@ -16,7 +16,7 @@ actor ConfigurationLoader {
     
     // MARK: - Dependecies
     
-    private let api: API
+    private let api: LegacyAPI
     
     // MARK: - State
     
@@ -24,7 +24,7 @@ actor ConfigurationLoader {
     
     // MARK: - Init
     
-    init(api: API) {
+    init(api: LegacyAPI) {
         self.api = api
     }
     
@@ -52,16 +52,13 @@ actor ConfigurationLoader {
 
 private extension ConfigurationLoader {
     func loadConfigurationTask() -> Task<RemoteConfiguration, Swift.Error> {
-        let request = LoadConfigurationRequest(
-            lang: .lang,
-            build: .build,
-            chainName: .chainName,
-            platform: .platform
-        )
         return Task {
             do {
-                let response = try await api.send(request: request)
-                return response.entity
+                return try await api.loadConfiguration(
+                    lang: .lang,
+                    build: .build,
+                    chainName: .chainName,
+                    platform: .platform)
             } catch {
                 throw error
             }

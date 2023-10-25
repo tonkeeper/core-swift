@@ -6,7 +6,8 @@
 //
 
 import Foundation
-import TonAPI
+import TonStreamingAPI
+import EventSource
 import TonSwift
 
 struct TransactionUpdate {
@@ -32,9 +33,8 @@ protocol TransactionsUpdateService {
     func getEventStream() async -> EventStream
 }
 
-
 actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
-    private let streamingAPI: StreamingAPI
+    private let streamingAPI: TonStreamingAPI.Client
     
     private var task: Task<(), Never>?
     private(set) var state: TransactionsUpdateServiceState = .closed(nil) {
@@ -45,17 +45,19 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
     private var stateUpdateObserversContinuations = [UUID: StateUpdateStream.Continuation]()
     private var eventObservsersContinuations = [UUID: EventStream.Continuation]()
     
-    init(streamingAPI: StreamingAPI) {
+    init(streamingAPI: TonStreamingAPI.Client) {
         self.streamingAPI = streamingAPI
     }
     
     func start(addresses: [Address]) {
         let addressesStrings = addresses.map { $0.toRaw() }
-        let request = TransactionsStreamingRequest(accounts: addressesStrings)
         let task = Task {
             do {
                 state = .connecting
-                let (stream, _) = try await streamingAPI.stream(request: request)
+                let stream: AsyncThrowingStream<EventSource.Transaction, Swift.Error> = try await EventSource.eventSource {
+                    try await streamingAPI.getTransactions(query: .init(accounts: addressesStrings))
+                        .ok.body.text_event_hyphen_stream
+                }
                 state = .connected
                 for try await transaction in stream {
                     guard let accountAddress = try? Address.parse(transaction.accountId) else { continue }
@@ -72,7 +74,6 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
                 state = .closed(error)
             }
         }
-        
         self.task = task
     }
     
