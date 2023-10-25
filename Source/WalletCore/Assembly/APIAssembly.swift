@@ -55,7 +55,7 @@ final class APIAssembly {
         }
         let streamingTonAPIClient = TonStreamingAPI.Client(
             serverURL: tonAPIURL,
-            transport: transport,
+            transport: streamingTransport,
             middlewares: [authTokenProvider])
         _streamingTonAPIClient = streamingTonAPIClient
         return streamingTonAPIClient

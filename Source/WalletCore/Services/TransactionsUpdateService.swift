@@ -7,6 +7,7 @@
 
 import Foundation
 import TonStreamingAPI
+import EventSource
 import TonSwift
 
 struct TransactionUpdate {
@@ -32,7 +33,6 @@ protocol TransactionsUpdateService {
     func getEventStream() async -> EventStream
 }
 
-// TODO: New TONApi Integration
 actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
     private let streamingAPI: TonStreamingAPI.Client
     
@@ -50,30 +50,31 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
     }
     
     func start(addresses: [Address]) {
-//        let addressesStrings = addresses.map { $0.toRaw() }
-//        let request = TransactionsStreamingRequest(accounts: addressesStrings)
-//        let task = Task {
-//            do {
-//                state = .connecting
-//                let (stream, _) = try await streamingAPI.stream(request: request)
-//                state = .connected
-//                for try await transaction in stream {
-//                    guard let accountAddress = try? Address.parse(transaction.accountId) else { continue }
-//                    let transactionUpdate = TransactionUpdate(
-//                        accountAddress: accountAddress,
-//                        lt: transaction.lt,
-//                        txHash: transaction.txHash
-//                    )
-//                    didReceiveTransactionUpdate(transactionUpdate)
-//                }
-//                guard !Task.isCancelled else { return }
-//                start(addresses: addresses)
-//            } catch {
-//                state = .closed(error)
-//            }
-//        }
-//        
-//        self.task = task
+        let addressesStrings = addresses.map { $0.toRaw() }
+        let task = Task {
+            do {
+                state = .connecting
+                let stream: AsyncThrowingStream<EventSource.Transaction, Swift.Error> = try await EventSource.eventSource {
+                    try await streamingAPI.getTransactions(query: .init(accounts: addressesStrings))
+                        .ok.body.text_event_hyphen_stream
+                }
+                state = .connected
+                for try await transaction in stream {
+                    guard let accountAddress = try? Address.parse(transaction.accountId) else { continue }
+                    let transactionUpdate = TransactionUpdate(
+                        accountAddress: accountAddress,
+                        lt: transaction.lt,
+                        txHash: transaction.txHash
+                    )
+                    didReceiveTransactionUpdate(transactionUpdate)
+                }
+                guard !Task.isCancelled else { return }
+                start(addresses: addresses)
+            } catch {
+                state = .closed(error)
+            }
+        }
+        self.task = task
     }
     
     func stop() {
