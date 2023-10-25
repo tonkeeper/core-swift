@@ -79,7 +79,7 @@ public final class Assembly {
         keeperAssembly: keeperAssembly,
         servicesAssembly: servicesAssembly
     )
-    private let settingsAssembly = SettingsAssembly()
+    private lazy var settingsAssembly = SettingsAssembly(configurationAssembly: configurationAssembly)
     private lazy var configurationAssembly = ConfigurationAssembly(
         coreAssembly: coreAssembly,
         legacyAPIAssembly: legacyApiAssembly,

@@ -10,10 +10,18 @@ import Foundation
 final class SettingsAssembly {
     
     private var settingsController: SettingsController?
+    private let configurationAssembly: ConfigurationAssembly
+    
+    init(configurationAssembly: ConfigurationAssembly) {
+        self.configurationAssembly = configurationAssembly
+    }
     
     func settingsController(keeperController: KeeperController) -> SettingsController {
         guard let settingsController = settingsController else {
-            let settingsController = SettingsControllerImplementation(keeperController: keeperController)
+            let settingsController = SettingsControllerImplementation(
+                keeperController: keeperController,
+                configurationController: configurationAssembly.configurationController()
+            )
             self.settingsController = settingsController
             return settingsController
         }

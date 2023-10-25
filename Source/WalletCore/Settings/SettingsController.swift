@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol SettingsController: SecuritySettingsController, CurrencySettingsController {
+public protocol SettingsController: SecuritySettingsController, CurrencySettingsController, SocialLinksSettingsController {
     func addObserver(_ observer: SettingsControllerObserver)
     func removeObserver(_ observer: SettingsControllerObserver)
 }
@@ -23,6 +23,12 @@ public protocol CurrencySettingsController {
     func setCurrency(_ currency: Currency) throws
 }
 
+public protocol SocialLinksSettingsController {
+    var supportURL: URL? { get async }
+    var contactUsURL: URL? { get async }
+    var tonkeeperNews: URL? { get async }
+}
+
 public protocol SettingsControllerObserver: AnyObject {
     func didUpdateSettings()
 }
@@ -33,11 +39,14 @@ public final class SettingsControllerImplementation: SettingsController, Securit
     }
 
     private let keeperController: KeeperController
+    private let configurationController: ConfigurationController
     
     private var observers = [SettingsControllerObserverWrapper]()
     
-    init(keeperController: KeeperController) {
+    init(keeperController: KeeperController,
+         configurationController: ConfigurationController) {
         self.keeperController = keeperController
+        self.configurationController = configurationController
     }
     
     public func addObserver(_ observer: SettingsControllerObserver) {
@@ -74,6 +83,29 @@ public final class SettingsControllerImplementation: SettingsController, Securit
             .getSecuritySettings()
             .setIsBiometryEnabled(isBiometryEnabled)
         try keeperController.setSecuritySettings(securitySettings)
+    }
+    
+    // MARK: - Links
+    
+    public var supportURL: URL? {
+        get async {
+            let configuration = await configurationController.configuration
+            return URL(string: configuration.directSupportUrl ?? "")
+        }
+    }
+    
+    public var contactUsURL: URL? {
+        get async {
+            let configuration = await configurationController.configuration
+            return URL(string: configuration.supportLink ?? "")
+        }
+    }
+    
+    public var tonkeeperNews: URL? {
+        get async {
+            let configuration = await configurationController.configuration
+            return URL(string: configuration.tonkeeperNewsUrl ?? "")
+        }
     }
 }
 
