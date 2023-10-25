@@ -10,22 +10,28 @@ import TonSwift
 
 public enum Deeplink {
     case ton(TonDeeplink)
-    
-    public var path: String {
-        switch self {
-        case let .ton(tonDeeplink):
-            return "ton://\(tonDeeplink.path)"
-        }
-    }
+    case tonConnect(TonConnectDeeplink)
+//
+//    public var path: String {
+//        switch self {
+//        case let .ton(tonDeeplink):
+//            return "ton://\(tonDeeplink.path)"
+//        }
+//    }
 }
 
 public enum TonDeeplink {
     case transfer(address: Address)
     
-    var path: String {
+    public var path: String {
+        let ton = "ton://"
         switch self {
         case let .transfer(address):
-            return "transfer/\(address.toRaw())"
+            return "\(ton)transfer/\(address.toRaw())"
         }
     }
+}
+
+public struct TonConnectDeeplink {
+    let string: String
 }

@@ -226,8 +226,16 @@ public extension Assembly {
         )
     }
     
-    func deeplinkParser() -> DeeplinkParser {
-        deeplinkAssembly.deeplinkParser
+    func deeplinkParser(handlers: [DeeplinkHandler]) -> DeeplinkParser {
+        deeplinkAssembly.deeplinkParser(handlers: handlers)
+    }
+    
+    var tonDeeplinkHandler: DeeplinkHandler {
+        TonDeeplinkHandler()
+    }
+    
+    var tonConnectDeeplinkHandler: DeeplinkHandler {
+        TonConnectDeeplinkHandler()
     }
     
     func deeplinkGenerator() -> DeeplinkGenerator {
