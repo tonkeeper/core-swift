@@ -14,25 +14,22 @@ import OpenAPIRuntime
 
 final class APIAssembly {
     let coreAssembly: CoreAssembly
+    let configurationAssembly: ConfigurationAssembly
     
     // MARK: - Private properties
     
     // MARK: - Init
     
-    init(coreAssembly: CoreAssembly) {
+    init(coreAssembly: CoreAssembly,
+         configurationAssembly: ConfigurationAssembly) {
         self.coreAssembly = coreAssembly
+        self.configurationAssembly = configurationAssembly
     }
     
     // MARK: - Internal
     
     var api: API {
         API(tonAPIClient: tonAPIClient())
-    }
-    
-    var legacyAPI: LegacyAPI {
-        LegacyAPI(urlSession: .shared,
-                  host: apiV1URL,
-                  configurationProvider: DefaultConfigurationProvider())
     }
     
     private var _tonAPIClient: TonAPI.Client?
@@ -43,7 +40,8 @@ final class APIAssembly {
         let tonAPIClient = TonAPI.Client(
             serverURL: tonAPIURL,
             transport: transport,
-            middlewares: [authTokenProvider])
+            middlewares: [apiHostProvider,
+                          authTokenProvider])
         _tonAPIClient = tonAPIClient
         return tonAPIClient
     }
@@ -56,7 +54,8 @@ final class APIAssembly {
         let streamingTonAPIClient = TonStreamingAPI.Client(
             serverURL: tonAPIURL,
             transport: streamingTransport,
-            middlewares: [authTokenProvider])
+            middlewares: [apiHostProvider,
+                          authTokenProvider])
         _streamingTonAPIClient = streamingTonAPIClient
         return streamingTonAPIClient
     }
@@ -86,14 +85,14 @@ final class APIAssembly {
     }
     
     private var authTokenProvider: AuthTokenProvider {
-        AuthTokenProvider()
+        AuthTokenProvider(configurationController: configurationAssembly.configurationController())
+    }
+    
+    private var apiHostProvider: APIHostUrlProvider {
+        APIHostUrlProvider(configurationController: configurationAssembly.configurationController())
     }
     
     var tonAPIURL: URL {
         URL(string: "https://keeper.tonapi.io")!
-    }
-    
-    var apiV1URL: URL {
-        URL(string: "https://api.tonkeeper.com")!
     }
 }

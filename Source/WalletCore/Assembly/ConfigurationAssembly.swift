@@ -10,29 +10,28 @@ import TonAPI
 
 final class ConfigurationAssembly {
     let coreAssembly: CoreAssembly
-    let apiAssembly: APIAssembly
+    let legacyAPIAssembly: LegacyAPIAssembly
     let cacheURL: URL
     
     init(coreAssembly: CoreAssembly,
-         apiAssembly: APIAssembly,
+         legacyAPIAssembly: LegacyAPIAssembly,
          cacheURL: URL) {
         self.coreAssembly = coreAssembly
-        self.apiAssembly = apiAssembly
+        self.legacyAPIAssembly = legacyAPIAssembly
         self.cacheURL = cacheURL
     }
  
     func configurationController() -> ConfigurationController {
-        ConfigurationController(loader: configurationLoader(),
+        ConfigurationController(loader: configurationLoader,
                                 defaultConfigurationProvider: defaultConfigurationProvider(),
                                 cacheConfigurationProvider: cacheConfigurationProvider())
     }
     
+    private lazy var configurationLoader = ConfigurationLoader(api: legacyAPIAssembly.legacyAPI)
 }
 
 private extension ConfigurationAssembly {
-    func configurationLoader() -> ConfigurationLoader {
-        ConfigurationLoader(api: apiAssembly.legacyAPI)
-    }
+    
     
     func defaultConfigurationProvider() -> ConfigurationProvider {
         DefaultConfigurationProvider()

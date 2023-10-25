@@ -29,10 +29,15 @@ public final class Assembly {
     private let formattersAssembly = FormattersAssembly()
     private let validatorsAssembly = ValidatorsAssembly()
     private let deeplinkAssembly = DeeplinkAssembly()
-    private lazy var apiAssembly = APIAssembly(coreAssembly: self.coreAssembly)
+    private lazy var apiAssembly = APIAssembly(
+        coreAssembly: self.coreAssembly,
+        configurationAssembly: self.configurationAssembly
+    )
+    private let legacyApiAssembly = LegacyAPIAssembly()
     private lazy var servicesAssembly = ServicesAssembly(
         coreAssembly: coreAssembly,
         apiAssembly: apiAssembly,
+        legacyApiAssembly: legacyApiAssembly,
         cacheURL: dependencies.cacheURL,
         sharedCacheURL: dependencies.sharedCacheURL
     )
@@ -75,9 +80,9 @@ public final class Assembly {
         servicesAssembly: servicesAssembly
     )
     private let settingsAssembly = SettingsAssembly()
-    private lazy var confifurationAssembly = ConfigurationAssembly(
+    private lazy var configurationAssembly = ConfigurationAssembly(
         coreAssembly: coreAssembly,
-        apiAssembly: apiAssembly,
+        legacyAPIAssembly: legacyApiAssembly,
         cacheURL: dependencies.cacheURL
     )
     private lazy var tokenDetailsAssembly = TokenDetailsAssembly(
@@ -93,6 +98,10 @@ public final class Assembly {
 }
 
 public extension Assembly {
+    var configurationController: ConfigurationController {
+        configurationAssembly.configurationController()
+    }
+    
     var keeperController: KeeperController {
         keeperAssembly.keeperController
     }
@@ -213,7 +222,7 @@ public extension Assembly {
         FiatMethodsController(
             fiatMethodsService: servicesAssembly.fiatMethodsService,
             walletProvider: keeperAssembly.keeperController,
-            configurationController: confifurationAssembly.configurationController()
+            configurationController: configurationAssembly.configurationController()
         )
     }
     

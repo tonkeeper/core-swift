@@ -12,7 +12,7 @@ protocol ConfigurationControllerObserver: AnyObject {
     func configurationControllerDidUpdateConfigutation(_ configurationController: ConfigurationController)
 }
 
-actor ConfigurationController {
+public actor ConfigurationController {
     enum State {
         case none
         case isLoading
@@ -72,7 +72,7 @@ actor ConfigurationController {
         self.cacheConfigurationProvider = cacheConfigurationProvider
     }
     
-    func loadConfiguration() async -> RemoteConfiguration {
+    public func loadConfiguration() async -> RemoteConfiguration {
         do {
             let configuration = try await loader.fetch()
             try? cacheConfigurationProvider.saveConfiguration(configuration)

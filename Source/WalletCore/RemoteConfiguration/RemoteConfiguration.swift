@@ -8,11 +8,11 @@
 import Foundation
 import TonAPI
 
-struct RemoteConfiguration: Equatable {
-    let tonapiV2Endpoint: String
-    let tonapiTestnetHost: String
-    let tonApiV2Key: String
-    let mercuryoSecret: String?
+public struct RemoteConfiguration: Equatable {
+    public let tonapiV2Endpoint: String
+    public let tonapiTestnetHost: String
+    public let tonApiV2Key: String
+    public let mercuryoSecret: String?
     
     enum CodingKeys: String, CodingKey {
         case tonapiV2Endpoint

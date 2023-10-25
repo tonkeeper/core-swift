@@ -11,15 +11,18 @@ import TonAPI
 final class ServicesAssembly {
     let coreAssembly: CoreAssembly
     let apiAssembly: APIAssembly
+    let legacyApiAssembly: LegacyAPIAssembly
     let cacheURL: URL
     let sharedCacheURL: URL
     
     init(coreAssembly: CoreAssembly,
          apiAssembly: APIAssembly,
+         legacyApiAssembly: LegacyAPIAssembly,
          cacheURL: URL,
          sharedCacheURL: URL) {
         self.coreAssembly = coreAssembly
         self.apiAssembly = apiAssembly
+        self.legacyApiAssembly = legacyApiAssembly
         self.cacheURL = cacheURL
         self.sharedCacheURL = sharedCacheURL
     }
@@ -72,7 +75,7 @@ final class ServicesAssembly {
     }
     
     var chartService: ChartService {
-        ChartServiceImplementation(api: apiAssembly.legacyAPI)
+        ChartServiceImplementation(api: legacyApiAssembly.legacyAPI)
     }
     
     var dnsService: DNSService {
@@ -81,7 +84,7 @@ final class ServicesAssembly {
     
     var fiatMethodsService: FiatMethodsService {
         FiatMethodsServiceImplementation(
-            api: apiAssembly.legacyAPI,
+            api: legacyApiAssembly.legacyAPI,
             localRepository: localRepository(cacheURL: cacheURL)
         )
     }
