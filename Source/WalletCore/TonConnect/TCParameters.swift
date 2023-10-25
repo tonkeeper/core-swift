@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TCParameters {
+public struct TCParameters {
     enum Version: String {
         case v2 = "2"
     }

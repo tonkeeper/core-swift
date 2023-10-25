@@ -91,6 +91,7 @@ public final class Assembly {
         keeperAssembly: keeperAssembly,
         apiAssembly: apiAssembly
     )
+    private lazy var tonConnectAssembly = TonConnectAssembly()
     
     public init(dependencies: Dependencies) {
         self.dependencies = dependencies
@@ -215,6 +216,18 @@ public extension Assembly {
             keeperInfoService: servicesAssembly.keeperInfoService,
             fileManager: coreAssembly.fileManager,
             keychainManager: coreAssembly.keychainManager
+        )
+    }
+    
+    func tonConnectDeeplinkProcessor() -> TonConnectDeeplinkProcessor {
+        tonConnectAssembly.tonConnectDeeplinkProcessor()
+    }
+    
+    func tonConnectController(parameters: TCParameters,
+                              manifest: TonConnectManifest) -> TonConnectController {
+        tonConnectAssembly.tonConnectController(
+            parameters: parameters,
+            manifest: manifest
         )
     }
     

@@ -12,8 +12,9 @@ struct TCUrlParser {
         case incorrectUrl
     }
     
-    func parseUrl(_ url: URL) throws -> TCParameters {
+    func parseString(_ string: String) throws -> TCParameters {
         guard
+            let url = URL(string: string),
             let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
             components.scheme == .tcScheme,
             let queryItems = components.queryItems,
