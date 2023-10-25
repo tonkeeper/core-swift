@@ -49,13 +49,11 @@ final class CollectiblesServiceImplementation: CollectiblesService {
     }
     
     func loadCollectibles(addresses: [Address]) async throws -> Collectibles {
-        let request = NFTsBulkRequest(nftsAddresses: addresses.map { $0.toRaw() })
-        let response = try await api.send(request: request)
+        let nfts = try await api.getNftItemsByAddresses(addresses)
         var collectibles = [Address: Collectible]()
-        for item in response.entity.nftItems {
-            guard let collectible = try? Collectible(nftItem: item) else { continue }
-            try? localRepository.save(item: collectible)
-            collectibles[collectible.address] = collectible
+        nfts.forEach {
+            try? localRepository.save(item: $0)
+            collectibles[$0.address] = $0
         }
         return .init(collectibles: collectibles)
     }
@@ -65,21 +63,17 @@ final class CollectiblesServiceImplementation: CollectiblesService {
                           limit: Int,
                           offset: Int,
                           isIndirectOwnership: Bool) async throws -> [Collectible] {
-        let request = AccountNFTsRequest(
-            accountId: address.toRaw(),
-            collection: collectionAddress?.toRaw(),
+        let nfts = try await api.getAccountNftItems(
+            address: address,
+            collectionAddress: collectionAddress,
             limit: limit,
             offset: offset,
             isIndirectOwnership: isIndirectOwnership)
-        let response = try await api.send(request: request)
-        
-        let collectibles = response.entity.nftItems.compactMap { nft -> Collectible? in
-            guard let collectible = try? Collectible(nftItem: nft) else { return nil }
-            try? localRepository.save(item: collectible)
-            return collectible
+        nfts.forEach {
+            try? localRepository.save(item: $0)
         }
 
-        return collectibles
+        return nfts
     }
     
     func getCollectibles() throws -> Collectibles {

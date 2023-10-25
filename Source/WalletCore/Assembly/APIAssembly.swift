@@ -7,79 +7,93 @@
 
 import Foundation
 import TonAPI
+import TonStreamingAPI
+import StreamURLSessionTransport
+import EventSource
+import OpenAPIRuntime
 
 final class APIAssembly {
-    
     let coreAssembly: CoreAssembly
+    
+    // MARK: - Private properties
+    
+    // MARK: - Init
     
     init(coreAssembly: CoreAssembly) {
         self.coreAssembly = coreAssembly
     }
     
-    func tonAPI(requestInterceptors: [RequestInterceptor]) -> API {
-        DefaultAPI(networkClient: networkClient(requestInterceptors: requestInterceptors),
-                   baseURL: tonAPIURL,
-                   responseDecoder: responseDecoder)
+    // MARK: - Internal
+    
+    var api: API {
+        API(tonAPIClient: tonAPIClient())
     }
     
-    func configurationAPI() -> API {
-        DefaultAPI(networkClient: networkClient(requestInterceptors: []),
-                   baseURL: configurationAPIURL,
-                   responseDecoder: responseDecoder)
+    var legacyAPI: LegacyAPI {
+        LegacyAPI(urlSession: .shared,
+                  host: apiV1URL,
+                  configurationProvider: DefaultConfigurationProvider())
     }
     
-    func streamingAPI(requestInterceptors: [RequestInterceptor]) -> StreamingAPI {
-        DefaultStreamingAPI(eventSource: eventSource(requestInterceptors: requestInterceptors),
-                            baseURL: tonAPIURL,
-                            decoder: streamingResponseDecoder)
-    }
-}
-
-private extension APIAssembly {
-    func networkClient(requestInterceptors: [RequestInterceptor]) -> NetworkClient {
-        NetworkClient(httpTransport: transport(),
-                      urlRequestBuilder: urlRequestBuilder,
-                      requestInterceptors: requestInterceptors)
-    }
-
-    func transport() -> HTTPTransport {
-        URLSessionHTTPTransport(urlSessionConfiguration: tonAPIConfiguration)
+    private var _tonAPIClient: TonAPI.Client?
+    func tonAPIClient() -> TonAPI.Client {
+        if let tonAPIClient = _tonAPIClient {
+            return tonAPIClient
+        }
+        let tonAPIClient = TonAPI.Client(
+            serverURL: tonAPIURL,
+            transport: transport,
+            middlewares: [authTokenProvider])
+        _tonAPIClient = tonAPIClient
+        return tonAPIClient
     }
     
-    func eventSource(requestInterceptors: [RequestInterceptor]) -> EventSource {
+    private var _streamingTonAPIClient: TonStreamingAPI.Client?
+    func streamingTonAPIClient() -> TonStreamingAPI.Client {
+        if let streamingTonAPIClient = _streamingTonAPIClient {
+            return streamingTonAPIClient
+        }
+        let streamingTonAPIClient = TonStreamingAPI.Client(
+            serverURL: tonAPIURL,
+            transport: transport,
+            middlewares: [authTokenProvider])
+        _streamingTonAPIClient = streamingTonAPIClient
+        return streamingTonAPIClient
+    }
+    
+    // MARK: - Private
+    
+    private lazy var transport: StreamURLSessionTransport = {
+        StreamURLSessionTransport(urlSessionConfiguration: urlSessionConfiguration)
+    }()
+    
+    private lazy var streamingTransport: StreamURLSessionTransport = {
+        StreamURLSessionTransport(urlSessionConfiguration: streamingUrlSessionConfiguration)
+    }()
+    
+    private var urlSessionConfiguration: URLSessionConfiguration {
         let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = TimeInterval(Int.max)
-        configuration.timeoutIntervalForResource = TimeInterval(Int.max)
-        let transport = URLSessionHTTPTransport(urlSessionConfiguration: configuration)
-        let networkClient = NetworkClient(httpTransport: transport,
-                                          urlRequestBuilder: urlRequestBuilder,
-                                          requestInterceptors: requestInterceptors)
-        return EventSource(networkClient: networkClient)
-    }
-    
-    var tonAPIConfiguration: URLSessionConfiguration {
-        let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = 15
+        configuration.timeoutIntervalForRequest = 20
+        configuration.timeoutIntervalForResource = 20
         return configuration
     }
     
-    var urlRequestBuilder: URLRequestBuilder {
-        URLRequestBuilder()
+    private var streamingUrlSessionConfiguration: URLSessionConfiguration {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = TimeInterval(Int.max)
+        configuration.timeoutIntervalForResource = TimeInterval(Int.max)
+        return configuration
     }
     
-    var responseDecoder: APIResponseDecoder {
-        APIResponseDecoder(jsonDecoder: coreAssembly.decoder)
-    }
-    
-    var streamingResponseDecoder: StreamingAPIDecoder {
-        StreamingAPIDecoder(jsonDecoder: coreAssembly.decoder)
+    private var authTokenProvider: AuthTokenProvider {
+        AuthTokenProvider()
     }
     
     var tonAPIURL: URL {
-        URL(string: "https://tonapi.io")!
+        URL(string: "https://keeper.tonapi.io")!
     }
     
-    var configurationAPIURL: URL {
+    var apiV1URL: URL {
         URL(string: "https://api.tonkeeper.com")!
     }
 }

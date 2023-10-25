@@ -10,103 +10,88 @@ import TonSwift
 import TonAPI
 
 final class SendAssembly {
-    
-    let formattersAssembly: FormattersAssembly
-    let ratesAssembly: RatesAssembly
-    let balanceAssembly: WalletBalanceAssembly
-    let servicesAssembly: ServicesAssembly
     let coreAssembly: CoreAssembly
+    let apiAssembly: APIAssembly
+    let servicesAssembly: ServicesAssembly
+    let keeperAssembly: KeeperAssembly
+    let balanceAssembly: WalletBalanceAssembly
+    let formattersAssembly: FormattersAssembly
+    let cacheURL: URL
     
-    init(formattersAssembly: FormattersAssembly,
-         ratesAssembly: RatesAssembly,
-         balanceAssembly: WalletBalanceAssembly,
+    init(coreAssembly: CoreAssembly,
+         apiAssembly: APIAssembly,
          servicesAssembly: ServicesAssembly,
-         coreAssembly: CoreAssembly) {
-        self.formattersAssembly = formattersAssembly
-        self.ratesAssembly = ratesAssembly
-        self.balanceAssembly = balanceAssembly
-        self.servicesAssembly = servicesAssembly
+         keeperAssembly: KeeperAssembly,
+         balanceAssembly: WalletBalanceAssembly,
+         formattersAssembly: FormattersAssembly,
+         cacheURL: URL) {
         self.coreAssembly = coreAssembly
+        self.apiAssembly = apiAssembly
+        self.servicesAssembly = servicesAssembly
+        self.keeperAssembly = keeperAssembly
+        self.balanceAssembly = balanceAssembly
+        self.formattersAssembly = formattersAssembly
+        self.cacheURL = cacheURL
     }
     
-    func sendInputController(api: API,
-                             cacheURL: URL,
-                             walletProvider: WalletProvider) -> SendInputController {
+    func sendInputController() -> SendInputController {
         return SendInputController(bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter,
                                    amountFormatter: formattersAssembly.amountFormatter,
-                                   ratesService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
-                                   balanceService: balanceAssembly.walletBalanceService(api: api, cacheURL: cacheURL),
+                                   ratesService: servicesAssembly.ratesService,
+                                   balanceService: servicesAssembly.walletBalanceService,
                                    tokenMapper: sendTokenMapper(),
-                                   walletProvider: walletProvider,
+                                   walletProvider: keeperAssembly.keeperController,
                                    rateConverter: RateConverter())
     }
     
-    func tokenSendController(api: API,
-                             cacheURL: URL,
-                             tokenTransferModel: TokenTransferModel,
+    func tokenSendController(tokenTransferModel: TokenTransferModel,
                              recipient: Recipient,
                              comment: String?,
                              walletProvider: WalletProvider,
                              keychainGroup: String) -> SendController {
-        let sendService = sendService(api: api)
         return TokenSendController(
             tokenTransferModel: tokenTransferModel,
             recipient: recipient,
             comment: comment,
             walletProvider: walletProvider,
-            sendService: sendService,
-            rateService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
+            sendService: servicesAssembly.sendService,
+            rateService: servicesAssembly.ratesService,
             sendMessageBuilder: sendMessageBuilder(
                 walletProvider: walletProvider,
                 keychainGroup: keychainGroup,
-                sendService: sendService),
+                sendService: servicesAssembly.sendService),
             intAmountFormatter: formattersAssembly.intAmountFormatter,
             amountFormatter: formattersAssembly.amountFormatter)
     }
     
-    func nftSendController(api: API,
-                           cacheURL: URL,
-                           nftAddress: Address,
+    func nftSendController(nftAddress: Address,
                            recipient: Recipient,
                            comment: String?,
                            walletProvider: WalletProvider,
                            keychainGroup: String) -> SendController {
-        let sendService = sendService(api: api)
         return NFTSendController(
             nftAddress: nftAddress,
             recipient: recipient,
             comment: comment,
             walletProvider: walletProvider,
-            sendService: sendService,
-            rateService: ratesAssembly.ratesService(api: api, cacheURL: cacheURL),
+            sendService: servicesAssembly.sendService,
+            rateService: servicesAssembly.ratesService,
             collectibleService: servicesAssembly.collectiblesService,
             sendMessageBuilder: sendMessageBuilder(
                 walletProvider: walletProvider,
                 keychainGroup: keychainGroup,
-                sendService: sendService),
+                sendService: servicesAssembly.sendService),
             amountFormatter: formattersAssembly.amountFormatter,
             bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
     
-    func sendRecipientController(api: API) -> SendRecipientController {
-        SendRecipientController(domainService: dnsService(api: api),
-                                accountInfoService: accountInfoService(api: api))
+    func sendRecipientController() -> SendRecipientController {
+        SendRecipientController(domainService: servicesAssembly.dnsService,
+                                accountInfoService: servicesAssembly.accountInfoService)
     }
 }
 
 private extension SendAssembly {
-    func sendService(api: API) -> SendService {
-        SendServiceImplementation(api: api)
-    }
-    
-    func dnsService(api: API) -> DNSService {
-        DNSServiceImplementation(api: api)
-    }
-    
-    func accountInfoService(api: API) -> AccountInfoService {
-        AccountInfoServiceImplementation(api: api)
-    }
-    
     func sendTokenMapper() -> SendTokenMapper {
         SendTokenMapper(intAmountFormatter: formattersAssembly.intAmountFormatter,
                         decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,

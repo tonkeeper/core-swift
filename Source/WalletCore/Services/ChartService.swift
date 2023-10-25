@@ -15,18 +15,16 @@ protocol ChartService {
 }
 
 final class ChartServiceImplementation: ChartService {
-    private let api: API
+    private let api: LegacyAPI
     
-    init(api: API) {
+    init(api: LegacyAPI) {
         self.api = api
     }
     
     func loadChartData(period: Period,
                        token: String,
                        currency: Currency) async throws -> [Coordinate] {
-        let request = ChartRequest(period: period.stringValue)
-        let response = try await api.send(request: request)
-        return response.entity.coordinates
+        try await api.loadChart(period: period)
     }
 }
 

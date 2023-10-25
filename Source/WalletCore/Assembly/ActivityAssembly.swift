@@ -9,54 +9,58 @@ import Foundation
 import TonAPI
 
 struct ActivityAssembly {
+    let coreAssembly: CoreAssembly
+    let apiAssembly: APIAssembly
     let servicesAssembly: ServicesAssembly
     let formattersAssembly: FormattersAssembly
-    let coreAssembly: CoreAssembly
+    let keeperAssembly: KeeperAssembly
+    let cacheURL: URL
     
-    init(servicesAssembly: ServicesAssembly,
-         coreAssembly: CoreAssembly,
-         formattersAssembly: FormattersAssembly) {
-        self.servicesAssembly = servicesAssembly
+    init(coreAssembly: CoreAssembly,
+         apiAssembly: APIAssembly,
+         servicesAssembly: ServicesAssembly,
+         formattersAssembly: FormattersAssembly,
+         keeperAssembly: KeeperAssembly,
+         cacheURL: URL) {
         self.coreAssembly = coreAssembly
+        self.apiAssembly = apiAssembly
+        self.servicesAssembly = servicesAssembly
         self.formattersAssembly = formattersAssembly
+        self.keeperAssembly = keeperAssembly
+        self.cacheURL = cacheURL
     }
     
-    func activityListController(api: API,
-                                walletProvider: WalletProvider,
-                                cacheURL: URL) -> ActivityListController {
-        return ActivityListController(activityListLoader: activityListLoader(api: api, cacheURL: cacheURL),
-                                      collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
-                                      walletProvider: walletProvider,
-                                      contractBuilder: WalletContractBuilder(),
-                                      activityEventMapper: activityEventMapper(),
-                                      transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
+    var activityListController: ActivityListController {
+        ActivityListController(
+            activityListLoader: activityListLoader(),
+            collectiblesService: servicesAssembly.collectiblesService,
+            walletProvider: keeperAssembly.keeperController,
+            contractBuilder: WalletContractBuilder(),
+            activityEventMapper: activityEventMapper(),
+            transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )
     }
     
-    func activityListTonEventsController(api: API,
-                                         walletProvider: WalletProvider,
-                                         cacheURL: URL) -> ActivityListController {
-        return ActivityListController(activityListLoader: activityListTonEventsLoader(api: api, cacheURL: cacheURL),
-                                      collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
-                                      walletProvider: walletProvider,
-                                      contractBuilder: WalletContractBuilder(),
-                                      activityEventMapper: activityEventMapper(),
-                                      transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
+    var activityListTonEventsController: ActivityListController {
+        ActivityListController(activityListLoader: activityListTonEventsLoader(),
+                               collectiblesService: servicesAssembly.collectiblesService,
+                               walletProvider: keeperAssembly.keeperController,
+                               contractBuilder: WalletContractBuilder(),
+                               activityEventMapper: activityEventMapper(),
+                               transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )
     }
     
-    func activityListTokenEventsController(api: API,
-                                           walletProvider: WalletProvider,
-                                           cacheURL: URL,
-                                           tokenInfo: TokenInfo) -> ActivityListController {
-        return ActivityListController(activityListLoader: activityListTokenEventsLoader(api: api,
-                                                                                        cacheURL: cacheURL,
-                                                                                        tokenInfo: tokenInfo),
-                                      collectiblesService: collectiblesService(api: api, cacheURL: cacheURL),
-                                      walletProvider: walletProvider,
-                                      contractBuilder: WalletContractBuilder(),
-                                      activityEventMapper: activityEventMapper(),
-                                      transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
+    func activityListTokenEventsController(tokenInfo: TokenInfo) -> ActivityListController {
+        return ActivityListController(
+            activityListLoader: activityListTokenEventsLoader(
+                tokenInfo: tokenInfo
+            ),
+            collectiblesService: servicesAssembly.collectiblesService,
+            walletProvider: keeperAssembly.keeperController,
+            contractBuilder: WalletContractBuilder(),
+            activityEventMapper: activityEventMapper(),
+            transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )
     }
     
@@ -66,40 +70,24 @@ struct ActivityAssembly {
 }
 
 private extension ActivityAssembly {
-    func activityService(api: API, cacheURL: URL) -> ActivityService {
-        ActivityServiceImplementation(api: api)
-    }
-    
-    func collectiblesService(api: API, cacheURL: URL) -> CollectiblesService {
-        CollectiblesServiceImplementation(api: api,
-                                          localRepository: localRepository(cacheURL: cacheURL))
-    }
-    
     func activityEventMapper() -> ActivityEventMapper {
         ActivityEventMapper(dateFormatter: formattersAssembly.dateFormatter,
                             amountFormatter: formattersAssembly.amountFormatter,
                             intAmountFormatter: formattersAssembly.intAmountFormatter)
     }
     
-    func localRepository(cacheURL: URL) -> any LocalRepository<Collectible> {
-        LocalDiskRepository(fileManager: coreAssembly.fileManager,
-                            directory: cacheURL,
-                            encoder: coreAssembly.encoder,
-                            decoder: coreAssembly.decoder)
+    func activityListLoader() -> ActivityListLoader {
+        ActivityListAllEventsLoader(activityService: servicesAssembly.activityService)
     }
     
-    func activityListLoader(api: API, cacheURL: URL) -> ActivityListLoader {
-        ActivityListAllEventsLoader(activityService: activityService(api: api, cacheURL: cacheURL))
+    func activityListTonEventsLoader() -> ActivityListLoader {
+        ActivityListTonEventsLoader(activityService: servicesAssembly.activityService)
     }
     
-    func activityListTonEventsLoader(api: API, cacheURL: URL) -> ActivityListLoader {
-        ActivityListTonEventsLoader(activityService: activityService(api: api, cacheURL: cacheURL))
-    }
-    
-    func activityListTokenEventsLoader(api: API, cacheURL: URL, tokenInfo: TokenInfo) -> ActivityListLoader {
+    func activityListTokenEventsLoader(tokenInfo: TokenInfo) -> ActivityListLoader {
         ActivityListTokenEventsLoader(
             tokenInfo: tokenInfo,
-            activityService: activityService(api: api, cacheURL: cacheURL)
+            activityService: servicesAssembly.activityService
         )
     }
 }

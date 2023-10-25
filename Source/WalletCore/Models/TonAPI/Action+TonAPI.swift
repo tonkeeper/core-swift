@@ -11,19 +11,19 @@ import TonAPI
 import BigInt
 
 extension Action.SimplePreview {
-    init(simplePreview: ActionSimplePreview) throws {
+    init(simplePreview: Components.Schemas.ActionSimplePreview) throws {
         self.name = simplePreview.name
         self.description = simplePreview.description
         self.value = simplePreview.value
         
         var image: URL?
-        if let actionImage = simplePreview.actionImage {
+        if let actionImage = simplePreview.action_image {
             image = URL(string: actionImage)
         }
         self.image = image
         
         var valueImage: URL?
-        if let valueImageString = simplePreview.valueImage {
+        if let valueImageString = simplePreview.value_image {
             valueImage = URL(string: valueImageString)
         }
         self.valueImage = valueImage
@@ -36,7 +36,7 @@ extension Action.SimplePreview {
 }
 
 extension Action.TonTransfer {
-    init(tonTransfer: TonTransferAction) throws {
+    init(tonTransfer: Components.Schemas.TonTransferAction) throws {
         self.sender = try WalletAccount(accountAddress: tonTransfer.sender)
         self.recipient = try WalletAccount(accountAddress: tonTransfer.recipient)
         self.amount = tonTransfer.amount
@@ -45,7 +45,7 @@ extension Action.TonTransfer {
 }
 
 extension Action.JettonTransfer {
-    init(jettonTransfer: JettonTransferAction) throws {
+    init(jettonTransfer: Components.Schemas.JettonTransferAction) throws {
         var sender: WalletAccount?
         var recipient: WalletAccount?
         if let senderAccountAddress = jettonTransfer.sender {
@@ -57,8 +57,8 @@ extension Action.JettonTransfer {
         
         self.sender = sender
         self.recipient = recipient
-        self.senderAddress = try Address.parse(jettonTransfer.sendersWallet)
-        self.recipientAddress = try Address.parse(jettonTransfer.recipientsWallet)
+        self.senderAddress = try Address.parse(jettonTransfer.senders_wallet)
+        self.recipientAddress = try Address.parse(jettonTransfer.recipients_wallet)
         self.amount = BigInt(stringLiteral: jettonTransfer.amount)
         self.tokenInfo = try TokenInfo(jettonPreview: jettonTransfer.jetton)
         self.comment = jettonTransfer.comment
@@ -66,13 +66,13 @@ extension Action.JettonTransfer {
 }
 
 extension Action.ContractDeploy {
-    init(contractDeploy: ContractDeployAction) throws {
+    init(contractDeploy: Components.Schemas.ContractDeployAction) throws {
         self.address = try Address.parse(contractDeploy.address)
     }
 }
 
 extension Action.NFTItemTransfer {
-    init(nftItemTransfer: NFTItemTransferAction) throws {
+    init(nftItemTransfer: Components.Schemas.NftItemTransferAction) throws {
         var sender: WalletAccount?
         var recipient: WalletAccount?
         if let senderAccountAddress = nftItemTransfer.sender {
@@ -91,17 +91,17 @@ extension Action.NFTItemTransfer {
 }
 
 extension Action.Subscription {
-    init(subscription: SubscriptionAction) throws {
+    init(subscription: Components.Schemas.SubscriptionAction) throws {
         self.subscriber = try WalletAccount(accountAddress: subscription.subscriber)
         self.subscriptionAddress = try Address.parse(subscription.subscription)
         self.beneficiary = try WalletAccount(accountAddress: subscription.beneficiary)
         self.amount = subscription.amount
-        self.isInitial = subscription.isInitial
+        self.isInitial = subscription.initial
     }
 }
 
 extension Action.Unsubscription {
-    init(unsubscription: UnSubscriptionAction) throws {
+    init(unsubscription: Components.Schemas.UnSubscriptionAction) throws {
         self.subscriber = try WalletAccount(accountAddress: unsubscription.subscriber)
         self.subscriptionAddress = try Address.parse(unsubscription.subscription)
         self.beneficiary = try WalletAccount(accountAddress: unsubscription.beneficiary)
@@ -109,8 +109,8 @@ extension Action.Unsubscription {
 }
 
 extension Action.AuctionBid {
-    init(auctionBid: AuctionBidAction) throws {
-        self.auctionType = auctionBid.auctionType
+    init(auctionBid: Components.Schemas.AuctionBidAction) throws {
+        self.auctionType = auctionBid.auction_type.rawValue
         self.bidder = try WalletAccount(accountAddress: auctionBid.bidder)
         self.auction = try WalletAccount(accountAddress: auctionBid.auction)
         
@@ -123,8 +123,8 @@ extension Action.AuctionBid {
 }
 
 extension Action.NFTPurchase {
-    init(nftPurchase: NFTPurchaseAction) throws {
-        self.auctionType = nftPurchase.auctionType
+    init(nftPurchase: Components.Schemas.NftPurchaseAction) throws {
+        self.auctionType = nftPurchase.auction_type.rawValue
         self.collectible = try Collectible(nftItem: nftPurchase.nft)
         self.seller = try WalletAccount(accountAddress: nftPurchase.seller)
         self.buyer = try WalletAccount(accountAddress: nftPurchase.buyer)
@@ -133,7 +133,7 @@ extension Action.NFTPurchase {
 }
 
 extension Action.DepositStake {
-    init(depositStake: DepositStakeAction) throws {
+    init(depositStake: Components.Schemas.DepositStakeAction) throws {
         self.amount = depositStake.amount
         self.staker = try WalletAccount(accountAddress: depositStake.staker)
         self.pool = try WalletAccount(accountAddress: depositStake.pool)
@@ -141,7 +141,7 @@ extension Action.DepositStake {
 }
 
 extension Action.WithdrawStake {
-    init(withdrawStake: WithdrawStakeAction) throws {
+    init(withdrawStake: Components.Schemas.WithdrawStakeAction) throws {
         self.amount = withdrawStake.amount
         self.staker = try WalletAccount(accountAddress: withdrawStake.staker)
         self.pool = try WalletAccount(accountAddress: withdrawStake.pool)
@@ -149,7 +149,7 @@ extension Action.WithdrawStake {
 }
 
 extension Action.WithdrawStakeRequest {
-    init(withdrawStakeRequest: WithdrawStakeRequestAction) throws {
+    init(withdrawStakeRequest: Components.Schemas.WithdrawStakeRequestAction) throws {
         self.amount = withdrawStakeRequest.amount
         self.staker = try WalletAccount(accountAddress: withdrawStakeRequest.staker)
         self.pool = try WalletAccount(accountAddress: withdrawStakeRequest.pool)
@@ -157,27 +157,27 @@ extension Action.WithdrawStakeRequest {
 }
 
 extension Action.RecoverStake {
-    init(recoverStake: ElectionsRecoverStakeAction) throws {
+    init(recoverStake: Components.Schemas.ElectionsRecoverStakeAction) throws {
         self.amount = recoverStake.amount
         self.staker = try WalletAccount(accountAddress: recoverStake.staker)
     }
 }
 
 extension Action.JettonSwap {
-    init(jettonSwap: JettonSwapAction) throws {
-        self.dex = jettonSwap.dex
-        self.amountIn = BigInt(stringLiteral: jettonSwap.amountIn)
-        self.amountOut = BigInt(stringLiteral: jettonSwap.amountOut)
-        self.tonIn = jettonSwap.tonIn
-        self.tonOut = jettonSwap.tonOut
-        self.user = try WalletAccount(accountAddress: jettonSwap.userWallet)
+    init(jettonSwap: Components.Schemas.JettonSwapAction) throws {
+        self.dex = jettonSwap.dex.rawValue
+        self.amountIn = BigInt(stringLiteral: jettonSwap.amount_in)
+        self.amountOut = BigInt(stringLiteral: jettonSwap.amount_out)
+        self.tonIn = jettonSwap.ton_in
+        self.tonOut = jettonSwap.ton_out
+        self.user = try WalletAccount(accountAddress: jettonSwap.user_wallet)
         self.router = try WalletAccount(accountAddress: jettonSwap.router)
-        if let jettonMasterIn = jettonSwap.jettonMasterIn {
+        if let jettonMasterIn = jettonSwap.jetton_master_in {
             self.tokenInfoIn = try TokenInfo(jettonPreview: jettonMasterIn)
         } else {
             self.tokenInfoIn = nil
         }
-        if let jettonMasterOut = jettonSwap.jettonMasterOut {
+        if let jettonMasterOut = jettonSwap.jetton_master_out {
             self.tokenInfoOut = try TokenInfo(jettonPreview: jettonMasterOut)
         } else {
             self.tokenInfoOut = nil
@@ -186,28 +186,28 @@ extension Action.JettonSwap {
 }
 
 extension Action.JettonMint {
-    init(jettonMint: JettonMintAction) throws {
+    init(jettonMint: Components.Schemas.JettonMintAction) throws {
         self.recipient = try WalletAccount(accountAddress: jettonMint.recipient)
-        self.recipientsWallet = try Address.parse(jettonMint.recipientsWallet)
+        self.recipientsWallet = try Address.parse(jettonMint.recipients_wallet)
         self.amount = BigInt(stringLiteral: jettonMint.amount)
         self.tokenInfo = try TokenInfo(jettonPreview: jettonMint.jetton)
     }
 }
 
 extension Action.JettonBurn {
-    init(jettonBurn: JettonBurnAction) throws {
+    init(jettonBurn: Components.Schemas.JettonBurnAction) throws {
         self.sender = try WalletAccount(accountAddress: jettonBurn.sender)
-        self.senderWallet = try Address.parse(jettonBurn.sendersWallet)
+        self.senderWallet = try Address.parse(jettonBurn.senders_wallet)
         self.amount = BigInt(stringLiteral: jettonBurn.amount)
         self.tokenInfo = try TokenInfo(jettonPreview: jettonBurn.jetton)
     }
 }
 
 extension Action.SmartContractExec {
-    init(smartContractExec: SmartContractAction) throws {
+    init(smartContractExec: Components.Schemas.SmartContractAction) throws {
         self.executor = try WalletAccount(accountAddress: smartContractExec.executor)
         self.contract = try WalletAccount(accountAddress: smartContractExec.contract)
-        self.tonAttached = smartContractExec.tonAttached
+        self.tonAttached = smartContractExec.ton_attached
         self.operation = smartContractExec.operation
         self.payload = smartContractExec.payload
     }

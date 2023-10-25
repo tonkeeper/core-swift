@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import TonAPI
+import TonStreamingAPI
 import TonSwift
 
 struct TransactionUpdate {
@@ -32,9 +32,9 @@ protocol TransactionsUpdateService {
     func getEventStream() async -> EventStream
 }
 
-
+// TODO: New TONApi Integration
 actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
-    private let streamingAPI: StreamingAPI
+    private let streamingAPI: TonStreamingAPI.Client
     
     private var task: Task<(), Never>?
     private(set) var state: TransactionsUpdateServiceState = .closed(nil) {
@@ -45,35 +45,35 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
     private var stateUpdateObserversContinuations = [UUID: StateUpdateStream.Continuation]()
     private var eventObservsersContinuations = [UUID: EventStream.Continuation]()
     
-    init(streamingAPI: StreamingAPI) {
+    init(streamingAPI: TonStreamingAPI.Client) {
         self.streamingAPI = streamingAPI
     }
     
     func start(addresses: [Address]) {
-        let addressesStrings = addresses.map { $0.toRaw() }
-        let request = TransactionsStreamingRequest(accounts: addressesStrings)
-        let task = Task {
-            do {
-                state = .connecting
-                let (stream, _) = try await streamingAPI.stream(request: request)
-                state = .connected
-                for try await transaction in stream {
-                    guard let accountAddress = try? Address.parse(transaction.accountId) else { continue }
-                    let transactionUpdate = TransactionUpdate(
-                        accountAddress: accountAddress,
-                        lt: transaction.lt,
-                        txHash: transaction.txHash
-                    )
-                    didReceiveTransactionUpdate(transactionUpdate)
-                }
-                guard !Task.isCancelled else { return }
-                start(addresses: addresses)
-            } catch {
-                state = .closed(error)
-            }
-        }
-        
-        self.task = task
+//        let addressesStrings = addresses.map { $0.toRaw() }
+//        let request = TransactionsStreamingRequest(accounts: addressesStrings)
+//        let task = Task {
+//            do {
+//                state = .connecting
+//                let (stream, _) = try await streamingAPI.stream(request: request)
+//                state = .connected
+//                for try await transaction in stream {
+//                    guard let accountAddress = try? Address.parse(transaction.accountId) else { continue }
+//                    let transactionUpdate = TransactionUpdate(
+//                        accountAddress: accountAddress,
+//                        lt: transaction.lt,
+//                        txHash: transaction.txHash
+//                    )
+//                    didReceiveTransactionUpdate(transactionUpdate)
+//                }
+//                guard !Task.isCancelled else { return }
+//                start(addresses: addresses)
+//            } catch {
+//                state = .closed(error)
+//            }
+//        }
+//        
+//        self.task = task
     }
     
     func stop() {

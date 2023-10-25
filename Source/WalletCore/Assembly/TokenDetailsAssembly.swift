@@ -10,53 +10,56 @@ import TonAPI
 
 struct TokenDetailsAssembly {
     let formattersAssembly: FormattersAssembly
+    let servicesAssembly: ServicesAssembly
+    let keeperAssembly: KeeperAssembly
+    let apiAssembly: APIAssembly
     
-    init(formattersAssembly: FormattersAssembly) {
+    init(formattersAssembly: FormattersAssembly,
+         servicesAssembly: ServicesAssembly,
+         keeperAssembly: KeeperAssembly,
+         apiAssembly: APIAssembly) {
         self.formattersAssembly = formattersAssembly
+        self.servicesAssembly = servicesAssembly
+        self.keeperAssembly = keeperAssembly
+        self.apiAssembly = apiAssembly
     }
     
-    func tokenDetailsTonController(ratesService: RatesService,
-                                   balaceService: WalletBalanceService,
-                                   walletProvider: WalletProvider) -> TokenDetailsController {
+    func tokenDetailsTonController() -> TokenDetailsController {
         let tokenDetailsController = TokenDetailsController(
-            tokenDetailsProvider: tokenDetailsTonProvider(ratesService: ratesService),
-            walletProvider: walletProvider,
-            balanceService: balaceService
+            tokenDetailsProvider: tokenDetailsTonProvider(),
+            walletProvider: keeperAssembly.keeperController,
+            balanceService: servicesAssembly.walletBalanceService
         )
         return tokenDetailsController
     }
     
-    func tokenDetailsTokenController(_ tokenInfo: TokenInfo,
-                                     ratesService: RatesService,
-                                     balaceService: WalletBalanceService,
-                                     walletProvider: WalletProvider) -> TokenDetailsController {
+    func tokenDetailsTokenController(_ tokenInfo: TokenInfo) -> TokenDetailsController {
         let tokenDetailsController = TokenDetailsController(
-            tokenDetailsProvider: tokenDetailsTokenProvider(tokenInfo: tokenInfo,
-                                                            ratesService: ratesService),
-            walletProvider: walletProvider,
-            balanceService: balaceService)
+            tokenDetailsProvider: tokenDetailsTokenProvider(
+                tokenInfo: tokenInfo
+            ),
+            walletProvider: keeperAssembly.keeperController,
+            balanceService: servicesAssembly.walletBalanceService)
         return tokenDetailsController
     }
     
-    func chartController(api: API,
-                         ratesService: RatesService) -> ChartController {
-        ChartController(chartService: chartService(api: api),
-                        ratesService: ratesService,
+    func chartController() -> ChartController {
+        ChartController(chartService: servicesAssembly.chartService,
+                        ratesService: servicesAssembly.ratesService,
                         decimalAmountFormatter: formattersAssembly.decimalAmountFormatter)
     }
 }
 
 private extension TokenDetailsAssembly {
-    func tokenDetailsTonProvider(ratesService: RatesService) -> TokenDetailsTonProvider {
+    func tokenDetailsTonProvider() -> TokenDetailsTonProvider {
         TokenDetailsTonProvider(walletItemMapper: walletItemMapper(),
-                                ratesService: ratesService)
+                                ratesService: servicesAssembly.ratesService)
     }
     
-    func tokenDetailsTokenProvider(tokenInfo: TokenInfo,
-                                   ratesService: RatesService) -> TokenDetailsTokenProvider {
+    func tokenDetailsTokenProvider(tokenInfo: TokenInfo) -> TokenDetailsTokenProvider {
         TokenDetailsTokenProvider(tokenInfo: tokenInfo,
                                   walletItemMapper: walletItemMapper(),
-                                  ratesService: ratesService)
+                                  ratesService: servicesAssembly.ratesService)
     }
     
     func walletItemMapper() -> WalletItemMapper {
@@ -66,9 +69,5 @@ private extension TokenDetailsAssembly {
             decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
             rateConverter: RateConverter()
         )
-    }
-    
-    func chartService(api: API) -> ChartService {
-        ChartServiceImplementation(api: api)
     }
 }

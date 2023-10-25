@@ -31,52 +31,29 @@ final class ActivityServiceImplementation: ActivityService {
     func loadEvents(address: Address, 
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents {
-        let request = AccountEventsRequest(
-            accountId: address.toRaw(),
+        try await api.getAccountEvents(
+            address: address,
             beforeLt: beforeLt,
-            limit: limit,
-            startDate: nil,
-            endDate: nil)
-        let response = try await api.send(request: request)
-        
-        let events: [ActivityEvent] = response.entity.events.compactMap {
-            guard let activityEvent = try? ActivityEvent(accountEvent: $0) else { return nil }
-            return activityEvent
-        }
-                
-        return ActivityEvents(events: events, 
-                              startFrom: beforeLt ?? 0,
-                              nextFrom: response.entity.nextFrom)
+            limit: limit
+        )
     }
     
     func loadEvents(address: Address, 
                     tokenInfo: TokenInfo,
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents {
-        let request = AccountJettonHistoryRequest(
-            accountId: address.toRaw(),
-            jettonId: tokenInfo.address.toRaw(),
+        try await api.getAccountJettonEvents(
+            address: address,
+            tokenInfo: tokenInfo,
             beforeLt: beforeLt,
-            limit: limit,
-            startDate: nil,
-            endDate: nil)
-        let response = try await api.send(request: request)
-
-        let events: [ActivityEvent] = response.entity.events.compactMap {
-            guard let activityEvent = try? ActivityEvent(accountEvent: $0) else { return nil }
-            return activityEvent
-        }
-
-        return ActivityEvents(events: events, 
-                              startFrom: beforeLt ?? 0,
-                              nextFrom: response.entity.nextFrom)
+            limit: limit
+        )
     }
     
     func loadEvent(accountAddress: Address, 
                    eventId: String) async throws -> ActivityEvent {
-        let request = AccountEventRequest(accountId: accountAddress.toRaw(), eventId: eventId)
-        let response = try await api.send(request: request)
-        return try ActivityEvent(accountEvent: response.entity)
+        try await api.getEvent(address: accountAddress,
+                               eventId: eventId)
     }
 }
 

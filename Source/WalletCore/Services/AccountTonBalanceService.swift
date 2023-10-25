@@ -22,11 +22,9 @@ final class AccountTonBalanceServiceImplementation: AccountTonBalanceService {
     }
     
     func loadBalance(address: Address) async throws -> TonBalance {
-        let request = AccountRequest(accountId: address.toRaw())
-        let response = try await api.send(request: request)
-
-        let tonAmount = TonAmount(quantity: response.entity.balance)
-        let tonBalance = TonBalance(walletAddress: try .parse(response.entity.address),
+        let account = try await api.getAccountInfo(address: address)
+        let tonAmount = TonAmount(quantity: account.balance)
+        let tonBalance = TonBalance(walletAddress: account.address,
                                     amount: tonAmount)
         return tonBalance
     }

@@ -9,51 +9,85 @@ import Foundation
 import TonAPI
 
 final class ServicesAssembly {
-    let tonAPI: API
-    let tonkeeperAPI: API
-    let streamingAPI: StreamingAPI
     let coreAssembly: CoreAssembly
+    let apiAssembly: APIAssembly
     let cacheURL: URL
     let sharedCacheURL: URL
     
-    init(tonAPI: API, 
-         tonkeeperAPI: API,
-         streamingAPI: StreamingAPI,
-         coreAssembly: CoreAssembly,
+    init(coreAssembly: CoreAssembly,
+         apiAssembly: APIAssembly,
          cacheURL: URL,
          sharedCacheURL: URL) {
-        self.tonAPI = tonAPI
-        self.tonkeeperAPI = tonkeeperAPI
-        self.streamingAPI = streamingAPI
         self.coreAssembly = coreAssembly
+        self.apiAssembly = apiAssembly
         self.cacheURL = cacheURL
         self.sharedCacheURL = sharedCacheURL
-    }
-    
-    var collectiblesService: CollectiblesService {
-        CollectiblesServiceImplementation(
-            api: tonAPI, 
-            localRepository: localRepository(cacheURL: cacheURL)
-        )
-    }
-    
-    var dnsService: DNSService {
-        DNSServiceImplementation(api: tonAPI)
-    }
-    
-    var fiatMethodsService: FiatMethodsService {
-        FiatMethodsServiceImplementation(
-            api: tonkeeperAPI,
-            localRepository: localRepository(cacheURL: cacheURL)
-        )
     }
     
     var keeperInfoService: KeeperInfoService {
         KeeperInfoServiceImplementation(localRepository: localRepository(cacheURL: sharedCacheURL))
     }
+
+    var collectiblesService: CollectiblesService {
+        CollectiblesServiceImplementation(
+            api: apiAssembly.api,
+            localRepository: localRepository(cacheURL: cacheURL)
+        )
+    }
+    
+    var ratesService: RatesService {
+        RatesServiceImplementation(
+            api: apiAssembly.api,
+            localRepository: localRepository(cacheURL: cacheURL)
+        )
+    }
+    
+    var sendService: SendService {
+        SendServiceImplementation(api: apiAssembly.api)
+    }
+    
+    var walletBalanceService: WalletBalanceService {
+        WalletBalanceServiceImplementation(
+            tonBalanceService: tonBalanceService,
+            tokensBalanceService: tokensBalanceService,
+            collectiblesService: collectiblesService,
+            walletContractBuilder: WalletContractBuilder(),
+            localRepository: localRepository(cacheURL: cacheURL))
+    }
+    
+    var tonBalanceService: AccountTonBalanceService {
+        AccountTonBalanceServiceImplementation(api: apiAssembly.api)
+    }
+    
+    var tokensBalanceService: AccountTokensBalanceService {
+        AccountTokensBalanceServiceImplementation(api: apiAssembly.api)
+    }
+    
+    var accountInfoService: AccountInfoService {
+        AccountInfoServiceImplementation(api: apiAssembly.api)
+    }
+    
+    var activityService: ActivityService {
+        ActivityServiceImplementation(api: apiAssembly.api)
+    }
+    
+    var chartService: ChartService {
+        ChartServiceImplementation(api: apiAssembly.legacyAPI)
+    }
+    
+    var dnsService: DNSService {
+        DNSServiceImplementation(api: apiAssembly.api)
+    }
+    
+    var fiatMethodsService: FiatMethodsService {
+        FiatMethodsServiceImplementation(
+            api: apiAssembly.legacyAPI,
+            localRepository: localRepository(cacheURL: cacheURL)
+        )
+    }
     
     lazy var transactionsUpdateService: TransactionsUpdateService = {
-        TransactionsUpdateServiceImplementation(streamingAPI: streamingAPI)
+        TransactionsUpdateServiceImplementation(streamingAPI: apiAssembly.streamingTonAPIClient())
     }()
 }
 

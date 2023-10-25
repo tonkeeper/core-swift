@@ -40,9 +40,9 @@ struct TransferTransactionInfo {
         self.extra = extra
     }
     
-    init(accountEvent: AccountEvent,
-         risk: Risk,
-         transaction: Transaction) {
+    init(accountEvent: Components.Schemas.AccountEvent,
+         risk: Components.Schemas.Risk,
+         transaction: Components.Schemas.Transaction) {
         // TBD: When tonapi v2 will be fixed and in action will be correct jetton information - remove getting jetton info from Risk
         let actions = accountEvent.actions.compactMap { eventAction -> Action? in
             let type: ActionType
@@ -51,18 +51,18 @@ struct TransferTransactionInfo {
             let name: String
             let comment: String?
             
-            if let tonTransferAction = eventAction.tonTransfer {
+            if let tonTransferAction = eventAction.TonTransfer {
                 type = .tonTransfer
                 let amount = BigInt(integerLiteral: tonTransferAction.amount)
                 transferModel = .token(TokenTransferModel(transferItem: .ton, amount: amount))
                 recipient = Recipient(address: try? Address.parse(tonTransferAction.recipient.address),
                                       name: tonTransferAction.recipient.name)
-                name = eventAction.simplePreview.name
+                name = eventAction.simple_preview.name
                 comment = tonTransferAction.comment
-            } else if let jettonTransferAction = eventAction.jettonTransfer,
+            } else if let jettonTransferAction = eventAction.JettonTransfer,
                       let riskJettonPreview = risk.jettons.first?.jetton,
                       let tokenInfo = try? TokenInfo(jettonPreview: riskJettonPreview),
-                      let tokenWalletAddress = try? Address.parse(jettonTransferAction.recipientsWallet)  {
+                      let tokenWalletAddress = try? Address.parse(jettonTransferAction.recipients_wallet)  {
                 type = .jettonTransfer
                 let amount = BigInt(stringLiteral: jettonTransferAction.amount)
                 transferModel = .token(
@@ -74,16 +74,16 @@ struct TransferTransactionInfo {
                 )
                 recipient = Recipient(address: try? Address.parse(jettonTransferAction.recipient?.address ?? ""),
                                       name: jettonTransferAction.recipient?.name)
-                name = eventAction.simplePreview.name
+                name = eventAction.simple_preview.name
                 comment = jettonTransferAction.comment
-            } else if let nftItemTransfer = eventAction.nftItemTransfer,
+            } else if let nftItemTransfer = eventAction.NftItemTransfer,
                       let nftAddress = try? Address.parse(nftItemTransfer.nft),
                       let recipientAccountAddress = nftItemTransfer.recipient {
                 type = .nftTransfer
                 transferModel = .nft(nftAddress: nftAddress)
                 recipient = Recipient(address: try? Address.parse(recipientAccountAddress.address),
                                       name: recipientAccountAddress.name)
-                name = eventAction.simplePreview.name
+                name = eventAction.simple_preview.name
                 comment = nftItemTransfer.comment
             } else {
                 return nil
@@ -97,7 +97,7 @@ struct TransferTransactionInfo {
         }
         
         self.actions = actions
-        self.fee = transaction.totalFees
+        self.fee = transaction.total_fees
         self.extra = accountEvent.extra
     }
 }

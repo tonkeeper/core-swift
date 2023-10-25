@@ -30,33 +30,10 @@ actor RatesServiceImplementation: RatesService {
     }
     
     func loadRates(tonInfo: TonInfo, tokens: [TokenInfo], currencies: [Currency]) async throws -> Rates {
-        let requestTokens: [String] = [tonInfo.symbol.lowercased()] + tokens.map { $0.address.toRaw() }
-        let requestCurrencies = currencies.map { $0.code }
-        
-        let request = RatesRequest(tokens: requestTokens, currencies: requestCurrencies)
-        let response = try await api.send(request: request)
-        
-        let responseRates = response.entity.tokensRates
-        
-        var tonRates = [Rates.Rate]()
-        var tokensRates = [Rates.TokenRate]()
-        for responseRate in responseRates {
-            if responseRate.key.lowercased() == tonInfo.symbol.lowercased() {
-                tonRates = responseRate.rates.compactMap {
-                    guard let currrency = Currency(rawValue: $0.code) else { return nil }
-                    return Rates.Rate(currency: currrency, rate: $0.rate)
-                }
-                continue
-            }
-            guard let tokenInfo = tokens.first(where: { $0.address.toRaw() == responseRate.key }) else { continue }
-            let rates: [Rates.Rate] = responseRate.rates.compactMap {
-                guard let currrency = Currency(rawValue: $0.code) else { return nil }
-                return Rates.Rate(currency: currrency, rate: $0.rate)
-            }
-            tokensRates.append(.init(tokenInfo: tokenInfo, rates: rates))
-        }
-        
-        let rates = Rates(ton: tonRates, tokens: tokensRates)
+        let rates = try await api.getRates(
+            tonInfo: tonInfo,
+            tokens: tokens,
+            currencies: currencies)
         updateCache(with: rates)
         return rates
     }

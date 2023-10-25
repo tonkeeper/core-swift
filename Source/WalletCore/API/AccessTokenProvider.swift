@@ -7,30 +7,20 @@
 
 import Foundation
 import TonAPI
+import OpenAPIRuntime
+import HTTPTypes
 
-final class AccessTokenProvider: RequestInterceptor {
-    
-    // MARK: - Dependencies
-    
-    private let configurationController: ConfigurationController
-
-    // MARK: - Init
-    
-    init(configurationController: ConfigurationController) {
-        self.configurationController = configurationController
+// TODO: Get from config
+final class AuthTokenProvider: ClientMiddleware {
+    func intercept(_ request: HTTPTypes.HTTPRequest,
+                   body: OpenAPIRuntime.HTTPBody?,
+                   baseURL: URL,
+                   operationID: String,
+                   next: @Sendable (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, URL)
+                   async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?))
+    async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+        var mutableRequest = request
+        mutableRequest.headerFields.append(.init(name: .authorization, value: "Bearer AF77F5JNEUSNXPQAAAAMDXXG7RBQ3IRP6PC2HTHL4KYRWMZYOUQGDEKYFDKBETZ6FDVZJBI"))
+        return try await next(mutableRequest, body, baseURL)
     }
-    
-    // MARK: - RequestInterceptor
-    
-    func intercept(request: Request) async throws -> Request {
-        var request = request
-        let configuration = await configurationController.configuration
-        request.headers.append(.init(name: .authorizatioName, value: "\(String.bearer) \(configuration.tonApiV2Key)"))
-        return request
-    }
-}
-
-private extension String {
-    static let authorizatioName = "Authorization"
-    static let bearer = "Bearer"
 }

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Collectible+TonAPI.swift
 //  
 //
 //  Created by Grigory on 4.8.23..
@@ -17,7 +17,7 @@ extension Collectible {
         case size1500 = "1500x1500"
     }
     
-    init(nftItem: NFTItem) throws {
+    init(nftItem: Components.Schemas.NftItem) throws {
         let address = try Address.parse(nftItem.address)
         var owner: WalletAccount?
         var name: String?
@@ -25,39 +25,38 @@ extension Collectible {
         var description: String?
         var collection: Collection?
         
-        if let ownerAccountAddress = nftItem.owner, let ownerWalletAccount = try? WalletAccount(accountAddress: ownerAccountAddress) {
+        if let ownerAccountAddress = nftItem.owner,
+            let ownerWalletAccount = try? WalletAccount(accountAddress: ownerAccountAddress) {
             owner = ownerWalletAccount
         }
         
-        if case let .string(string) = nftItem.metadata["name"] {
-            name = string
-        }
-        if case let .string(string) = nftItem.metadata["image"] {
-            imageURL = URL(string: string)
-        }
-        if case let .string(string) = nftItem.metadata["description"] {
-            description = string
-        }
-        
+        let metadata = nftItem.metadata.additionalProperties.value as [String: AnyObject]
+        name = metadata["name"] as? String
+        imageURL = (metadata["image"] as? String).flatMap { URL(string: $0) }
+        description = metadata["description"] as? String
+
         var attributes = [Attribute]()
-        if case let .array(nftAttributes) = nftItem.metadata["attributes"] {
-            attributes = nftAttributes
-                .compactMap { json -> [String: AnyJSON]? in
-                    guard case let .object(attribute) = json else { return nil }
-                    return attribute
-                }
+        if let attributesValue = (metadata["attributes"] as? [AnyObject]) {
+            attributes = attributesValue
+                .compactMap { $0 as? [String: AnyObject] }
                 .compactMap { attributeObject -> Attribute? in
-                    guard case let .string(key) = attributeObject["trait_type"] else { return nil}
-                    let value: String
+                    guard let key = attributeObject["trait_type"] as? String else { return nil }
+                    let attributeValue: String
                     switch attributeObject["value"] {
-                    case .string(let stringValue):
-                        value = stringValue
-                    case .number(let numberValue):
-                        value = String(numberValue)
-                    default:
-                        value = "-"
+                    case .none: return nil
+                    case .some(let value):
+                        switch value {
+                        case let stringValue as String:
+                            attributeValue = stringValue
+                        case let intValue as Int:
+                            attributeValue = String(intValue)
+                        case let doubleValue as Int:
+                            attributeValue = String(doubleValue)
+                        default:
+                            attributeValue = "-"
+                        }
                     }
-                    return Attribute(key: key, value: value)
+                    return Attribute(key: key, value: attributeValue)
                 }
         }
 
@@ -95,7 +94,7 @@ extension Collectible {
         self.sale = sale
     }
     
-    static private func mapPreviews(_ previews: [ImagePreview]?) -> Preview {
+    static private func mapPreviews(_ previews: [Components.Schemas.ImagePreview]?) -> Preview {
         var size5: URL?
         var size100: URL?
         var size500: URL?
