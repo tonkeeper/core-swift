@@ -8,8 +8,8 @@
 import Foundation
 
 struct DeeplinkAssembly {
-    var deeplinkParser: DeeplinkParser {
-        DeeplinkParser()
+    func deeplinkParser(handlers: [DeeplinkHandler]) -> DeeplinkParser {
+        DeeplinkParser(handlers: handlers)
     }
     
     var deeplinkGenerator: DeeplinkGenerator {

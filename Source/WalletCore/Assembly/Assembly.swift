@@ -91,6 +91,12 @@ public final class Assembly {
         keeperAssembly: keeperAssembly,
         apiAssembly: apiAssembly
     )
+    private lazy var tonConnectAssembly = TonConnectAssembly(
+        coreAssembly: coreAssembly,
+        apiAssembly: apiAssembly,
+        keeperAssembly: keeperAssembly,
+        keychainGroup: dependencies.sharedKeychainGroup
+    )
     
     public init(dependencies: Dependencies) {
         self.dependencies = dependencies
@@ -218,6 +224,18 @@ public extension Assembly {
         )
     }
     
+    func tonConnectDeeplinkProcessor() -> TonConnectDeeplinkProcessor {
+        tonConnectAssembly.tonConnectDeeplinkProcessor()
+    }
+    
+    func tonConnectController(parameters: TCParameters,
+                              manifest: TonConnectManifest) -> TonConnectController {
+        tonConnectAssembly.tonConnectController(
+            parameters: parameters,
+            manifest: manifest
+        )
+    }
+    
     func fiatMethodsController() -> FiatMethodsController {
         FiatMethodsController(
             fiatMethodsService: servicesAssembly.fiatMethodsService,
@@ -226,8 +244,16 @@ public extension Assembly {
         )
     }
     
-    func deeplinkParser() -> DeeplinkParser {
-        deeplinkAssembly.deeplinkParser
+    func deeplinkParser(handlers: [DeeplinkHandler]) -> DeeplinkParser {
+        deeplinkAssembly.deeplinkParser(handlers: handlers)
+    }
+    
+    var tonDeeplinkHandler: DeeplinkHandler {
+        TonDeeplinkHandler()
+    }
+    
+    var tonConnectDeeplinkHandler: DeeplinkHandler {
+        TonConnectDeeplinkHandler()
     }
     
     func deeplinkGenerator() -> DeeplinkGenerator {
