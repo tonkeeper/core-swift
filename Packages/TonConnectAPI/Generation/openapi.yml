@@ -1,0 +1,61 @@
+openapi: 3.0.2
+info:
+  title: TonConnect
+  version: 1.0.0
+servers:
+  - url: "https://bridge.tonapi.io/bridge/"
+paths:
+  /events:
+    get:
+      operationId: events
+      parameters:
+        - $ref: '#/components/parameters/clientIdsParameter'
+        - name: last_event_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                format: binary
+  /message:
+    post:
+      operationId: message
+      parameters:
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              contentEncoding: base64
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+components:
+  schemas:
+    MessageResponse:
+      type: object
+      properties:
+        next_from:
+          type: string
+  parameters:
+    clientIdsParameter:
+      in: query
+      name: clientIds
+      required: true
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
