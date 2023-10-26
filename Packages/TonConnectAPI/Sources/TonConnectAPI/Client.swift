@@ -94,6 +94,27 @@ public struct Client: APIProtocol {
                 let path = try converter.renderedPath(template: "/message", parameters: [])
                 var request: HTTPTypes.HTTPRequest = .init(soar_path: path, method: .post)
                 suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "client_id",
+                    value: input.query.client_id
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "to",
+                    value: input.query.to
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "ttl",
+                    value: input.query.ttl
+                )
                 converter.setAcceptHeader(in: &request.headerFields, contentTypes: input.headers.accept)
                 let body: OpenAPIRuntime.HTTPBody?
                 switch input.body {
@@ -110,20 +131,34 @@ public struct Client: APIProtocol {
                 switch response.status.code {
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.message.Output.Ok.Body
+                    let body: Components.Responses.Response.Body
                     if try contentType == nil
-                        || converter.isMatchingContentType(received: contentType, expectedRaw: "text/plain")
+                        || converter.isMatchingContentType(received: contentType, expectedRaw: "application/json")
                     {
-                        body = try converter.getResponseBodyAsBinary(
-                            OpenAPIRuntime.HTTPBody.self,
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Responses.Response.Body.jsonPayload.self,
                             from: responseBody,
-                            transforming: { value in .plainText(value) }
+                            transforming: { value in .json(value) }
                         )
                     } else {
                         throw converter.makeUnexpectedContentTypeError(contentType: contentType)
                     }
                     return .ok(.init(body: body))
-                default: return .undocumented(statusCode: response.status.code, .init())
+                default:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Components.Responses.Response.Body
+                    if try contentType == nil
+                        || converter.isMatchingContentType(received: contentType, expectedRaw: "application/json")
+                    {
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Responses.Response.Body.jsonPayload.self,
+                            from: responseBody,
+                            transforming: { value in .json(value) }
+                        )
+                    } else {
+                        throw converter.makeUnexpectedContentTypeError(contentType: contentType)
+                    }
+                    return .`default`(statusCode: response.status.code, .init(body: body))
                 }
             }
         )

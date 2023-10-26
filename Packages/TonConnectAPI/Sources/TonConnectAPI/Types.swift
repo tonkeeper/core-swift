@@ -27,41 +27,81 @@ extension APIProtocol {
     { try await events(Operations.events.Input(query: query, headers: headers)) }
     /// - Remark: HTTP `POST /message`.
     /// - Remark: Generated from `#/paths//message/post(message)`.
-    public func message(headers: Operations.message.Input.Headers = .init(), body: Operations.message.Input.Body)
-        async throws -> Operations.message.Output
-    { try await message(Operations.message.Input(headers: headers, body: body)) }
+    public func message(
+        query: Operations.message.Input.Query,
+        headers: Operations.message.Input.Headers = .init(),
+        body: Operations.message.Input.Body
+    ) async throws -> Operations.message.Output {
+        try await message(Operations.message.Input(query: query, headers: headers, body: body))
+    }
 }
 /// Server URLs defined in the OpenAPI document.
 public enum Servers {
     public static func server1() throws -> Foundation.URL {
-        try Foundation.URL(validatingOpenAPIServerURL: "https://bridge.tonapi.io/bridge/")
+        try Foundation.URL(validatingOpenAPIServerURL: "https://bridge.tonapi.io/bridge")
     }
 }
 /// Types generated from the components section of the OpenAPI document.
 public enum Components {
     /// Types generated from the `#/components/schemas` section of the OpenAPI document.
-    public enum Schemas {
-        /// - Remark: Generated from `#/components/schemas/MessageResponse`.
-        public struct MessageResponse: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/MessageResponse/next_from`.
-            public var next_from: Swift.String?
-            /// Creates a new `MessageResponse`.
-            ///
-            /// - Parameters:
-            ///   - next_from:
-            public init(next_from: Swift.String? = nil) { self.next_from = next_from }
-            public enum CodingKeys: String, CodingKey { case next_from }
-        }
-    }
+    public enum Schemas {}
     /// Types generated from the `#/components/parameters` section of the OpenAPI document.
     public enum Parameters {
         /// - Remark: Generated from `#/components/parameters/clientIdsParameter`.
         public typealias clientIdsParameter = [Swift.String]
+        /// - Remark: Generated from `#/components/parameters/toParameter`.
+        public typealias toParameter = [Swift.String]
     }
     /// Types generated from the `#/components/requestBodies` section of the OpenAPI document.
     public enum RequestBodies {}
     /// Types generated from the `#/components/responses` section of the OpenAPI document.
-    public enum Responses {}
+    public enum Responses {
+        public struct Response: Sendable, Hashable {
+            /// - Remark: Generated from `#/components/responses/Response/content`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/components/responses/Response/content/json`.
+                public struct jsonPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/responses/Response/content/json/message`.
+                    public var message: Swift.String
+                    /// - Remark: Generated from `#/components/responses/Response/content/json/statusCode`.
+                    public var statusCode: Swift.Int64
+                    /// Creates a new `jsonPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - message:
+                    ///   - statusCode:
+                    public init(message: Swift.String, statusCode: Swift.Int64) {
+                        self.message = message
+                        self.statusCode = statusCode
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case message
+                        case statusCode
+                    }
+                }
+                /// - Remark: Generated from `#/components/responses/Response/content/application\/json`.
+                case json(Components.Responses.Response.Body.jsonPayload)
+                /// The associated value of the enum case if `self` is `.json`.
+                ///
+                /// - Throws: An error if `self` is not `.json`.
+                /// - SeeAlso: `.json`.
+                public var json: Components.Responses.Response.Body.jsonPayload {
+                    get throws {
+                        switch self {
+                        case let .json(body): return body
+                        }
+                    }
+                }
+            }
+            /// Received HTTP response body
+            public var body: Components.Responses.Response.Body
+            /// Creates a new `Response`.
+            ///
+            /// - Parameters:
+            ///   - body: Received HTTP response body
+            public init(body: Components.Responses.Response.Body) { self.body = body }
+        }
+    }
     /// Types generated from the `#/components/headers` section of the OpenAPI document.
     public enum Headers {}
 }
@@ -184,6 +224,27 @@ public enum Operations {
     public enum message {
         public static let id: Swift.String = "message"
         public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/message/POST/query`.
+            public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/message/POST/query/client_id`.
+                public var client_id: Swift.String
+                /// - Remark: Generated from `#/paths/message/POST/query/to`.
+                public var to: Swift.String
+                /// - Remark: Generated from `#/paths/message/POST/query/ttl`.
+                public var ttl: Swift.Int64
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - client_id:
+                ///   - to:
+                ///   - ttl:
+                public init(client_id: Swift.String, to: Swift.String, ttl: Swift.Int64) {
+                    self.client_id = client_id
+                    self.to = to
+                    self.ttl = ttl
+                }
+            }
+            public var query: Operations.message.Input.Query
             /// - Remark: Generated from `#/paths/message/POST/header`.
             public struct Headers: Sendable, Hashable {
                 public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.message.AcceptableContentType>]
@@ -206,50 +267,31 @@ public enum Operations {
             /// Creates a new `Input`.
             ///
             /// - Parameters:
+            ///   - query:
             ///   - headers:
             ///   - body:
-            public init(headers: Operations.message.Input.Headers = .init(), body: Operations.message.Input.Body) {
+            public init(
+                query: Operations.message.Input.Query,
+                headers: Operations.message.Input.Headers = .init(),
+                body: Operations.message.Input.Body
+            ) {
+                self.query = query
                 self.headers = headers
                 self.body = body
             }
         }
         @frozen public enum Output: Sendable, Hashable {
-            public struct Ok: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/message/POST/responses/200/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/message/POST/responses/200/content/text\/plain`.
-                    case plainText(OpenAPIRuntime.HTTPBody)
-                    /// The associated value of the enum case if `self` is `.plainText`.
-                    ///
-                    /// - Throws: An error if `self` is not `.plainText`.
-                    /// - SeeAlso: `.plainText`.
-                    public var plainText: OpenAPIRuntime.HTTPBody {
-                        get throws {
-                            switch self {
-                            case let .plainText(body): return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.message.Output.Ok.Body
-                /// Creates a new `Ok`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.message.Output.Ok.Body) { self.body = body }
-            }
             /// OK
             ///
             /// - Remark: Generated from `#/paths//message/post(message)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.message.Output.Ok)
+            case ok(Components.Responses.Response)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            public var ok: Operations.message.Output.Ok {
+            public var ok: Components.Responses.Response {
                 get throws {
                     switch self {
                     case let .ok(response): return response
@@ -257,27 +299,41 @@ public enum Operations {
                     }
                 }
             }
-            /// Undocumented response.
+            /// OK
             ///
-            /// A response with a code that is not documented in the OpenAPI document.
-            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+            /// - Remark: Generated from `#/paths//message/post(message)/responses/default`.
+            ///
+            /// HTTP response code: `default`.
+            case `default`(statusCode: Swift.Int, Components.Responses.Response)
+            /// The associated value of the enum case if `self` is `.`default``.
+            ///
+            /// - Throws: An error if `self` is not `.`default``.
+            /// - SeeAlso: `.`default``.
+            public var `default`: Components.Responses.Response {
+                get throws {
+                    switch self {
+                    case let .`default`(_, response): return response
+                    default: try throwUnexpectedResponseStatus(expectedStatus: "default", response: self)
+                    }
+                }
+            }
         }
         @frozen public enum AcceptableContentType: AcceptableProtocol {
-            case plainText
+            case json
             case other(Swift.String)
             public init?(rawValue: Swift.String) {
                 switch rawValue.lowercased() {
-                case "text/plain": self = .plainText
+                case "application/json": self = .json
                 default: self = .other(rawValue)
                 }
             }
             public var rawValue: Swift.String {
                 switch self {
                 case let .other(string): return string
-                case .plainText: return "text/plain"
+                case .json: return "application/json"
                 }
             }
-            public static var allCases: [Self] { [.plainText] }
+            public static var allCases: [Self] { [.json] }
         }
     }
 }
