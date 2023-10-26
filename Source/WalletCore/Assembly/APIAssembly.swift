@@ -8,6 +8,7 @@
 import Foundation
 import TonAPI
 import TonStreamingAPI
+import TonConnectAPI
 import StreamURLSessionTransport
 import EventSource
 import OpenAPIRuntime
@@ -60,6 +61,19 @@ final class APIAssembly {
         return streamingTonAPIClient
     }
     
+    private var _tonConnectAPIClient: TonConnectAPI.Client?
+    func tonConnectAPIClient() -> TonConnectAPI.Client {
+        if let tonConnectAPIClient = _tonConnectAPIClient {
+            return tonConnectAPIClient
+        }
+        let tonConnectAPIClient = TonConnectAPI.Client(
+            serverURL: (try? TonConnectAPI.Servers.server1()) ?? tonConnectURL,
+            transport: streamingTransport,
+            middlewares: [])
+        _tonConnectAPIClient = tonConnectAPIClient
+        return tonConnectAPIClient
+    }
+    
     // MARK: - Private
     
     private lazy var transport: StreamURLSessionTransport = {
@@ -94,5 +108,9 @@ final class APIAssembly {
     
     var tonAPIURL: URL {
         URL(string: "https://keeper.tonapi.io")!
+    }
+    
+    var tonConnectURL: URL {
+        URL(string: "https://bridge.tonapi.io/bridge")!
     }
 }

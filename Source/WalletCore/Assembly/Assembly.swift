@@ -91,7 +91,12 @@ public final class Assembly {
         keeperAssembly: keeperAssembly,
         apiAssembly: apiAssembly
     )
-    private lazy var tonConnectAssembly = TonConnectAssembly()
+    private lazy var tonConnectAssembly = TonConnectAssembly(
+        coreAssembly: coreAssembly,
+        apiAssembly: apiAssembly,
+        keeperAssembly: keeperAssembly,
+        keychainGroup: dependencies.sharedKeychainGroup
+    )
     
     public init(dependencies: Dependencies) {
         self.dependencies = dependencies

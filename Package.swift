@@ -13,7 +13,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/tonkeeper/ton-swift", branch: "feature/nft_transfer"),
-        .package(url: "https://github.com/tonkeeper/ton-api-swift", from: "0.1.1")
+        .package(url: "https://github.com/tonkeeper/ton-api-swift", from: "0.1.1"),
+        .package(path: "./Packages/TonConnectAPI")
     ],
     targets: [
         .target(
@@ -23,7 +24,8 @@ let package = Package(
                 .product(name: "TonAPI", package: "ton-api-swift"),
                 .product(name: "TonStreamingAPI", package: "ton-api-swift"),
                 .product(name: "StreamURLSessionTransport", package: "ton-api-swift"),
-                .product(name: "EventSource", package: "ton-api-swift")
+                .product(name: "EventSource", package: "ton-api-swift"),
+                .product(name: "TonConnectAPI", package: "TonConnectAPI")
             ],
             resources: [.copy("PackageResources")]),
         .testTarget(

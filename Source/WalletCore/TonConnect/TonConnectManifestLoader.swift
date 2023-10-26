@@ -13,6 +13,10 @@ public struct TonConnectManifest: Decodable {
     let iconUrl: URL?
     let termsOfUseUrl: URL?
     let privacyPolicyUrl: URL?
+    
+    var host: String {
+        url.host ?? ""
+    }
 }
 
 struct TonConnectManifestLoader {

@@ -8,6 +8,21 @@
 import Foundation
 
 struct TonConnectAssembly {
+    private let coreAssembly: CoreAssembly
+    private let apiAssembly: APIAssembly
+    private let keeperAssembly: KeeperAssembly
+    private let keychainGroup: String
+    
+    init(coreAssembly: CoreAssembly,
+         apiAssembly: APIAssembly,
+         keeperAssembly: KeeperAssembly,
+         keychainGroup: String) {
+        self.coreAssembly = coreAssembly
+        self.apiAssembly = apiAssembly
+        self.keeperAssembly = keeperAssembly
+        self.keychainGroup = keychainGroup
+    }
+    
     func tonConnectDeeplinkProcessor() -> TonConnectDeeplinkProcessor {
         TonConnectDeeplinkProcessor(manifestLoader: manifestLoader)
     }
@@ -16,7 +31,11 @@ struct TonConnectAssembly {
                               manifest: TonConnectManifest) -> TonConnectController {
         TonConnectController(
             parameters: parameters,
-            manifest: manifest
+            manifest: manifest,
+            apiClient: apiAssembly.tonConnectAPIClient(),
+            walletProvider: keeperAssembly.keeperController,
+            keychainManager: coreAssembly.keychainManager,
+            keychainGroup: keychainGroup
         )
     }
 }
