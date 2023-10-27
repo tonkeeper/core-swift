@@ -18,8 +18,8 @@ public struct TonConnectDeeplinkProcessor {
         self.manifestLoader = manifestLoader
     }
     
-    public func processDeeplink(_ deeplink: TonConnectDeeplink) async throws -> (TCParameters, TonConnectManifest) {
-        let parameters = try TCUrlParser().parseString(deeplink.string)
+    public func processDeeplink(_ deeplink: TonConnectDeeplink) async throws -> (TonConnectParameters, TonConnectManifest) {
+        let parameters = try TonConnectUrlParser().parseString(deeplink.string)
         do {
             let manifest = try await manifestLoader
                 .loadManifest(manifestURL: parameters.requestPayload.manifestUrl)

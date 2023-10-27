@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TonConnectAssembly {
+final class TonConnectAssembly {
     private let coreAssembly: CoreAssembly
     private let apiAssembly: APIAssembly
     private let keeperAssembly: KeeperAssembly
@@ -27,17 +27,27 @@ struct TonConnectAssembly {
         TonConnectDeeplinkProcessor(manifestLoader: manifestLoader)
     }
     
-    func tonConnectController(parameters: TCParameters,
+    func tonConnectController(parameters: TonConnectParameters,
                               manifest: TonConnectManifest) -> TonConnectController {
-        TonConnectController(
+        let controller = TonConnectController(
             parameters: parameters,
             manifest: manifest,
             apiClient: apiAssembly.tonConnectAPIClient(),
             walletProvider: keeperAssembly.keeperController,
+            appsVault: appsVault,
             keychainManager: coreAssembly.keychainManager,
             keychainGroup: keychainGroup
         )
+        Task { await controller.addObserver(tonConnectEventsDaemon) }
+        return controller
     }
+    
+    lazy var tonConnectEventsDaemon: TonConnectEventsDaemon = {
+        TonConnectEventsDaemon(
+            walletProvider: keeperAssembly.keeperController,
+            appsVault: appsVault,
+            apiClient: apiAssembly.tonConnectAPIClient())
+    }()
 }
 
 private extension TonConnectAssembly {
@@ -54,5 +64,12 @@ private extension TonConnectAssembly {
         configuration.timeoutIntervalForRequest = 60
         configuration.timeoutIntervalForResource = 60
         return configuration
+    }
+    
+    var appsVault: TonConnectAppsVault {
+        TonConnectAppsVault(
+            keychainManager: coreAssembly.keychainManager,
+            keychainGroup: keychainGroup
+        )
     }
 }

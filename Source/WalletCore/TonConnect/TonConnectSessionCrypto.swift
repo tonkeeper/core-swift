@@ -11,7 +11,6 @@ import TonSwift
 
 struct TonConnectSessionCrypto {
     public let sessionId: String
-    
     public let keyPair: KeyPair
     
     init() throws {

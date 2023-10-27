@@ -228,12 +228,16 @@ public extension Assembly {
         tonConnectAssembly.tonConnectDeeplinkProcessor()
     }
     
-    func tonConnectController(parameters: TCParameters,
+    func tonConnectController(parameters: TonConnectParameters,
                               manifest: TonConnectManifest) -> TonConnectController {
         tonConnectAssembly.tonConnectController(
             parameters: parameters,
             manifest: manifest
         )
+    }
+    
+    func tonConnectEventsDaemon() -> TonConnectEventsDaemon {
+        tonConnectAssembly.tonConnectEventsDaemon
     }
     
     func fiatMethodsController() -> FiatMethodsController {

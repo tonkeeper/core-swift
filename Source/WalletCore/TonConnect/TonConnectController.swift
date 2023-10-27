@@ -9,7 +9,17 @@ import Foundation
 import TonSwift
 import TonConnectAPI
 
+protocol TonConnectControllerObserver: AnyObject {
+    func tonConnectControllerDidUpdateApps(_ controller: TonConnectController)
+}
+
 public actor TonConnectController {
+    struct TonConnectControllerObserverWrapper {
+        weak var observer: TonConnectControllerObserver?
+    }
+    
+    private var observers = [TonConnectControllerObserverWrapper]()
+    
     public struct PopUpModel {
         public let name: String
         public let host: String?
@@ -18,22 +28,25 @@ public actor TonConnectController {
         public let appImageURL: URL?
     }
     
-    private let parameters: TCParameters
+    private let parameters: TonConnectParameters
     private let manifest: TonConnectManifest
     private let apiClient: TonConnectAPI.Client
     private let walletProvider: WalletProvider
+    private let appsVault: TonConnectAppsVault
     private let keychainManager: KeychainManager
     private let keychainGroup: String
     
-    init(parameters: TCParameters,
+    init(parameters: TonConnectParameters,
          manifest: TonConnectManifest,
          apiClient: TonConnectAPI.Client,
          walletProvider: WalletProvider,
+         appsVault: TonConnectAppsVault,
          keychainManager: KeychainManager,
          keychainGroup: String) {
         self.parameters = parameters
         self.manifest = manifest
         self.apiClient = apiClient
+        self.appsVault = appsVault
         self.walletProvider = walletProvider
         self.keychainManager = keychainManager
         self.keychainGroup = keychainGroup
@@ -109,11 +122,36 @@ public actor TonConnectController {
             body: .plainText(.init(stringLiteral: base64body))
         )
         _ = try resp.ok.body.json
+        
+        let tonConnectApp = TonConnectApp(
+            clientId: parameters.clientId,
+            manifest: manifest,
+            keyPair: sessionCrypto.keyPair
+        )
+        
+        let apps: TonConnectApps
+        do {
+            apps = try appsVault.loadValue(key: wallet)
+        } catch {
+            apps = TonConnectApps(apps: [tonConnectApp])
+        }
+        try appsVault.save(value: apps.addApp(tonConnectApp), for: wallet)
+        notifyObservers()
+    }
+    
+    func addObserver(_ observer: TonConnectControllerObserver) {
+        var observers = observers.filter { $0.observer != nil }
+        observers.append(.init(observer: observer))
+        self.observers = observers
+    }
+    
+    func removeObserver(_ observer: TonConnectControllerObserver) {
+        observers = observers.filter { $0.observer !== observer }
     }
 }
 
 private extension TonConnectController {
-    func createConnectItemReplyItems(_ items: [TCRequestPayload.Item],
+    func createConnectItemReplyItems(_ items: [TonConnectRequestPayload.Item],
                                      address: TonSwift.Address,
                                      network: Network,
                                      publicKey: TonSwift.PublicKey,
@@ -138,5 +176,10 @@ private extension TonConnectController {
                 return nil
             }
         }
+    }
+    
+    func notifyObservers() {
+        observers = observers.filter { $0.observer != nil }
+        observers.forEach { $0.observer?.tonConnectControllerDidUpdateApps(self) }
     }
 }

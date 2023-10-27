@@ -49,8 +49,8 @@ public struct Client: APIProtocol {
                     in: &request,
                     style: .form,
                     explode: true,
-                    name: "clientIds",
-                    value: input.query.clientIds
+                    name: "client_id",
+                    value: input.query.client_id
                 )
                 try converter.setQueryItemAsURI(
                     in: &request,
