@@ -12,7 +12,7 @@ import TonSwift
 
 public protocol TonConnectEventsDaemonObserver: AnyObject {
     func tonConnectEventsDaemonDidReceiveMessage(_ daemon: TonConnectEventsDaemon,
-                                                 message: TonConnectEventsDaemon.TonConnectMessage)
+                                                 message: TonConnectMessage)
 }
 
 public final class TonConnectEventsDaemon {
@@ -20,105 +20,55 @@ public final class TonConnectEventsDaemon {
         weak var observer: TonConnectEventsDaemonObserver?
     }
     
-    struct TonConnectEvent: Decodable {
-        let from: String
-        let message: String
-    }
-    
-    public struct TonConnectMessage: Decodable {
-        enum Method: String, Decodable {
-            case sendTransaction
-        }
+    struct TonConnectWalletLastEvent: Codable, LocalStorable {
+        typealias KeyType = String
+        var key: String { walletId }
         
-        struct Param: Decodable {
-            let messages: [Message]
-            let validUntil: TimeInterval
-            let from: Address
-            
-            enum CodingKeys: String, CodingKey {
-                case messages
-                case validUntil = "valid_until"
-                case from
-            }
-            
-            init(from decoder: Decoder) throws {
-                let container = try decoder.container(keyedBy: CodingKeys.self)
-                messages = try container.decode([Message].self, forKey: .messages)
-                validUntil = try container.decode(TimeInterval.self, forKey: .validUntil)
-                from = try Address.parse(try container.decode(String.self, forKey: .from))
-            }
-        }
-        
-        struct Message: Decodable {
-            let address: Address
-            let amount: Int64
-            
-            enum CodingKeys: String, CodingKey {
-                case address
-                case amount
-            }
-            
-            init(from decoder: Decoder) throws {
-                let container = try decoder.container(keyedBy: CodingKeys.self)
-                address = try Address.parse(try container.decode(String.self, forKey: .address))
-                amount = Int64(try container.decode(String.self, forKey: .amount)) ?? 0
-            }
-        }
-        
-        let method: Method
-        let params: [Param]
-        
-        enum CodingKeys: String, CodingKey {
-            case method
-            case params
-        }
-        
-        public init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            method = try container.decode(Method.self, forKey: .method)
-            let paramsArray = try container.decode([String].self, forKey: .params)
-            let jsonDecoder = JSONDecoder()
-            params = paramsArray.compactMap {
-                guard let data = $0.data(using: .utf8) else { return nil }
-                return try? jsonDecoder.decode(Param.self, from: data)
-            }
-        }
-    }
-    
-    struct TonConnectError: Swift.Error, Decodable {
-        let statusCode: Int
-        let message: String
+        let walletId: String
+        let lastEventId: String?
     }
     
     private let walletProvider: WalletProvider
     private let appsVault: TonConnectAppsVault
     private let apiClient: TonConnectAPI.Client
+    private let localRepository: any LocalRepository<TonConnectWalletLastEvent>
     
     private var task: Task<Void, Error>?
     
     private var observers = [TonConnectEventsDaemonObserverWrapper]()
+    private var jsonDecoder = JSONDecoder()
     
     init(walletProvider: WalletProvider,
          appsVault: TonConnectAppsVault,
-         apiClient: TonConnectAPI.Client) {
+         apiClient: TonConnectAPI.Client,
+         localRepository: any LocalRepository<TonConnectWalletLastEvent>) {
         self.walletProvider = walletProvider
         self.appsVault = appsVault
         self.apiClient = apiClient
+        self.localRepository = localRepository
     }
     
     public func startEventsObserving() {
+        guard task == nil else { return }
         let task = Task {
             let wallet = try walletProvider.activeWallet
-            let apps = try appsVault.loadValue(key: wallet)
+            let apps = (try? appsVault.loadValue(key: wallet)) ?? TonConnectApps(apps: [])
             let appsClientIds = apps.apps.map { $0.keyPair.publicKey.hexString }
             let errorParser = EventSourceDecodableErrorParser<TonConnectError>()
-            let stream: AsyncThrowingStream<TonConnectEvent, Swift.Error> = try await EventSource.eventSource({
-                let response = try await self.apiClient.events(query: .init(client_id: appsClientIds))
+            let stream = try await EventSource.eventSource({
+                let lastEventId = try? localRepository.load(key: try wallet.identity.id().string).lastEventId
+                let response = try await self.apiClient.events(
+                    query: .init(client_id: appsClientIds, last_event_id: lastEventId)
+                )
                 return try response.ok.body.text_event_hyphen_stream
             }, errorParser: errorParser)
-            for try await event in stream {
-                try? handleEvent(event, apps: apps)
+            for try await events in stream {
+                try handleEventSourceEvents(
+                    events,
+                    walletIdentity: try wallet.identity.id().string,
+                    apps: apps)
             }
+            guard !Task.isCancelled else { return }
             startEventsObserving()
         }
         self.task = task
@@ -148,6 +98,21 @@ extension TonConnectEventsDaemon: TonConnectControllerObserver {
 }
 
 private extension TonConnectEventsDaemon {
+    func handleEventSourceEvents(_ events: [EventSource.Event],
+                                 walletIdentity: String,
+                                 apps: TonConnectApps) throws {
+        guard let event = events.last(where: { $0.event == "message" }),
+              let data = event.data?.data(using: .utf8),
+              let tcEvent = try? jsonDecoder.decode(TonConnectEvent.self, from: data) else {
+            return
+        }
+        try localRepository.save(
+            item: .init(walletId: walletIdentity,
+                        lastEventId: event.id)
+        )
+        try? handleEvent(tcEvent, apps: apps)
+    }
+    
     func handleEvent(_ event: TonConnectEvent,
                      apps: TonConnectApps) throws {
         guard let eventApp = apps.apps.first(where: { $0.clientId == event.from }) else { return }

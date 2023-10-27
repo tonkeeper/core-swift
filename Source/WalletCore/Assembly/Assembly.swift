@@ -95,6 +95,7 @@ public final class Assembly {
         coreAssembly: coreAssembly,
         apiAssembly: apiAssembly,
         keeperAssembly: keeperAssembly,
+        cacheURL: dependencies.cacheURL,
         keychainGroup: dependencies.sharedKeychainGroup
     )
     

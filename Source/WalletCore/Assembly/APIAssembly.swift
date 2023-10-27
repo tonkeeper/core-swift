@@ -86,8 +86,8 @@ final class APIAssembly {
     
     private var urlSessionConfiguration: URLSessionConfiguration {
         let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = 20
-        configuration.timeoutIntervalForResource = 20
+        configuration.timeoutIntervalForRequest = 60
+        configuration.timeoutIntervalForResource = 60
         return configuration
     }
     

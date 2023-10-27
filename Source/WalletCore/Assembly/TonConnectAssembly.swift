@@ -11,15 +11,18 @@ final class TonConnectAssembly {
     private let coreAssembly: CoreAssembly
     private let apiAssembly: APIAssembly
     private let keeperAssembly: KeeperAssembly
+    private let cacheURL: URL
     private let keychainGroup: String
     
     init(coreAssembly: CoreAssembly,
          apiAssembly: APIAssembly,
          keeperAssembly: KeeperAssembly,
+         cacheURL: URL,
          keychainGroup: String) {
         self.coreAssembly = coreAssembly
         self.apiAssembly = apiAssembly
         self.keeperAssembly = keeperAssembly
+        self.cacheURL = cacheURL
         self.keychainGroup = keychainGroup
     }
     
@@ -46,7 +49,8 @@ final class TonConnectAssembly {
         TonConnectEventsDaemon(
             walletProvider: keeperAssembly.keeperController,
             appsVault: appsVault,
-            apiClient: apiAssembly.tonConnectAPIClient())
+            apiClient: apiAssembly.tonConnectAPIClient(),
+            localRepository: localRepository(cacheURL: cacheURL))
     }()
 }
 
@@ -71,5 +75,12 @@ private extension TonConnectAssembly {
             keychainManager: coreAssembly.keychainManager,
             keychainGroup: keychainGroup
         )
+    }
+    
+    func localRepository<T: LocalStorable>(cacheURL: URL) -> any LocalRepository<T> {
+        LocalDiskRepository(fileManager: coreAssembly.fileManager,
+                            directory: cacheURL,
+                            encoder: coreAssembly.encoder,
+                            decoder: coreAssembly.decoder)
     }
 }
