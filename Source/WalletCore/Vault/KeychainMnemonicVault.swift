@@ -10,33 +10,32 @@ import TonSwift
 
 struct KeychainMnemonicVault: StorableVault {
     typealias StoreValue = [String]
-    typealias StoreKey = TonSwift.PublicKey
+    typealias StoreKey = Wallet
     
     private let keychainManager: KeychainManager
-    private let walletID: WalletID
     private let keychainGroup: String
     
     init(keychainManager: KeychainManager,
-         walletID: WalletID,
          keychainGroup: String) {
         self.keychainManager = keychainManager
-        self.walletID = walletID
         self.keychainGroup = keychainGroup
     }
     
-    func loadValue(key: TonSwift.PublicKey) throws -> [String] {
-        let query = KeychainQuery(class: .genericPassword(service: walletID.string,
-                                                          account: key.hexString),
-                                  accessible: .whenUnlockedThisDeviceOnly,
-                                  accessGroup: keychainGroup)
+    func loadValue(key: Wallet) throws -> [String] {
+        let query = KeychainQuery(
+            class: .genericPassword(service: try key.identity.id().string,
+                                    account: try key.publicKey.hexString),
+            accessible: .whenUnlockedThisDeviceOnly,
+            accessGroup: keychainGroup
+        )
         let data = try keychainManager.get(query: query)
         let decoder = JSONDecoder()
         return try decoder.decode([String].self, from: data)
     }
     
-    func save(value: [String], for key: TonSwift.PublicKey) throws {
-        let query = KeychainQuery(class: .genericPassword(service: walletID.string,
-                                                          account: key.hexString),
+    func save(value: [String], for key: Wallet) throws {
+        let query = KeychainQuery(class: .genericPassword(service: try key.identity.id().string,
+                                                          account: try key.publicKey.hexString),
                                   accessible: .whenUnlockedThisDeviceOnly,
                                   accessGroup: keychainGroup)
         let encoder = JSONEncoder()

@@ -31,4 +31,8 @@ final class CoreAssembly {
     var keychainPasscodeVault: KeychainPasscodeVault {
         KeychainPasscodeVault(keychainManager: keychainManager)
     }
+    
+    func keychainMnemonicVault(keychainGroup: String) -> KeychainMnemonicVault {
+        KeychainMnemonicVault(keychainManager: keychainManager, keychainGroup: keychainGroup)
+    }
 }

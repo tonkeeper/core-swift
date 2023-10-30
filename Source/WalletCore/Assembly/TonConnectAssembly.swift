@@ -11,17 +11,23 @@ final class TonConnectAssembly {
     private let coreAssembly: CoreAssembly
     private let apiAssembly: APIAssembly
     private let keeperAssembly: KeeperAssembly
+    private let sendAssembly: SendAssembly
+    private let servicesAssembly: ServicesAssembly
     private let cacheURL: URL
     private let keychainGroup: String
     
     init(coreAssembly: CoreAssembly,
          apiAssembly: APIAssembly,
          keeperAssembly: KeeperAssembly,
+         sendAssembly: SendAssembly,
+         servicesAssembly: ServicesAssembly,
          cacheURL: URL,
          keychainGroup: String) {
         self.coreAssembly = coreAssembly
         self.apiAssembly = apiAssembly
         self.keeperAssembly = keeperAssembly
+        self.sendAssembly = sendAssembly
+        self.servicesAssembly = servicesAssembly
         self.cacheURL = cacheURL
         self.keychainGroup = keychainGroup
     }
@@ -38,11 +44,18 @@ final class TonConnectAssembly {
             apiClient: apiAssembly.tonConnectAPIClient(),
             walletProvider: keeperAssembly.keeperController,
             appsVault: appsVault,
-            keychainManager: coreAssembly.keychainManager,
-            keychainGroup: keychainGroup
+            mnemonicVault: coreAssembly.keychainMnemonicVault(keychainGroup: keychainGroup)
         )
         Task { await controller.addObserver(tonConnectEventsDaemon) }
         return controller
+    }
+    
+    func tonConnectConfirmationController() -> TonConnectConfirmationController {
+        TonConnectConfirmationController(
+            sendMessageBuilder: sendAssembly.sendMessageBuilder(),
+            sendService: servicesAssembly.sendService,
+            apiClient: apiAssembly.tonConnectAPIClient()
+        )
     }
     
     lazy var tonConnectEventsDaemon: TonConnectEventsDaemon = {
@@ -82,5 +95,13 @@ private extension TonConnectAssembly {
                             directory: cacheURL,
                             encoder: coreAssembly.encoder,
                             decoder: coreAssembly.decoder)
+    }
+    
+    func sendMessageBuilder(walletProvider: WalletProvider,
+                            keychainGroup: String,
+                            sendService: SendService) -> SendMessageBuilder {
+        SendMessageBuilder(walletProvider: walletProvider,
+                           mnemonicVault: coreAssembly.keychainMnemonicVault(keychainGroup: keychainGroup),
+                           sendService: sendService)
     }
 }

@@ -11,8 +11,9 @@ import EventSource
 import TonSwift
 
 public protocol TonConnectEventsDaemonObserver: AnyObject {
-    func tonConnectEventsDaemonDidReceiveMessage(_ daemon: TonConnectEventsDaemon,
-                                                 message: TonConnectMessage)
+    func tonConnectEventsDaemonDidReceiveRequest(_ daemon: TonConnectEventsDaemon,
+                                                 appRequest: TonConnect.AppRequest,
+                                                 app: TonConnectApp)
 }
 
 public final class TonConnectEventsDaemon {
@@ -125,18 +126,22 @@ private extension TonConnectEventsDaemon {
                 senderPublicKey: senderPublicKey
             )
         notifyObservers(
-            message: try JSONDecoder()
-                .decode(TonConnectMessage.self,
-                        from: decryptedMessage)
+            appRequest: try JSONDecoder()
+                .decode(TonConnect.AppRequest.self,
+                        from: decryptedMessage),
+            app: eventApp
         )
     }
     
-    func notifyObservers(message: TonConnectMessage) {
+    func notifyObservers(appRequest: TonConnect.AppRequest,
+                         app: TonConnectApp) {
         observers = observers.filter { $0.observer != nil }
         observers.forEach { $0.observer?
-                .tonConnectEventsDaemonDidReceiveMessage(
+                .tonConnectEventsDaemonDidReceiveRequest(
                     self,
-                    message: message
+                    appRequest: appRequest,
+                    app: app
                 ) }
     }
 }
+

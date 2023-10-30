@@ -149,11 +149,11 @@ private extension TokenSendController {
                                 comment: String?) async throws -> String {
         switch tokenTransferModel.transferItem {
         case .ton:
-            return try await sendMessageBuilder.sendTonTransactionBoc(
-                value: tokenTransferModel.amount,
-                recipientAddress: recipientAddress,
-                comment: comment
-            )
+            return try await sendMessageBuilder.sendTonTransactionsBoc([
+                .init(value: tokenTransferModel.amount,
+                      recipientAddress: recipientAddress,
+                      comment: comment)
+            ])
         case .token(let tokenAddress, _):
             return try await sendMessageBuilder.sendTokenTransactionBoc(
                 tokenAddress: tokenAddress.toRaw(),
