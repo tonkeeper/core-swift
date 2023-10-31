@@ -46,8 +46,7 @@ public struct ActivityEventViewModel {
         public let subamount: String?
         public let leftTopDescription: String?
         public let leftBottomDescription: String?
-        public let date: String
-        public let rightTopDesription: String?
+        public let rightTopDescription: String?
         public let status: String?
         public let comment: String?
         public let collectible: CollectibleViewModel?

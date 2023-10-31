@@ -10,7 +10,7 @@ import TonSwift
 
 protocol ActivityListLoader {
     func loadEvents(address: Address, beforeLt: Int64?, limit: Int) async throws -> ActivityEvents
-    func loadEvent(address: Address, eventId: String) async throws -> ActivityEvent
+    func loadEvent(address: Address, eventId: String) async throws -> AccountEvent
 }
 
 struct ActivityListAllEventsLoader: ActivityListLoader {
@@ -26,7 +26,7 @@ struct ActivityListAllEventsLoader: ActivityListLoader {
         return try await activityService.loadEvents(address: address, beforeLt: beforeLt, limit: limit)
     }
     
-    func loadEvent(address: Address, eventId: String) async throws -> ActivityEvent {
+    func loadEvent(address: Address, eventId: String) async throws -> AccountEvent {
         return try await activityService.loadEvent(accountAddress: address, eventId: eventId)
     }
 }
@@ -47,13 +47,13 @@ struct ActivityListTonEventsLoader: ActivityListLoader {
             limit: limit
         )
         
-        let filteredEvents = loadedEvents.events.compactMap { event -> ActivityEvent? in
+        let filteredEvents = loadedEvents.events.compactMap { event -> AccountEvent? in
             let filteredActions = event.actions.compactMap { action -> Action? in
                 guard case .tonTransfer = action.type else { return nil }
                 return action
             }
             guard !filteredActions.isEmpty else { return nil }
-            return ActivityEvent(
+            return AccountEvent(
                 eventId: event.eventId,
                 timestamp: event.timestamp,
                 account: event.account,
@@ -71,7 +71,7 @@ struct ActivityListTonEventsLoader: ActivityListLoader {
         )
     }
     
-    func loadEvent(address: Address, eventId: String) async throws -> ActivityEvent {
+    func loadEvent(address: Address, eventId: String) async throws -> AccountEvent {
         return try await activityService.loadEvent(accountAddress: address, eventId: eventId)
     }
 }
@@ -97,7 +97,7 @@ struct ActivityListTokenEventsLoader: ActivityListLoader {
         )
     }
     
-    func loadEvent(address: Address, eventId: String) async throws -> ActivityEvent {
+    func loadEvent(address: Address, eventId: String) async throws -> AccountEvent {
         return try await activityService.loadEvent(accountAddress: address, eventId: eventId)
     }
 }

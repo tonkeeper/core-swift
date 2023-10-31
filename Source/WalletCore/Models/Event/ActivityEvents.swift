@@ -8,7 +8,7 @@
 import Foundation
 
 struct ActivityEvents {
-    let events: [ActivityEvent]
+    let events: [AccountEvent]
     let startFrom: Int64
     let nextFrom: Int64
 }

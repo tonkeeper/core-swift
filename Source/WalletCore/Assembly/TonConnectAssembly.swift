@@ -13,6 +13,7 @@ final class TonConnectAssembly {
     private let keeperAssembly: KeeperAssembly
     private let sendAssembly: SendAssembly
     private let servicesAssembly: ServicesAssembly
+    private let formattersAssembly: FormattersAssembly
     private let cacheURL: URL
     private let keychainGroup: String
     
@@ -21,6 +22,7 @@ final class TonConnectAssembly {
          keeperAssembly: KeeperAssembly,
          sendAssembly: SendAssembly,
          servicesAssembly: ServicesAssembly,
+         formattersAssembly: FormattersAssembly,
          cacheURL: URL,
          keychainGroup: String) {
         self.coreAssembly = coreAssembly
@@ -28,6 +30,7 @@ final class TonConnectAssembly {
         self.keeperAssembly = keeperAssembly
         self.sendAssembly = sendAssembly
         self.servicesAssembly = servicesAssembly
+        self.formattersAssembly = formattersAssembly
         self.cacheURL = cacheURL
         self.keychainGroup = keychainGroup
     }
@@ -54,7 +57,10 @@ final class TonConnectAssembly {
         TonConnectConfirmationController(
             sendMessageBuilder: sendAssembly.sendMessageBuilder(),
             sendService: servicesAssembly.sendService,
-            apiClient: apiAssembly.tonConnectAPIClient()
+            apiClient: apiAssembly.tonConnectAPIClient(),
+            rateService: servicesAssembly.ratesService,
+            walletProvider: keeperAssembly.keeperController,
+            tonConnectConfirmationMapper: tonConnectConfirmationMapper
         )
     }
     
@@ -103,5 +109,17 @@ private extension TonConnectAssembly {
         SendMessageBuilder(walletProvider: walletProvider,
                            mnemonicVault: coreAssembly.keychainMnemonicVault(keychainGroup: keychainGroup),
                            sendService: sendService)
+    }
+    
+    var accountEventMapper: AccountEventMapper {
+        AccountEventMapper(dateFormatter: formattersAssembly.dateFormatter,
+                           amountFormatter: formattersAssembly.amountFormatter,
+                           intAmountFormatter: formattersAssembly.intAmountFormatter,
+                           amountMapper: AmountAccountEventActionAmountMapper(amountFormatter: formattersAssembly.amountFormatter))
+    }
+    
+    var tonConnectConfirmationMapper: TonConnectConfirmationMapper {
+        TonConnectConfirmationMapper(accountEventMapper: accountEventMapper,
+                                     amountFormatter: formattersAssembly.amountFormatter)
     }
 }

@@ -11,7 +11,7 @@ import TonSwift
 
 protocol SendService {
     func loadSeqno(address: Address) async throws -> UInt64
-    func loadTransactionInfo(boc: String) async throws -> TransferTransactionInfo
+    func loadTransactionInfo(boc: String) async throws -> Components.Schemas.MessageConsequences
     func sendTransaction(boc: String) async throws
 }
 
@@ -26,7 +26,7 @@ final class SendServiceImplementation: SendService {
         try await UInt64(api.getSeqno(address: address))
     }
     
-    func loadTransactionInfo(boc: String) async throws -> TransferTransactionInfo {
+    func loadTransactionInfo(boc: String) async throws -> Components.Schemas.MessageConsequences {
         try await api
             .emulateMessageWallet(boc: boc)
     }

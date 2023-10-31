@@ -98,6 +98,7 @@ public final class Assembly {
         keeperAssembly: keeperAssembly,
         sendAssembly: sendAssembly,
         servicesAssembly: servicesAssembly,
+        formattersAssembly: formattersAssembly,
         cacheURL: dependencies.cacheURL,
         keychainGroup: dependencies.sharedKeychainGroup
     )

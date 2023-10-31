@@ -18,7 +18,7 @@ protocol ActivityService {
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents
     func loadEvent(accountAddress: Address,
-                   eventId: String) async throws -> ActivityEvent
+                   eventId: String) async throws -> AccountEvent
 }
 
 final class ActivityServiceImplementation: ActivityService {
@@ -51,7 +51,7 @@ final class ActivityServiceImplementation: ActivityService {
     }
     
     func loadEvent(accountAddress: Address, 
-                   eventId: String) async throws -> ActivityEvent {
+                   eventId: String) async throws -> AccountEvent {
         try await api.getEvent(address: accountAddress,
                                eventId: eventId)
     }

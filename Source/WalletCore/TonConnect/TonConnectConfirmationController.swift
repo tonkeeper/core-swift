@@ -12,7 +12,7 @@ import TonConnectAPI
 public protocol TonConnectConfirmationControllerOutput: AnyObject {
     func tonConnectConfirmationControllerDidStartEmulation(_ controller: TonConnectConfirmationController)
     func tonConnectConfirmationControllerDidFinishEmulation(_ controller: TonConnectConfirmationController,
-                                                            result: Result<Void, Swift.Error>)
+                                                            result: Result<TonConnectConfirmationModel, Swift.Error>)
 }
 
 public final class TonConnectConfirmationController {
@@ -27,15 +27,25 @@ public final class TonConnectConfirmationController {
     private let sendMessageBuilder: SendMessageBuilder
     private let sendService: SendService
     private let apiClient: TonConnectAPI.Client
+    private let rateService: RatesService
+    private let walletProvider: WalletProvider
+    private let tonConnectConfirmationMapper: TonConnectConfirmationMapper
+//    private let amountFormatter: AmountFormatter
     
     private let state: ThreadSafeProperty<State> = .init(property: .idle)
     
     init(sendMessageBuilder: SendMessageBuilder,
          sendService: SendService,
-         apiClient: TonConnectAPI.Client) {
+         apiClient: TonConnectAPI.Client,
+         rateService: RatesService,
+         walletProvider: WalletProvider,
+         tonConnectConfirmationMapper: TonConnectConfirmationMapper) {
         self.sendMessageBuilder = sendMessageBuilder
         self.sendService = sendService
         self.apiClient = apiClient
+        self.rateService = rateService
+        self.walletProvider = walletProvider
+        self.tonConnectConfirmationMapper = tonConnectConfirmationMapper
     }
     
     public func handleAppRequest(_ appRequest: TonConnect.AppRequest,
@@ -64,8 +74,9 @@ public final class TonConnectConfirmationController {
         let payloads: [SendMessageBuilder.SendTonPayload] = params.messages.map {
             .init(value: BigInt(integerLiteral: $0.amount), recipientAddress: $0.address, comment: nil)
         }
-        let boc = try await sendMessageBuilder.sendTonTransactionsBoc(payloads)
         
+        let boc = try await sendMessageBuilder.sendTonTransactionsBoc(payloads)
+
         try await sendService.sendTransaction(boc: boc)
         await self.state.setValue(.confirmed)
         
@@ -91,8 +102,9 @@ private extension TonConnectConfirmationController {
             output?.tonConnectConfirmationControllerDidStartEmulation(self)
         }
         Task {
+            guard let param = appRequest.params.first else { return }
             do {
-                let emulationResult = try await emulate(appRequest: appRequest)
+                let emulationResult = try await emulate(appRequestParam: param)
                 await MainActor.run {
                     output?.tonConnectConfirmationControllerDidFinishEmulation(
                         self,
@@ -129,14 +141,35 @@ private extension TonConnectConfirmationController {
         }
     }
     
-    func emulate(appRequest: TonConnect.AppRequest) async throws -> Void {
-        guard let params = appRequest.params.first else { return }
-        let payloads: [SendMessageBuilder.SendTonPayload] = params.messages.map {
+    func emulate(appRequestParam: TonConnect.AppRequest.Param) async throws -> TonConnectConfirmationModel {
+        let payloads: [SendMessageBuilder.SendTonPayload] = appRequestParam.messages.map {
             .init(value: BigInt(integerLiteral: $0.amount), recipientAddress: $0.address, comment: nil)
         }
-        let boc = try await sendMessageBuilder.sendTonTransactionsBoc(payloads)
+        
+        async let bocTask = sendMessageBuilder.sendTonTransactionsBoc(payloads)
+        async let ratesTask = loadRates()
+        
+        let loadedRates = await ratesTask
+        let boc = try await bocTask
+        
         let transactionInfo = try await sendService.loadTransactionInfo(boc: boc)
-        return Void()
+        let currency = try walletProvider.activeWallet.currency
+        let rates = loadedRates?.first(where: { $0.currency == currency })
+        
+        return try tonConnectConfirmationMapper.mapTransactionInfo(
+            transactionInfo,
+            tonRates: rates,
+            currency: currency)
+    }
+    
+    func loadRates() async -> [Rates.Rate]? {
+        if let rates = try? await rateService.loadRates(tonInfo: TonInfo(), tokens: [], currencies: Currency.allCases) {
+            return rates.ton
+        } else if let rates = try? rateService.getRates() {
+            return rates.ton
+        } else {
+            return nil
+        }
     }
 }
 
@@ -154,4 +187,9 @@ actor ThreadSafeProperty<PropertyType> {
     func getValue() -> PropertyType {
         return property
     }
+}
+
+public struct TonConnectConfirmationModel {
+    public let event: ActivityEventViewModel
+    public let fee: String
 }

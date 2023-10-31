@@ -62,8 +62,8 @@ extension API {
                          end_date: nil)
         )
         let entity = try response.ok.body.json
-        let events: [ActivityEvent] = entity.events.compactMap {
-            guard let activityEvent = try? ActivityEvent(accountEvent: $0) else { return nil }
+        let events: [AccountEvent] = entity.events.compactMap {
+            guard let activityEvent = try? AccountEvent(accountEvent: $0) else { return nil }
             return activityEvent
         }
         return ActivityEvents(events: events,
@@ -84,8 +84,8 @@ extension API {
                          end_date: nil)
         )
         let entity = try response.ok.body.json
-        let events: [ActivityEvent] = entity.events.compactMap {
-            guard let activityEvent = try? ActivityEvent(accountEvent: $0) else { return nil }
+        let events: [AccountEvent] = entity.events.compactMap {
+            guard let activityEvent = try? AccountEvent(accountEvent: $0) else { return nil }
             return activityEvent
         }
         return ActivityEvents(events: events,
@@ -94,11 +94,11 @@ extension API {
     }
     
     func getEvent(address: Address,
-                  eventId: String) async throws -> ActivityEvent {
+                  eventId: String) async throws -> AccountEvent {
         let response = try await tonAPIClient
             .getAccountEvent(path: .init(account_id: address.toRaw(),
                                          event_id: eventId))
-        return try ActivityEvent(accountEvent: try response.ok.body.json)
+        return try AccountEvent(accountEvent: try response.ok.body.json)
     }
 }
 
@@ -111,15 +111,10 @@ extension API {
         return try response.ok.body.json.seqno
     }
     
-    func emulateMessageWallet(boc: String) async throws -> TransferTransactionInfo {
+    func emulateMessageWallet(boc: String) async throws -> Components.Schemas.MessageConsequences {
         let response = try await tonAPIClient
             .emulateMessageToWallet(body: .json(.init(boc: boc)))
-        let entity = try response.ok.body.json
-        return TransferTransactionInfo(
-            accountEvent: entity.event,
-            risk: entity.risk,
-            transaction: entity.trace.transaction
-        )
+        return try response.ok.body.json
     }
     
     func sendTransaction(boc: String) async throws {

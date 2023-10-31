@@ -138,8 +138,13 @@ private extension TokenSendController {
         let transactionBoc = try await transactionBocTask
         let transactionInfo = try await sendService.loadTransactionInfo(boc: transactionBoc)
         
+        let transferTransactionInfo = TransferTransactionInfo(
+            accountEvent: transactionInfo.event,
+            risk: transactionInfo.risk,
+            transaction: transactionInfo.trace.transaction)
+
         return buildEmulationModel(
-            fee: transactionInfo.fee,
+            fee: transferTransactionInfo.fee,
             tonRates: rates.tonRates,
             tokenRates: rates.tokenRates)
     }
