@@ -64,7 +64,7 @@ public final class TonConnectEventsDaemon {
                 return try response.ok.body.text_event_hyphen_stream
             }, errorParser: errorParser)
             for try await events in stream {
-                try handleEventSourceEvents(
+                try? handleEventSourceEvents(
                     events,
                     walletIdentity: try wallet.identity.id().string,
                     apps: apps)
