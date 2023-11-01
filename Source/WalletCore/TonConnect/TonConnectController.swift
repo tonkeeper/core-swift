@@ -35,6 +35,19 @@ public actor TonConnectController {
     private let appsVault: TonConnectAppsVault
     private let mnemonicVault: KeychainMnemonicVault
     
+    nonisolated
+    private var walletAddress: Address {
+        get throws {
+            let contractBuilder = WalletContractBuilder()
+            let wallet = try walletProvider.activeWallet
+            let contract = try contractBuilder.walletContract(
+                with: try wallet.publicKey,
+                contractVersion: wallet.contractVersion
+            )
+            return try contract.address()
+        }
+    }
+    
     init(parameters: TonConnectParameters,
          manifest: TonConnectManifest,
          apiClient: TonConnectAPI.Client,
@@ -74,6 +87,15 @@ public actor TonConnectController {
             revision: revision,
             appImageURL: manifest.iconUrl
         )
+    }
+    
+    nonisolated
+    public func getWalletAddress() -> String {
+        do {
+            return try walletAddress.toString(bounceable: false)
+        } catch {
+            return ""
+        }
     }
     
     public func connect() async throws {
