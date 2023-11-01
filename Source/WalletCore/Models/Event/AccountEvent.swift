@@ -1,5 +1,5 @@
 //
-//  ActivityEvent.swift
+//  AccountEvent.swift
 //  
 //
 //  Created by Grigory on 3.8.23..
@@ -10,7 +10,7 @@ import TonAPI
 import TonSwift
 import BigInt
 
-struct ActivityEvent {
+struct AccountEvent {
     let eventId: String
     let timestamp: TimeInterval
     let account: WalletAccount
@@ -20,7 +20,7 @@ struct ActivityEvent {
     let actions: [Action]
 }
 
-extension ActivityEvent {
+extension AccountEvent {
     init(accountEvent: Components.Schemas.AccountEvent) throws {
         self.eventId = accountEvent.event_id
         self.timestamp = TimeInterval(accountEvent.timestamp)

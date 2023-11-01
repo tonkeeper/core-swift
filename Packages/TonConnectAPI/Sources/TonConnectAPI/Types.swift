@@ -47,8 +47,8 @@ public enum Components {
     public enum Schemas {}
     /// Types generated from the `#/components/parameters` section of the OpenAPI document.
     public enum Parameters {
-        /// - Remark: Generated from `#/components/parameters/clientIdsParameter`.
-        public typealias clientIdsParameter = [Swift.String]
+        /// - Remark: Generated from `#/components/parameters/clientIdParameter`.
+        public typealias clientIdParameter = [Swift.String]
         /// - Remark: Generated from `#/components/parameters/toParameter`.
         public typealias toParameter = [Swift.String]
     }
@@ -114,17 +114,17 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/events/GET/query`.
             public struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/events/GET/query/clientIds`.
-                public var clientIds: Components.Parameters.clientIdsParameter
+                /// - Remark: Generated from `#/paths/events/GET/query/client_id`.
+                public var client_id: Components.Parameters.clientIdParameter
                 /// - Remark: Generated from `#/paths/events/GET/query/last_event_id`.
                 public var last_event_id: Swift.String?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
-                ///   - clientIds:
+                ///   - client_id:
                 ///   - last_event_id:
-                public init(clientIds: Components.Parameters.clientIdsParameter, last_event_id: Swift.String? = nil) {
-                    self.clientIds = clientIds
+                public init(client_id: Components.Parameters.clientIdParameter, last_event_id: Swift.String? = nil) {
+                    self.client_id = client_id
                     self.last_event_id = last_event_id
                 }
             }

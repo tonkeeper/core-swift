@@ -164,11 +164,16 @@ private extension NFTSendController {
         let transactionBoc = try await transactionBocTask
         let transactionInfo = try await sendService.loadTransactionInfo(boc: transactionBoc)
         let rates = try await ratesTask
-        transactionEmulationExtra = transactionInfo.extra
+        
+        let transferTransactionInfo = TransferTransactionInfo(
+            accountEvent: transactionInfo.event,
+            risk: transactionInfo.risk,
+            transaction: transactionInfo.trace.transaction)
+        transactionEmulationExtra = transferTransactionInfo.extra
         
         return buildEmulationModel(
             nft: nft,
-            fee: transactionInfo.fee,
+            fee: transferTransactionInfo.fee,
             tonRate: rates
         )
     }

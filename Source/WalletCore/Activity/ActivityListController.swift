@@ -35,7 +35,8 @@ public actor ActivityListController {
     private let collectiblesService: CollectiblesService
     private let walletProvider: WalletProvider
     private let contractBuilder: WalletContractBuilder
-    private let activityEventMapper: ActivityEventMapper
+    private let activityEventMapper: AccountEventMapper
+    private let dateFormatter: DateFormatter
     private let transactionsUpdatePublishService: TransactionsUpdateService
     
     // MARK: - State
@@ -51,7 +52,7 @@ public actor ActivityListController {
     
     public private(set) var eventsSections = [EventsSection]()
     private var eventsSectionIndexTable = [Date: Int]()
-    private var events = [String: ActivityEvent]()
+    private var events = [String: AccountEvent]()
     
     private var streamContinuation: Stream.Continuation?
 
@@ -59,13 +60,15 @@ public actor ActivityListController {
          collectiblesService: CollectiblesService,
          walletProvider: WalletProvider,
          contractBuilder: WalletContractBuilder,
-         activityEventMapper: ActivityEventMapper,
+         activityEventMapper: AccountEventMapper,
+         dateFormatter: DateFormatter,
          transactionsUpdatePublishService: TransactionsUpdateService) {
         self.activityListLoader = activityListLoader
         self.collectiblesService = collectiblesService
         self.walletProvider = walletProvider
         self.contractBuilder = contractBuilder
         self.activityEventMapper = activityEventMapper
+        self.dateFormatter = dateFormatter
         self.transactionsUpdatePublishService = transactionsUpdatePublishService
     }
     
@@ -195,7 +198,7 @@ private extension ActivityListController {
         return try contract.address()
     }
     
-    func handleLoadedEvents(loadedEvents: [ActivityEvent], collectibles: Collectibles) -> [String: ActivityEventViewModel] {
+    func handleLoadedEvents(loadedEvents: [AccountEvent], collectibles: Collectibles) -> [String: ActivityEventViewModel] {
         let calendar = Calendar.current
         
         var viewModels = [String: ActivityEventViewModel]()
@@ -232,14 +235,22 @@ private extension ActivityListController {
                 eventsSections.append(EventsSection(date: groupDate, title: title, eventsIds: [event.eventId]))
                 eventsSectionIndexTable[groupDate] = eventsSections.count - 1
             }
-
-            viewModels[event.eventId] = activityEventMapper.mapActivityEvent(event, dateFormat: dateFormat, collectibles: collectibles)
+            
+            viewModels[event.eventId] = activityEventMapper
+                .mapActivityEvent(
+                    event,
+                    collectibles: collectibles,
+                    accountEventRightTopDescriptionProvider: ActivityAccountEventRightTopDescriptionProvider(
+                        dateFormatter: dateFormatter,
+                        dateFormat: dateFormat
+                    )
+                )
         }
         
         return viewModels
     }
     
-    func handleEventsWithNFTs(events: [ActivityEvent]) async -> Collectibles {
+    func handleEventsWithNFTs(events: [AccountEvent]) async -> Collectibles {
         let actions = events.flatMap { $0.actions }
         var nftAddressesToLoad = Set<Address>()
         var nfts = [Address: Collectible]()

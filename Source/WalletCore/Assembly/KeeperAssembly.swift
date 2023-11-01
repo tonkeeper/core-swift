@@ -21,8 +21,9 @@ final class KeeperAssembly {
     }
     
     lazy var keeperController: KeeperController = {
-        KeeperController(keeperService: servicesAssembly.keeperInfoService,
-                         keychainManager: coreAssembly.keychainManager,
-                         keychainGroup: keychainGroup)
+        KeeperController(
+            keeperService: servicesAssembly.keeperInfoService,
+            mnemonicVault: coreAssembly.keychainMnemonicVault(keychainGroup: keychainGroup)
+        )
     }()
 }

@@ -45,33 +45,34 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
     private var stateUpdateObserversContinuations = [UUID: StateUpdateStream.Continuation]()
     private var eventObservsersContinuations = [UUID: EventStream.Continuation]()
     
+    private var jsonDecoder = JSONDecoder()
+    
     init(streamingAPI: TonStreamingAPI.Client) {
         self.streamingAPI = streamingAPI
     }
     
     func start(addresses: [Address]) {
+        guard task == nil else { return }
         let addressesStrings = addresses.map { $0.toRaw() }
         let task = Task {
             do {
                 state = .connecting
-                let stream: AsyncThrowingStream<EventSource.Transaction, Swift.Error> = try await EventSource.eventSource {
-                    try await streamingAPI.getTransactions(query: .init(accounts: addressesStrings))
-                        .ok.body.text_event_hyphen_stream
+                let stream = try await EventSource.eventSource {
+                    let response = try await self.streamingAPI.getTransactions(
+                        query: .init(accounts: addressesStrings)
+                    )
+                    return try response.ok.body.text_event_hyphen_stream
                 }
                 state = .connected
-                for try await transaction in stream {
-                    guard let accountAddress = try? Address.parse(transaction.accountId) else { continue }
-                    let transactionUpdate = TransactionUpdate(
-                        accountAddress: accountAddress,
-                        lt: transaction.lt,
-                        txHash: transaction.txHash
-                    )
-                    didReceiveTransactionUpdate(transactionUpdate)
+                for try await events in stream {
+                    try? handleEventSourceEvents(events)
                 }
-                guard !Task.isCancelled else { return }
+                guard Task.isCancelled else { return }
+                stop()
                 start(addresses: addresses)
             } catch {
                 state = .closed(error)
+                stop()
             }
         }
         self.task = task
@@ -108,6 +109,25 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
 }
 
 private extension TransactionsUpdateServiceImplementation {
+    func handleEventSourceEvents(_ events: [EventSource.Event]) throws {
+        guard let event = events.last(where: { $0.event == "message" }),
+              let data = event.data?.data(using: .utf8),
+              let transactionEvent = try? jsonDecoder.decode(EventSource.Transaction.self, from: data) else {
+            return
+        }
+        try? handleTransactionEvent(transactionEvent)
+    }
+    
+    func handleTransactionEvent(_ transactionEvent: EventSource.Transaction) throws {
+        let accountAddress = try Address.parse(transactionEvent.accountId)
+        let transactionUpdate = TransactionUpdate(
+            accountAddress: accountAddress,
+            lt: transactionEvent.lt,
+            txHash: transactionEvent.txHash
+        )
+        didReceiveTransactionUpdate(transactionUpdate)
+    }
+    
     func removeStateUpdateObserver(uuid: UUID) {
         stateUpdateObserversContinuations.removeValue(forKey: uuid)
     }

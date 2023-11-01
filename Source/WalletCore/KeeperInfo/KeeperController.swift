@@ -21,19 +21,16 @@ public protocol WalletProvider {
 
 public final class KeeperController: WalletProvider {
     private let keeperService: KeeperInfoService
-    private let keychainManager: KeychainManager
-    private let keychainGroup: String
+    private let mnemonicVault: KeychainMnemonicVault
     
     public var hasWallets: Bool {
         checkIfKeeperHasValidWallets()
     }
     
     init(keeperService: KeeperInfoService,
-         keychainManager: KeychainManager,
-         keychainGroup: String) {
+         mnemonicVault: KeychainMnemonicVault) {
         self.keeperService = keeperService
-        self.keychainManager = keychainManager
-        self.keychainGroup = keychainGroup
+        self.mnemonicVault = mnemonicVault
     }
     
     public var activeWallet: Wallet {
@@ -51,12 +48,7 @@ public final class KeeperController: WalletProvider {
                             backupSettings: .init(enabled: true, revision: 1, voucher: nil),
                             currency: .USD,
                             contractVersion: .v4R2)
-        let mnemonicVault = KeychainMnemonicVault(
-            keychainManager: keychainManager,
-            walletID: try wallet.identity.id(),
-            keychainGroup: keychainGroup
-        )
-        try mnemonicVault.save(value: mnemonic, for: keyPair.publicKey)
+        try mnemonicVault.save(value: mnemonic, for: wallet)
         try updateKeeperInfo(with: wallet)
     }
     
@@ -68,16 +60,9 @@ public final class KeeperController: WalletProvider {
     }
     
     public func getWalletMnemonic(_ wallet: Wallet) throws -> [String] {
-        let mnemonicVault = KeychainMnemonicVault(
-            keychainManager: keychainManager,
-            walletID: try wallet.identity.id(),
-            keychainGroup: keychainGroup
-        )
-        
-        switch wallet.identity.kind {
-        case .Regular(let publicKey):
-            return try mnemonicVault.loadValue(key: publicKey)
-        default:
+        do {
+            return try mnemonicVault.loadValue(key: wallet)
+        } catch {
             return []
         }
     }
@@ -131,10 +116,10 @@ private extension KeeperController {
             guard !keeperInfo.wallets.isEmpty else { return false }
             let validWallets = keeperInfo.wallets.filter { wallet in
                 // TBD: check Lockup walletkind
-                guard case .Regular(let publicKey) = wallet.identity.kind else {
+                guard case .Regular = wallet.identity.kind else {
                     return true
                 }
-                return checkIfMnenomicExists(publicKey: publicKey, wallet: wallet)
+                return checkIfMnenomicExists(wallet: wallet)
             }
             return !validWallets.isEmpty
         } catch {
@@ -142,13 +127,9 @@ private extension KeeperController {
         }
     }
     
-    func checkIfMnenomicExists(publicKey: TonSwift.PublicKey, wallet: Wallet) -> Bool {
+    func checkIfMnenomicExists(wallet: Wallet) -> Bool {
         do {
-            let mnemonicVault = KeychainMnemonicVault(
-                keychainManager: keychainManager,
-                walletID: try wallet.identity.id(),
-                keychainGroup: keychainGroup)
-            let mnemonic = try mnemonicVault.loadValue(key: publicKey)
+            let mnemonic = try mnemonicVault.loadValue(key: wallet)
             return Mnemonic.mnemonicValidate(mnemonicArray: mnemonic)
         } catch {
             return false

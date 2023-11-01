@@ -26,9 +26,9 @@ struct AmountFormatter {
         if let currency = currency {
             let format: String
             if currency.symbolOnLeft {
-                format = "\(currency.symbol) %@"
+                format = "\(currency.symbol)\(String.Symbol.shortSpace)%@"
             } else {
-                format = "%@ \(currency.symbol)"
+                format = "%@\(String.Symbol.shortSpace)\(currency.symbol)"
             }
             formatted = String(format: format, formatted)
         }
@@ -47,6 +47,20 @@ struct AmountFormatter {
             maximumFractionDigits: maximumFractionDigits,
             currency: currency
         )
+    }
+    
+    func formatAmount(_ amount: BigInt,
+                      fractionDigits: Int,
+                      maximumFractionDigits: Int,
+                      symbol: String?) -> String {
+        var formatted = bigIntFormatter.format(
+            amount: amount,
+            fractionDigits: fractionDigits,
+            maximumFractionDigits: maximumFractionDigits)
+        if let symbol = symbol {
+            formatted = formatted + .Symbol.shortSpace + symbol
+        }
+        return formatted
     }
 }
 

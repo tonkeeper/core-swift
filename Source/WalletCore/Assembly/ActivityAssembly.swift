@@ -37,6 +37,7 @@ struct ActivityAssembly {
             walletProvider: keeperAssembly.keeperController,
             contractBuilder: WalletContractBuilder(),
             activityEventMapper: activityEventMapper(),
+            dateFormatter: formattersAssembly.dateFormatter,
             transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )
     }
@@ -47,6 +48,7 @@ struct ActivityAssembly {
                                walletProvider: keeperAssembly.keeperController,
                                contractBuilder: WalletContractBuilder(),
                                activityEventMapper: activityEventMapper(),
+                               dateFormatter: formattersAssembly.dateFormatter,
                                transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )
     }
@@ -60,6 +62,7 @@ struct ActivityAssembly {
             walletProvider: keeperAssembly.keeperController,
             contractBuilder: WalletContractBuilder(),
             activityEventMapper: activityEventMapper(),
+            dateFormatter: formattersAssembly.dateFormatter,
             transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )
     }
@@ -70,10 +73,17 @@ struct ActivityAssembly {
 }
 
 private extension ActivityAssembly {
-    func activityEventMapper() -> ActivityEventMapper {
-        ActivityEventMapper(dateFormatter: formattersAssembly.dateFormatter,
-                            amountFormatter: formattersAssembly.amountFormatter,
-                            intAmountFormatter: formattersAssembly.intAmountFormatter)
+    func activityEventMapper() -> AccountEventMapper {
+        let amountMapper = SignedAmountAccountEventActionAmountMapper(
+            amountAccountEventActionAmountMapper: AmountAccountEventActionAmountMapper(
+                amountFormatter: formattersAssembly.amountFormatter
+            )
+        )
+        return AccountEventMapper(dateFormatter: formattersAssembly.dateFormatter,
+                                  amountFormatter: formattersAssembly.amountFormatter,
+                                  intAmountFormatter: formattersAssembly.intAmountFormatter,
+                                  amountMapper: amountMapper
+        )
     }
     
     func activityListLoader() -> ActivityListLoader {

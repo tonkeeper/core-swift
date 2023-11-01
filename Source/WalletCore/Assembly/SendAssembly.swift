@@ -17,6 +17,7 @@ final class SendAssembly {
     let balanceAssembly: WalletBalanceAssembly
     let formattersAssembly: FormattersAssembly
     let cacheURL: URL
+    let keychainGroup: String
     
     init(coreAssembly: CoreAssembly,
          apiAssembly: APIAssembly,
@@ -24,7 +25,8 @@ final class SendAssembly {
          keeperAssembly: KeeperAssembly,
          balanceAssembly: WalletBalanceAssembly,
          formattersAssembly: FormattersAssembly,
-         cacheURL: URL) {
+         cacheURL: URL,
+         keychainGroup: String) {
         self.coreAssembly = coreAssembly
         self.apiAssembly = apiAssembly
         self.servicesAssembly = servicesAssembly
@@ -32,6 +34,7 @@ final class SendAssembly {
         self.balanceAssembly = balanceAssembly
         self.formattersAssembly = formattersAssembly
         self.cacheURL = cacheURL
+        self.keychainGroup = keychainGroup
     }
     
     func sendInputController() -> SendInputController {
@@ -56,10 +59,7 @@ final class SendAssembly {
             walletProvider: walletProvider,
             sendService: servicesAssembly.sendService,
             rateService: servicesAssembly.ratesService,
-            sendMessageBuilder: sendMessageBuilder(
-                walletProvider: walletProvider,
-                keychainGroup: keychainGroup,
-                sendService: servicesAssembly.sendService),
+            sendMessageBuilder: sendMessageBuilder(),
             intAmountFormatter: formattersAssembly.intAmountFormatter,
             amountFormatter: formattersAssembly.amountFormatter)
     }
@@ -77,10 +77,7 @@ final class SendAssembly {
             sendService: servicesAssembly.sendService,
             rateService: servicesAssembly.ratesService,
             collectibleService: servicesAssembly.collectiblesService,
-            sendMessageBuilder: sendMessageBuilder(
-                walletProvider: walletProvider,
-                keychainGroup: keychainGroup,
-                sendService: servicesAssembly.sendService),
+            sendMessageBuilder: sendMessageBuilder(),
             amountFormatter: formattersAssembly.amountFormatter,
             bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
@@ -89,6 +86,12 @@ final class SendAssembly {
         SendRecipientController(domainService: servicesAssembly.dnsService,
                                 accountInfoService: servicesAssembly.accountInfoService)
     }
+    
+    func sendMessageBuilder() -> SendMessageBuilder {
+        SendMessageBuilder(walletProvider: keeperAssembly.keeperController,
+                           mnemonicVault: coreAssembly.keychainMnemonicVault(keychainGroup: keychainGroup),
+                           sendService: servicesAssembly.sendService)
+    }
 }
 
 private extension SendAssembly {
@@ -96,14 +99,5 @@ private extension SendAssembly {
         SendTokenMapper(intAmountFormatter: formattersAssembly.intAmountFormatter,
                         decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
                         amountFormatter: formattersAssembly.amountFormatter)
-    }
-    
-    func sendMessageBuilder(walletProvider: WalletProvider,
-                            keychainGroup: String,
-                            sendService: SendService) -> SendMessageBuilder {
-        SendMessageBuilder(walletProvider: walletProvider,
-                           keychainManager: coreAssembly.keychainManager,
-                           keychainGroup: keychainGroup,
-                           sendService: sendService)
     }
 }

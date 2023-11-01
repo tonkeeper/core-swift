@@ -54,7 +54,8 @@ public final class Assembly {
         keeperAssembly: keeperAssembly,
         balanceAssembly: walletBalanceAssembly,
         formattersAssembly: formattersAssembly,
-        cacheURL: dependencies.cacheURL
+        cacheURL: dependencies.cacheURL,
+        keychainGroup: dependencies.sharedKeychainGroup
     )
     private lazy var walletBalanceAssembly = WalletBalanceAssembly(
         servicesAssembly: servicesAssembly,
@@ -95,6 +96,10 @@ public final class Assembly {
         coreAssembly: coreAssembly,
         apiAssembly: apiAssembly,
         keeperAssembly: keeperAssembly,
+        sendAssembly: sendAssembly,
+        servicesAssembly: servicesAssembly,
+        formattersAssembly: formattersAssembly,
+        cacheURL: dependencies.cacheURL,
         keychainGroup: dependencies.sharedKeychainGroup
     )
     
@@ -228,12 +233,20 @@ public extension Assembly {
         tonConnectAssembly.tonConnectDeeplinkProcessor()
     }
     
-    func tonConnectController(parameters: TCParameters,
+    func tonConnectController(parameters: TonConnectParameters,
                               manifest: TonConnectManifest) -> TonConnectController {
         tonConnectAssembly.tonConnectController(
             parameters: parameters,
             manifest: manifest
         )
+    }
+    
+    func tonConnectConfirmationController() -> TonConnectConfirmationController {
+        tonConnectAssembly.tonConnectConfirmationController()
+    }
+    
+    func tonConnectEventsDaemon() -> TonConnectEventsDaemon {
+        tonConnectAssembly.tonConnectEventsDaemon
     }
     
     func fiatMethodsController() -> FiatMethodsController {

@@ -9,7 +9,7 @@ paths:
     get:
       operationId: events
       parameters:
-        - $ref: '#/components/parameters/clientIdsParameter'
+        - $ref: '#/components/parameters/clientIdParameter'
         - name: last_event_id
           in: query
           required: false
@@ -57,9 +57,9 @@ paths:
           $ref: '#/components/responses/Response'
 components:
   parameters:
-    clientIdsParameter:
+    clientIdParameter:
       in: query
-      name: clientIds
+      name: client_id
       required: true
       explode: false
       schema:

@@ -1,5 +1,5 @@
 //
-//  ActivityEventMapper.swift
+//  AccountEventMapper.swift
 //  
 //
 //  Created by Grigory on 4.8.23..
@@ -8,25 +8,36 @@
 import Foundation
 import BigInt
 
-struct ActivityEventMapper {
+struct AccountEventMapper {
     private let dateFormatter: DateFormatter
     private let amountFormatter: AmountFormatter
     private let intAmountFormatter: IntAmountFormatter
+    private let amountMapper: AccountEventActionAmountMapper
     
     init(dateFormatter: DateFormatter,
          amountFormatter: AmountFormatter,
-         intAmountFormatter: IntAmountFormatter) {
+         intAmountFormatter: IntAmountFormatter,
+         amountMapper: AccountEventActionAmountMapper) {
         self.dateFormatter = dateFormatter
         self.amountFormatter = amountFormatter
         self.intAmountFormatter = intAmountFormatter
+        self.amountMapper = amountMapper
     }
     
-    func mapActivityEvent(_ event: ActivityEvent, dateFormat: String, collectibles: Collectibles) -> ActivityEventViewModel {
-        let eventDate = Date(timeIntervalSince1970: event.timestamp)
-        dateFormatter.dateFormat = dateFormat
-        let date = dateFormatter.string(from: eventDate)
+    func mapActivityEvent(_ event: AccountEvent,
+                          collectibles: Collectibles,
+                          accountEventRightTopDescriptionProvider: AccountEventRightTopDescriptionProvider) -> ActivityEventViewModel {
+        var accountEventRightTopDescriptionProvider = accountEventRightTopDescriptionProvider
         let actionViewModels = event.actions.compactMap { action in
-            mapAction(action, activityEvent: event, date: date, collectibles: collectibles)
+            let rightTopDescription = accountEventRightTopDescriptionProvider.rightTopDescription(
+                accountEvent: event,
+                action: action
+            )
+            return mapAction(
+                action,
+                activityEvent: event,
+                rightTopDescription: rightTopDescription,
+                collectibles: collectibles)
         }
         return ActivityEventViewModel(actions: actionViewModels)
     }
@@ -48,88 +59,91 @@ struct ActivityEventMapper {
     }
 }
 
-private extension ActivityEventMapper {
-    func mapAction(_ action: Action, activityEvent: ActivityEvent, date: String, collectibles: Collectibles) -> ActivityEventViewModel.ActionViewModel? {
+private extension AccountEventMapper {
+    func mapAction(_ action: Action,
+                   activityEvent: AccountEvent,
+                   rightTopDescription: String?,
+                   collectibles: Collectibles) -> ActivityEventViewModel.ActionViewModel? {
 
         switch action.type {
         case .tonTransfer(let tonTransfer):
             return mapTonTransferAction(tonTransfer,
                                         activityEvent: activityEvent,
                                         preview: action.preview,
-                                        date: date,
+                                        rightTopDescription: rightTopDescription,
                                         status: action.status.rawValue)
         case .jettonTransfer(let jettonTransfer):
             return mapJettonTransferAction(jettonTransfer,
                                            activityEvent: activityEvent,
                                            preview: action.preview,
-                                           date: date,
+                                           rightTopDescription: rightTopDescription,
                                            status: action.status.rawValue)
         case .jettonMint(let jettonMint):
             return mapJettonMintAction(jettonMint,
                                        activityEvent: activityEvent,
                                        preview: action.preview,
-                                       date: date,
+                                       rightTopDescription: rightTopDescription,
                                        status: action.status.rawValue)
         case .jettonBurn(let jettonBurn):
             return mapJettonBurnAction(jettonBurn,
                                        activityEvent: activityEvent,
                                        preview: action.preview,
-                                       date: date,
+                                       rightTopDescription: rightTopDescription,
                                        status: action.status.rawValue)
         case .auctionBid(let auctionBid):
             return mapAuctionBidAction(auctionBid,
                                        activityEvent: activityEvent,
                                        preview: action.preview,
-                                       date: date,
+                                       rightTopDescription: rightTopDescription,
                                        status: action.status.rawValue)
         case .nftPurchase(let nftPurchase):
             return mapNFTPurchaseAction(nftPurchase,
                                         activityEvent: activityEvent,
                                         preview: action.preview,
-                                        date: date,
+                                        rightTopDescription: rightTopDescription,
                                         status: action.status.rawValue)
         case .contractDeploy(let contractDeploy):
             return mapContractDeployAction(contractDeploy,
                                            activityEvent: activityEvent,
                                            preview: action.preview,
-                                           date: date,
+                                           rightTopDescription: rightTopDescription,
                                            status: action.status.rawValue)
         case .smartContractExec(let smartContractExec):
             return mapSmartContractExecAction(smartContractExec,
                                               activityEvent: activityEvent,
                                               preview: action.preview,
-                                              date: date,
+                                              rightTopDescription: rightTopDescription,
                                               status: action.status.rawValue)
         case .nftItemTransfer(let nftItemTransfer):
             return mapItemTransferAction(nftItemTransfer,
                                          activityEvent: activityEvent,
                                          preview: action.preview,
-                                         date: date,
+                                         rightTopDescription: rightTopDescription,
                                          status: action.status.rawValue,
                                          collectibles: collectibles)
         case .depositStake(let depositStake):
             return mapDepositStakeAction(depositStake,
                                          activityEvent: activityEvent,
                                          preview: action.preview,
-                                         date: date,
+                                         rightTopDescription: rightTopDescription,
                                          status: action.status.rawValue)
         case .withdrawStake(let withdrawStake):
             return mapWithdrawStakeAction(withdrawStake,
                                           activityEvent: activityEvent,
                                           preview: action.preview,
-                                          date: date,
+                                          rightTopDescription: rightTopDescription,
                                           status: action.status.rawValue)
         case .withdrawStakeRequest(let withdrawStakeRequest):
             return mapWithdrawStakeRequestAction(withdrawStakeRequest,
                                                  activityEvent: activityEvent,
                                                  preview: action.preview,
-                                                 date: date,
+                                                 rightTopDescription: rightTopDescription,
                                                  status: action.status.rawValue)
         case .jettonSwap(let jettonSwap):
             return mapJettonSwapAction(jettonSwap,
                                        activityEvent: activityEvent,
                                        preview: action.preview,
-                                       date: date,
+                                       rightTopDescription: rightTopDescription,
                                        status: action.status.rawValue)
         case .subscribe(let subscribe):
             return nil
@@ -139,227 +153,215 @@ private extension ActivityEventMapper {
     }
     
     func mapTonTransferAction(_ action: Action.TonTransfer,
-                              activityEvent: ActivityEvent,
+                              activityEvent: AccountEvent,
                               preview: Action.SimplePreview,
-                              date: String,
+                              rightTopDescription: String?,
                               status: String?) -> ActivityEventViewModel.ActionViewModel {
         let tonInfo = TonInfo()
         let eventType: ActivityEventViewModel.ActionViewModel.ActionType
         let leftTopDescription: String
-        let sign: String
+        let amountType: AccountEventActionAmountMapperActionType
+        
         if activityEvent.isScam {
+            amountType = .income
             eventType = .spam
             leftTopDescription = action.sender.value
-            sign = .plusShortSpace
         } else if action.recipient == activityEvent.account {
+            amountType = .income
             eventType = .receieved
-            sign = .plusShortSpace
             leftTopDescription = action.sender.value
         } else {
+            amountType = .outcome
             eventType = .sent
-            sign = .minusShortSpace
             leftTopDescription = action.recipient.value
         }
         
-        let amount = amountFormatter.formatAmount(
-            BigInt(integerLiteral: action.amount),
-            fractionDigits: tonInfo.fractionDigits,
-            maximumFractionDigits: tonInfo.fractionDigits
-        )
+        let amount = amountMapper
+            .mapAmount(
+                amount: BigInt(integerLiteral: action.amount),
+                fractionDigits: tonInfo.fractionDigits,
+                maximumFractionDigits: tonInfo.fractionDigits,
+                type: amountType,
+                currency: .TON)
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,
-                                                      amount: "\(sign)\(amount) \(tonInfo.symbol)",
+                                                      amount: amount,
                                                       subamount: nil,
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
+                                                      rightTopDescription: rightTopDescription,
                                                       status: status,
                                                       comment: action.comment,
                                                       collectible: nil)
     }
     
     func mapJettonTransferAction(_ action: Action.JettonTransfer,
-                                 activityEvent: ActivityEvent,
+                                 activityEvent: AccountEvent,
                                  preview: Action.SimplePreview,
-                                 date: String,
+                                 rightTopDescription: String?,
                                  status: String?) -> ActivityEventViewModel.ActionViewModel {
         let eventType: ActivityEventViewModel.ActionViewModel.ActionType
         let leftTopDescription: String?
-        let sign: String
+        let amountType: AccountEventActionAmountMapperActionType
         if activityEvent.isScam {
             eventType = .spam
             leftTopDescription = action.sender?.value ?? nil
-            sign = " "
+            amountType = .income
         } else if action.recipient == activityEvent.account {
             eventType = .receieved
             leftTopDescription = action.sender?.value ?? nil
-            sign = .plusShortSpace
+            amountType = .income
         } else {
             eventType = .sent
             leftTopDescription = action.recipient?.value ?? nil
-            sign = .minusShortSpace
+            amountType = .outcome
         }
         
-        var amount = sign + amountFormatter.formatAmount(
-            action.amount,
-            fractionDigits: action.tokenInfo.fractionDigits,
-            maximumFractionDigits: action.tokenInfo.fractionDigits)
-        if let symbol = action.tokenInfo.symbol {
-            amount += " \(symbol)"
-        }
+        let amount = amountMapper
+            .mapAmount(
+                amount: action.amount,
+                fractionDigits: action.tokenInfo.fractionDigits,
+                maximumFractionDigits: action.tokenInfo.fractionDigits,
+                type: amountType,
+                symbol: action.tokenInfo.symbol)
         
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,
                                                       amount: amount,
                                                       subamount: nil,
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
+                                                      rightTopDescription: rightTopDescription,
                                                       status: status,
                                                       comment: action.comment,
                                                       collectible: nil)
     }
     
     func mapJettonMintAction(_ action: Action.JettonMint,
-                             activityEvent: ActivityEvent,
+                             activityEvent: AccountEvent,
                              preview: Action.SimplePreview,
-                             date: String,
+                             rightTopDescription: String?,
                              status: String?) -> ActivityEventViewModel.ActionViewModel {
-        let eventType = ActivityEventViewModel.ActionViewModel.ActionType.mint
-        let leftTopDescription = action.tokenInfo.name
-        
-        var amount = .plusShortSpace + amountFormatter.formatAmount(
-            action.amount,
+        let amount = amountMapper.mapAmount(
+            amount: action.amount,
             fractionDigits: action.tokenInfo.fractionDigits,
-            maximumFractionDigits: action.tokenInfo.fractionDigits)
-        if let symbol = action.tokenInfo.symbol {
-            amount += " \(symbol)"
-        }
+            maximumFractionDigits: action.tokenInfo.fractionDigits,
+            type: .income,
+            symbol: action.tokenInfo.symbol)
         
-        return ActivityEventViewModel.ActionViewModel(eventType: eventType,
+        return ActivityEventViewModel.ActionViewModel(eventType: .mint,
                                                       amount: amount,
                                                       subamount: nil,
-                                                      leftTopDescription: leftTopDescription,
+                                                      leftTopDescription: action.tokenInfo.name,
                                                       leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
+                                                      rightTopDescription: rightTopDescription,
                                                       status: status,
                                                       comment: nil,
                                                       collectible: nil)
     }
     
     func mapJettonBurnAction(_ action: Action.JettonBurn,
-                             activityEvent: ActivityEvent,
+                             activityEvent: AccountEvent,
                              preview: Action.SimplePreview,
-                             date: String,
+                             rightTopDescription: String?,
                              status: String?) -> ActivityEventViewModel.ActionViewModel {
-        let eventType = ActivityEventViewModel.ActionViewModel.ActionType.burn
-        let leftTopDescription = action.tokenInfo.name
-        
-        var amount = .minusShortSpace + amountFormatter.formatAmount(
-            action.amount,
+        let amount = amountMapper.mapAmount(
+            amount: action.amount,
             fractionDigits: action.tokenInfo.fractionDigits,
-            maximumFractionDigits: action.tokenInfo.fractionDigits)
-        if let symbol = action.tokenInfo.symbol {
-            amount += " \(symbol)"
-        }
+            maximumFractionDigits: action.tokenInfo.fractionDigits,
+            type: .outcome,
+            symbol: action.tokenInfo.symbol)
         
-        return ActivityEventViewModel.ActionViewModel(eventType: eventType,
+        return ActivityEventViewModel.ActionViewModel(eventType: .burn,
                                                       amount: amount,
                                                       subamount: nil,
-                                                      leftTopDescription: leftTopDescription,
+                                                      leftTopDescription: action.tokenInfo.name,
                                                       leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
+                                                      rightTopDescription: rightTopDescription,
                                                       status: status,
                                                       comment: nil,
                                                       collectible: nil)
     }
     
     func mapDepositStakeAction(_ action: Action.DepositStake,
-                               activityEvent: ActivityEvent,
+                               activityEvent: AccountEvent,
                                preview: Action.SimplePreview,
-                               date: String,
+                               rightTopDescription: String?,
                                status: String?) -> ActivityEventViewModel.ActionViewModel {
-        let leftTopDescription = action.pool.name
-        
         let tonInfo = TonInfo()
-        let amount = .minusShortSpace + amountFormatter.formatAmount(
-            BigInt(integerLiteral: action.amount),
+        let amount = amountMapper.mapAmount(
+            amount: BigInt(integerLiteral: action.amount),
             fractionDigits: tonInfo.fractionDigits,
-            maximumFractionDigits: tonInfo.fractionDigits
-        ) + " \(tonInfo.symbol)"
+            maximumFractionDigits: tonInfo.fractionDigits,
+            type: .outcome,
+            currency: .TON)
         
-        return ActivityEventViewModel.ActionViewModel(eventType: .depositStake,
-                                                      amount: amount,
-                                                      subamount: nil,
-                                                      leftTopDescription: leftTopDescription,
-                                                      leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
-                                                      status: status,
-                                                      comment: nil,
-                                                      collectible: nil)
+        return ActivityEventViewModel.ActionViewModel(
+            eventType: .depositStake,
+            amount: amount,
+            subamount: nil,
+            leftTopDescription: action.pool.name,
+            leftBottomDescription: nil,
+            rightTopDescription: rightTopDescription,
+            status: status,
+            comment: nil,
+            collectible: nil
+        )
     }
     
     func mapWithdrawStakeAction(_ action: Action.WithdrawStake,
-                                activityEvent: ActivityEvent,
+                                activityEvent: AccountEvent,
                                 preview: Action.SimplePreview,
-                                date: String,
+                                rightTopDescription: String?,
                                 status: String?) -> ActivityEventViewModel.ActionViewModel {
-        let leftTopDescription = action.pool.name
-        
         let tonInfo = TonInfo()
-        let amount = amountFormatter.formatAmount(
-            BigInt(integerLiteral: action.amount),
+        let amount = amountMapper.mapAmount(
+            amount: BigInt(integerLiteral: action.amount),
             fractionDigits: tonInfo.fractionDigits,
-            maximumFractionDigits: tonInfo.fractionDigits
-        ) + " \(tonInfo.symbol)"
+            maximumFractionDigits: tonInfo.fractionDigits,
+            type: .outcome,
+            currency: .TON)
         
-        return ActivityEventViewModel.ActionViewModel(eventType: .withdrawStake,
-                                                      amount: amount,
-                                                      subamount: nil,
-                                                      leftTopDescription: leftTopDescription,
-                                                      leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
-                                                      status: status,
-                                                      comment: nil,
-                                                      collectible: nil)
+        return ActivityEventViewModel.ActionViewModel(
+            eventType: .withdrawStake,
+            amount: amount,
+            subamount: nil,
+            leftTopDescription: action.pool.name,
+            leftBottomDescription: nil,
+            rightTopDescription: rightTopDescription,
+            status: status,
+            comment: nil,
+            collectible: nil
+        )
     }
     
     func mapWithdrawStakeRequestAction(_ action: Action.WithdrawStakeRequest,
-                                       activityEvent: ActivityEvent,
+                                       activityEvent: AccountEvent,
                                        preview: Action.SimplePreview,
-                                       date: String,
+                                       rightTopDescription: String?,
                                        status: String?) -> ActivityEventViewModel.ActionViewModel {
-        let leftTopDescription = action.pool.name
-        
         let tonInfo = TonInfo()
-        let amount = amountFormatter.formatAmount(
-            BigInt(integerLiteral: action.amount ?? 0),
+        let amount = amountMapper.mapAmount(
+            amount: BigInt(integerLiteral: action.amount ?? 0),
             fractionDigits: tonInfo.fractionDigits,
-            maximumFractionDigits: tonInfo.fractionDigits
-        ) + " \(tonInfo.symbol)"
+            maximumFractionDigits: tonInfo.fractionDigits,
+            type: .none,
+            currency: .TON)
         
         return ActivityEventViewModel.ActionViewModel(eventType: .withdrawStakeRequest,
                                                       amount: amount,
                                                       subamount: nil,
-                                                      leftTopDescription: leftTopDescription,
+                                                      leftTopDescription: action.pool.name,
                                                       leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
+                                                      rightTopDescription: rightTopDescription,
                                                       status: status,
                                                       comment: nil,
                                                       collectible: nil)
     }
     
     func mapAuctionBidAction(_ action: Action.AuctionBid,
-                             activityEvent: ActivityEvent,
+                             activityEvent: AccountEvent,
                              preview: Action.SimplePreview,
-                             date: String,
+                             rightTopDescription: String?,
                              status: String?) -> ActivityEventViewModel.ActionViewModel {
-        
         var collectible: ActivityEventViewModel.ActionViewModel.CollectibleViewModel?
         if let actionCollectible = action.collectible {
             collectible = ActivityEventViewModel.ActionViewModel.CollectibleViewModel(
@@ -373,17 +375,16 @@ private extension ActivityEventMapper {
                                                       subamount: nil,
                                                       leftTopDescription: action.bidder.value,
                                                       leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
+                                                      rightTopDescription: rightTopDescription,
                                                       status: status,
                                                       comment: nil,
                                                       collectible: collectible)
     }
     
     func mapNFTPurchaseAction(_ action: Action.NFTPurchase,
-                              activityEvent: ActivityEvent,
+                              activityEvent: AccountEvent,
                               preview: Action.SimplePreview,
-                              date: String,
+                              rightTopDescription: String?,
                               status: String?) -> ActivityEventViewModel.ActionViewModel {
         
         let collectibleViewModel = ActivityEventViewModel.ActionViewModel.CollectibleViewModel(
@@ -391,16 +392,15 @@ private extension ActivityEventMapper {
             collectionName: action.collectible.collection?.name,
             image: .url(action.collectible.preview.size500)
         )
-        
-        let sign: String = action.buyer == activityEvent.account ? .minusShortSpace : .plusShortSpace
-        
         let tonInfo = TonInfo()
-        var amount = amountFormatter.formatAmount(
-            action.price,
-            fractionDigits: tonInfo.fractionDigits,
-            maximumFractionDigits: tonInfo.fractionDigits
-        )
-        amount = "\(sign)\(amount) \(tonInfo.symbol)"
+        let amount = amountMapper
+            .mapAmount(
+                amount: action.price,
+                fractionDigits: tonInfo.fractionDigits,
+                maximumFractionDigits: tonInfo.fractionDigits,
+                type: action.buyer == activityEvent.account ? .outcome : .income,
+                currency: .TON
+            )
         
         return ActivityEventViewModel.ActionViewModel(
             eventType: .nftPurchase,
@@ -408,8 +408,7 @@ private extension ActivityEventMapper {
             subamount: nil,
             leftTopDescription: action.seller.value,
             leftBottomDescription: nil,
-            date: date,
-            rightTopDesription: date,
+            rightTopDescription: rightTopDescription,
             status: status,
             comment: nil,
             collectible: collectibleViewModel
@@ -417,9 +416,9 @@ private extension ActivityEventMapper {
     }
     
     func mapContractDeployAction(_ action: Action.ContractDeploy,
-                                 activityEvent: ActivityEvent,
+                                 activityEvent: AccountEvent,
                                  preview: Action.SimplePreview,
-                                 date: String,
+                                 rightTopDescription: String?,
                                  status: String?) -> ActivityEventViewModel.ActionViewModel {
         return ActivityEventViewModel.ActionViewModel(
             eventType: .walletInitialized,
@@ -427,8 +426,7 @@ private extension ActivityEventMapper {
             subamount: nil,
             leftTopDescription: action.address.toShortString(bounceable: true),
             leftBottomDescription: nil,
-            date: date,
-            rightTopDesription: date,
+            rightTopDescription: rightTopDescription,
             status: status,
             comment: nil,
             collectible: nil
@@ -436,37 +434,35 @@ private extension ActivityEventMapper {
     }
     
     func mapSmartContractExecAction(_ action: Action.SmartContractExec,
-                                    activityEvent: ActivityEvent,
+                                    activityEvent: AccountEvent,
                                     preview: Action.SimplePreview,
-                                    date: String,
+                                    rightTopDescription: String?,
                                     status: String?) -> ActivityEventViewModel.ActionViewModel {
-        
         let tonInfo = TonInfo()
-        var amount = amountFormatter.formatAmount(
-            BigInt(integerLiteral: action.tonAttached),
-            fractionDigits: tonInfo.fractionDigits,
-            maximumFractionDigits: tonInfo.fractionDigits
-        )
-        
-        let sign: String = action.executor == activityEvent.account ? .minusShortSpace : .plusShortSpace
-        amount = "\(sign)\(amount) \(tonInfo.symbol)"
+        let amount = amountMapper
+            .mapAmount(
+                amount: BigInt(integerLiteral: action.tonAttached),
+                fractionDigits: tonInfo.fractionDigits,
+                maximumFractionDigits: tonInfo.fractionDigits,
+                type: action.executor == activityEvent.account ? .outcome : .income,
+                currency: .TON
+            )
         
         return ActivityEventViewModel.ActionViewModel(eventType: .contractExec,
                                                       amount: amount,
                                                       subamount: nil,
                                                       leftTopDescription: action.contract.value,
                                                       leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
+                                                      rightTopDescription: rightTopDescription,
                                                       status: status,
                                                       comment: nil,
                                                       collectible: nil)
     }
     
     func mapItemTransferAction(_ action: Action.NFTItemTransfer,
-                               activityEvent: ActivityEvent,
+                               activityEvent: AccountEvent,
                                preview: Action.SimplePreview,
-                               date: String,
+                               rightTopDescription: String?,
                                status: String?,
                                collectibles: Collectibles) -> ActivityEventViewModel.ActionViewModel {
         let eventType: ActivityEventViewModel.ActionViewModel.ActionType
@@ -495,17 +491,16 @@ private extension ActivityEventMapper {
                                                       subamount: nil,
                                                       leftTopDescription: leftTopDescription,
                                                       leftBottomDescription: nil,
-                                                      date: date,
-                                                      rightTopDesription: date,
+                                                      rightTopDescription: rightTopDescription,
                                                       status: status,
                                                       comment: action.comment,
                                                       collectible: collectible)
     }
     
     func mapJettonSwapAction(_ action: Action.JettonSwap,
-                             activityEvent: ActivityEvent,
+                             activityEvent: AccountEvent,
                              preview: Action.SimplePreview,
-                             date: String,
+                             rightTopDescription: String?,
                              status: String?) -> ActivityEventViewModel.ActionViewModel {
         
         let tonInfo = TonInfo()
@@ -524,14 +519,15 @@ private extension ActivityEventMapper {
             } else {
                 return nil
             }
-            var result = .plusShortSpace + amountFormatter.formatAmount(
-                amount,
-                fractionDigits: fractionDigits,
-                maximumFractionDigits: fractionDigits)
-            if let symbol = symbol {
-                result += " \(symbol)"
-            }
-            return result
+
+            return amountMapper
+                .mapAmount(
+                    amount: amount,
+                    fractionDigits: fractionDigits,
+                    maximumFractionDigits: fractionDigits,
+                    type: .income,
+                    symbol: symbol
+                )
         }()
         
         let inAmount: String? = {
@@ -549,14 +545,14 @@ private extension ActivityEventMapper {
             } else {
                 return nil
             }
-            var result = .minusShortSpace + amountFormatter.formatAmount(
-                amount,
-                fractionDigits: fractionDigits,
-                maximumFractionDigits: fractionDigits)
-            if let symbol = symbol {
-                result += " \(symbol)"
-            }
-            return result
+            return amountMapper
+                .mapAmount(
+                    amount: amount,
+                    fractionDigits: fractionDigits,
+                    maximumFractionDigits: fractionDigits,
+                    type: .outcome,
+                    symbol: symbol
+                )
         }()
         
         return ActivityEventViewModel.ActionViewModel(
@@ -565,8 +561,8 @@ private extension ActivityEventMapper {
             subamount: inAmount,
             leftTopDescription: action.user.value,
             leftBottomDescription: nil,
-            date: date,
-            rightTopDesription: date,
+            
+            rightTopDescription: rightTopDescription,
             status: status,
             comment: nil,
             collectible: nil
@@ -579,9 +575,4 @@ private extension WalletAccount {
         if let name = name { return name }
         return address.toShortString(bounceable: !isWallet)
     }
-}
-
-private extension String {
-  static let minusShortSpace = "\u{2212}\u{2009}"
-  static let plusShortSpace = "\u{002B}\u{2009}"
 }

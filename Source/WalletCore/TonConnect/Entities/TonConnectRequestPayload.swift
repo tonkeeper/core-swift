@@ -1,5 +1,5 @@
 //
-//  TCRequestPayload.swift
+//  TonConnectRequestPayload.swift
 //  
 //
 //  Created by Grigory Serebryanyy on 18.10.2023.
@@ -7,8 +7,7 @@
 
 import Foundation
 
-struct TCRequestPayload: Decodable {
-    
+struct TonConnectRequestPayload: Decodable {
     enum Item: Decodable {
         case tonAddress
         case tonProof(payload: String)

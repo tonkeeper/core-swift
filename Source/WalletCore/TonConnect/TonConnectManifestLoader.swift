@@ -7,18 +7,6 @@
 
 import Foundation
 
-public struct TonConnectManifest: Decodable {
-    let url: URL
-    let name: String
-    let iconUrl: URL?
-    let termsOfUseUrl: URL?
-    let privacyPolicyUrl: URL?
-    
-    var host: String {
-        url.host ?? ""
-    }
-}
-
 struct TonConnectManifestLoader {
     private let urlSession: URLSession
     
