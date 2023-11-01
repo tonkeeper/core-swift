@@ -53,13 +53,13 @@ public final class TonConnectEventsDaemon {
         guard task == nil else { return }
         let task = Task {
             let wallet = try walletProvider.activeWallet
-            let apps = (try? appsVault.loadValue(key: wallet)) ?? TonConnectApps(apps: [])
-            let appsClientIds = apps.apps.map { $0.keyPair.publicKey.hexString }
+            guard let apps = try? appsVault.loadValue(key: wallet) else { return }
+            let appsClientIds = apps.apps.map { $0.keyPair.publicKey.hexString }.joined(separator: ",")
             let errorParser = EventSourceDecodableErrorParser<TonConnectError>()
             let stream = try await EventSource.eventSource({
                 let lastEventId = try? localRepository.load(key: try wallet.identity.id().string).lastEventId
                 let response = try await self.apiClient.events(
-                    query: .init(client_id: appsClientIds, last_event_id: lastEventId)
+                    query: .init(client_id: [appsClientIds], last_event_id: lastEventId)
                 )
                 return try response.ok.body.text_event_hyphen_stream
             }, errorParser: errorParser)
@@ -70,6 +70,7 @@ public final class TonConnectEventsDaemon {
                     apps: apps)
             }
             guard !Task.isCancelled else { return }
+            stopEventsObserving()
             startEventsObserving()
         }
         self.task = task

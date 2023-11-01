@@ -17,7 +17,7 @@ public extension TonConnect {
         struct Param: Decodable {
             let messages: [Message]
             let validUntil: TimeInterval
-            let from: Address
+            let from: Address?
             
             enum CodingKeys: String, CodingKey {
                 case messages

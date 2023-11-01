@@ -21,7 +21,8 @@ struct TonConnectConfirmationMapper {
     
     func mapTransactionInfo(_ info: Components.Schemas.MessageConsequences,
                             tonRates: Rates.Rate?,
-                            currency: Currency) throws -> TonConnectConfirmationModel {
+                            currency: Currency,
+                            collectibles: Collectibles) throws -> TonConnectConfirmationModel {
         let tonInfo = TonInfo()
         let descriptionProvider = TonConnectConfirmationAccountEventRightTopDescriptionProvider(
             rates: tonRates,
@@ -32,7 +33,7 @@ struct TonConnectConfirmationMapper {
         let eventModel = accountEventMapper
             .mapActivityEvent(
                 try .init(accountEvent: info.event),
-                collectibles: .init(collectibles: [:]),
+                collectibles: collectibles,
                 accountEventRightTopDescriptionProvider: descriptionProvider
             )
         
@@ -60,7 +61,7 @@ struct TonConnectConfirmationMapper {
         }
         
         return TonConnectConfirmationModel(
-            event: eventModel, 
+            event: eventModel,
             fee: feeFormatted
         )
     }

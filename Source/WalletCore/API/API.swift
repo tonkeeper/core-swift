@@ -118,8 +118,9 @@ extension API {
     }
     
     func sendTransaction(boc: String) async throws {
-        _ = try await tonAPIClient
+        let response = try await tonAPIClient
             .sendBlockchainMessage(body: .json(.init(boc: boc)))
+        _ = try response.ok
     }
 }
 

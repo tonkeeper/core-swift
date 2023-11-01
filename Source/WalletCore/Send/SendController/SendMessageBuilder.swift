@@ -10,6 +10,10 @@ import TonSwift
 import BigInt
 
 struct SendMessageBuilder {
+    enum Error: Swift.Error {
+        case incorrectSenderAddress(Address)
+    }
+    
     private let walletProvider: WalletProvider
     private let mnemonicVault: KeychainMnemonicVault
     private let sendService: SendService
@@ -28,7 +32,7 @@ struct SendMessageBuilder {
         let comment: String?
     }
     
-    func sendTonTransactionsBoc(_ payloads: [SendTonPayload]) async throws -> String {
+    func sendTonTransactionsBoc(_ payloads: [SendTonPayload], sender: Address? = nil) async throws -> String {
         let messages = try payloads.map { payload in
             let internalMessage: MessageRelaxed
             if let comment = payload.comment {
@@ -41,7 +45,7 @@ struct SendMessageBuilder {
             }
             return internalMessage
         }
-        return try await externalMessageBoc(internalMessages: { _ in
+        return try await externalMessageBoc(sender: sender, internalMessages: { _ in
             messages
         })
     }
@@ -50,7 +54,7 @@ struct SendMessageBuilder {
                                  value: BigInt,
                                  recipientAddress: Address,
                                  comment: String?) async throws -> String {
-        return try await externalMessageBoc(internalMessages: { sender in
+        return try await externalMessageBoc(sender: nil, internalMessages: { sender in
             let internalMessage = try JettonTransferMessage.internalMessage(
                 jettonAddress: try Address.parse(tokenAddress),
                 amount: value,
@@ -65,7 +69,7 @@ struct SendMessageBuilder {
     func sendNFTEstimateBoc(nftAddress: Address,
                             recipientAddress: Address,
                             transferAmount: BigUInt) async throws -> String {
-        return try await externalMessageBoc(internalMessages: { sender in
+        return try await externalMessageBoc(sender: nil, internalMessages: { sender in
             let internalMessage = try NFTTransferMessage.internalMessage(
                 nftAddress: nftAddress,
                 nftTransferAmount: transferAmount,
@@ -76,7 +80,7 @@ struct SendMessageBuilder {
         })
     }
 
-    func externalMessageBoc(internalMessages: (_ sender: Address) throws -> [MessageRelaxed]) async throws -> String {
+    func externalMessageBoc(sender: Address?, internalMessages: (_ sender: Address) throws -> [MessageRelaxed]) async throws -> String {
         let wallet = try walletProvider.activeWallet
         let walletPublicKey = try wallet.publicKey
         let contractBuilder = WalletContractBuilder()
@@ -85,8 +89,16 @@ struct SendMessageBuilder {
         let mnemonic = try mnemonicVault.loadValue(key: wallet)
         let keyPair = try Mnemonic.mnemonicToPrivateKey(mnemonicArray: mnemonic)
         
-        let senderAddress = try contract.address()
+        let activeWalletAddress = try contract.address()
         
+        let senderAddress: Address
+        if let sender = sender {
+            guard sender == activeWalletAddress else { throw Error.incorrectSenderAddress(sender)}
+            senderAddress = sender
+        } else {
+            senderAddress = activeWalletAddress
+        }
+
         let internalMessages = try internalMessages(senderAddress)
         
         let seqno = try await sendService.loadSeqno(address: senderAddress)

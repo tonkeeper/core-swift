@@ -59,6 +59,7 @@ final class TonConnectAssembly {
             sendService: servicesAssembly.sendService,
             apiClient: apiAssembly.tonConnectAPIClient(),
             rateService: servicesAssembly.ratesService,
+            collectiblesService: servicesAssembly.collectiblesService,
             walletProvider: keeperAssembly.keeperController,
             tonConnectConfirmationMapper: tonConnectConfirmationMapper
         )

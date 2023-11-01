@@ -8,6 +8,8 @@
 import Foundation
 import BigInt
 import TonConnectAPI
+import TonAPI
+import TonSwift
 
 public protocol TonConnectConfirmationControllerOutput: AnyObject {
     func tonConnectConfirmationControllerDidStartEmulation(_ controller: TonConnectConfirmationController)
@@ -28,9 +30,9 @@ public final class TonConnectConfirmationController {
     private let sendService: SendService
     private let apiClient: TonConnectAPI.Client
     private let rateService: RatesService
+    private let collectiblesService: CollectiblesService
     private let walletProvider: WalletProvider
     private let tonConnectConfirmationMapper: TonConnectConfirmationMapper
-//    private let amountFormatter: AmountFormatter
     
     private let state: ThreadSafeProperty<State> = .init(property: .idle)
     
@@ -38,12 +40,14 @@ public final class TonConnectConfirmationController {
          sendService: SendService,
          apiClient: TonConnectAPI.Client,
          rateService: RatesService,
+         collectiblesService: CollectiblesService,
          walletProvider: WalletProvider,
          tonConnectConfirmationMapper: TonConnectConfirmationMapper) {
         self.sendMessageBuilder = sendMessageBuilder
         self.sendService = sendService
         self.apiClient = apiClient
         self.rateService = rateService
+        self.collectiblesService = collectiblesService
         self.walletProvider = walletProvider
         self.tonConnectConfirmationMapper = tonConnectConfirmationMapper
     }
@@ -75,7 +79,7 @@ public final class TonConnectConfirmationController {
             .init(value: BigInt(integerLiteral: $0.amount), recipientAddress: $0.address, comment: nil)
         }
         
-        let boc = try await sendMessageBuilder.sendTonTransactionsBoc(payloads)
+        let boc = try await sendMessageBuilder.sendTonTransactionsBoc(payloads, sender: params.from)
 
         try await sendService.sendTransaction(boc: boc)
         await self.state.setValue(.confirmed)
@@ -156,10 +160,14 @@ private extension TonConnectConfirmationController {
         let currency = try walletProvider.activeWallet.currency
         let rates = loadedRates?.first(where: { $0.currency == currency })
         
+        let event = try AccountEvent(accountEvent: transactionInfo.event)
+        let nfts = try await loadEventNFTs(event: event)
+        
         return try tonConnectConfirmationMapper.mapTransactionInfo(
             transactionInfo,
             tonRates: rates,
-            currency: currency)
+            currency: currency,
+            collectibles: nfts)
     }
     
     func loadRates() async -> [Rates.Rate]? {
@@ -170,6 +178,27 @@ private extension TonConnectConfirmationController {
         } else {
             return nil
         }
+    }
+    
+    func loadEventNFTs(event: AccountEvent) async throws -> Collectibles {
+        var nftAddressesToLoad = Set<Address>()
+        var nfts = [Address: Collectible]()
+        for action in event.actions {
+            switch action.type {
+            case .nftItemTransfer(let nftItemTransfer):
+                nftAddressesToLoad.insert(nftItemTransfer.nftAddress)
+            case .nftPurchase(let nftPurchase):
+                nfts[nftPurchase.collectible.address] = nftPurchase.collectible
+                try? collectiblesService.saveCollectible(collectible: nftPurchase.collectible)
+            default: continue
+            }
+        }
+        
+        if let loadedNFTs = try? await collectiblesService.loadCollectibles(addresses: Array(nftAddressesToLoad)) {
+            nfts.merge(loadedNFTs.collectibles, uniquingKeysWith: { $1 })
+        }
+        
+        return Collectibles(collectibles: nfts)
     }
 }
 
