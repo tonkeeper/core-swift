@@ -25,29 +25,59 @@ struct SendMessageBuilder {
         self.mnemonicVault = mnemonicVault
         self.sendService = sendService
     }
-    
-    struct SendTonPayload {
+
+    struct TonConnectSendPayload {
         let value: BigInt
         let recipientAddress: Address
-        let comment: String?
+        let stateInit: String?
+        let payload: String?
     }
     
-    func sendTonTransactionsBoc(_ payloads: [SendTonPayload], sender: Address? = nil) async throws -> String {
-        let messages = try payloads.map { payload in
+    func sendTonTransactionBoc(value: BigInt,
+                               recipientAddress: Address,
+                               comment: String?) async throws -> String {
+        return try await externalMessageBoc(sender: nil,
+                                            internalMessages: { sender in
             let internalMessage: MessageRelaxed
-            if let comment = payload.comment {
-                internalMessage = try MessageRelaxed.internal(to: payload.recipientAddress,
-                                                              value: payload.value.magnitude,
-                                                              textPayload: comment)
+            if let comment = comment {
+                internalMessage = try MessageRelaxed.internal(to: recipientAddress,
+                                                    value: value.magnitude,
+                                                    textPayload: comment)
             } else {
-                internalMessage = MessageRelaxed.internal(to: payload.recipientAddress,
-                                                          value: payload.value.magnitude)
+                internalMessage = MessageRelaxed.internal(to: recipientAddress,
+                                                           value: value.magnitude)
             }
-            return internalMessage
-        }
-        return try await externalMessageBoc(sender: sender, internalMessages: { _ in
-            messages
+            return [internalMessage]
         })
+    }
+    
+    func sendTonConnectTransactionBoc(_ payloads: [TonConnectSendPayload],
+                                      sender: Address? = nil) async throws -> String {
+        let messages = try payloads.map { payload in
+            var stateInit: StateInit?
+            if let stateInitString = payload.stateInit {
+                stateInit = try StateInit.loadFrom(
+                    slice: try Cell
+                        .fromBase64(src: stateInitString)
+                        .toSlice()
+                )
+            }
+            var body: Cell = .empty
+            if let messagePayload = payload.payload {
+                body = try Cell.fromBase64(src: messagePayload)
+            }
+            return MessageRelaxed.internal(
+                to: payload.recipientAddress,
+                value: payload.value.magnitude,
+                stateInit: stateInit,
+                body: body)
+        }
+        return try await externalMessageBoc(
+            sender: sender,
+            internalMessages: { _ in
+                messages
+            }
+        )
     }
 
     func sendTokenTransactionBoc(tokenAddress: String,

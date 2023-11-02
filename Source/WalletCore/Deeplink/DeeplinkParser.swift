@@ -50,6 +50,16 @@ struct TonConnectDeeplinkHandler: DeeplinkHandler {
     }
     
     func parse(string: String) throws -> Deeplink {
+        if let deeplink = try? parseTonConnectDeeplink(string: string) {
+            return deeplink
+        }
+        if let universalLink = try? parseTonConnectUniversalLink(string: string) {
+            return universalLink
+        }
+        throw DeeplinkParser.Error.failedToParse(string: string)
+    }
+    
+    private func parseTonConnectDeeplink(string: String) throws -> Deeplink {
         guard let url = URL(string: string),
               let scheme = url.scheme
         else { throw DeeplinkParser.Error.failedToParse(string: string) }
@@ -57,6 +67,24 @@ struct TonConnectDeeplinkHandler: DeeplinkHandler {
         case "tc":
             return .tonConnect(.init(string: string))
         default: throw DeeplinkParser.Error.failedToParse(string: string)
+        }
+    }
+    
+    private func parseTonConnectUniversalLink(string: String) throws -> Deeplink {
+        guard let url = URL(string: string),
+              let components = URLComponents(
+                url: url,
+                resolvingAgainstBaseURL: true
+              ) else { throw DeeplinkParser.Error.failedToParse(string: string) }
+        switch url.path {
+        case "/ton-connect":
+            var tcComponents = URLComponents()
+            tcComponents.scheme = "tc"
+            tcComponents.queryItems = components.queryItems
+            guard let string = tcComponents.string else { throw DeeplinkParser.Error.failedToParse(string: string) }
+            return .tonConnect(.init(string: string))
+        default:
+            throw DeeplinkParser.Error.failedToParse(string: string)
         }
     }
 }
