@@ -63,7 +63,7 @@ extension TonConnect.TonAddressItemReply {
         let builder = Builder()
         try walletStateInit.storeTo(builder: builder)
         try container.encode(
-            builder.endCell().toBoc().hexString(),
+            builder.endCell().toBoc().base64EncodedString(),
             forKey: .walletStateInit)
     }
 }
