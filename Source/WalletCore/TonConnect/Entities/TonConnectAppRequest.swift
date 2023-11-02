@@ -36,11 +36,13 @@ public extension TonConnect {
         struct Message: Decodable {
             let address: Address
             let amount: Int64
+            let stateInit: String?
             let payload: String?
             
             enum CodingKeys: String, CodingKey {
                 case address
                 case amount
+                case stateInit
                 case payload
             }
             
@@ -48,6 +50,7 @@ public extension TonConnect {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 address = try Address.parse(try container.decode(String.self, forKey: .address))
                 amount = Int64(try container.decode(String.self, forKey: .amount)) ?? 0
+                stateInit = try container.decodeIfPresent(String.self, forKey: .stateInit)
                 payload = try container.decodeIfPresent(String.self, forKey: .payload)
             }
         }

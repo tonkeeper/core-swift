@@ -63,23 +63,20 @@ public final class TonConnectConfirmationController {
 
     public func didFinish() {
         Task {
-            guard case .confirmation(let request, let app) = await state.property else {
+            guard case .confirmation = await state.property else {
                 await state.setValue(.idle)
                 return
             }
+            await cancelAppRequest()
             await state.setValue(.idle)
-            cancelAppRequest(request, app: app)
         }
     }
     
     public func confirmTransaction() async throws {
         guard case .confirmation(let message, let app) = await state.property else { return }
         guard let params = message.params.first else { return }
-        let payloads: [SendMessageBuilder.SendTonPayload] = params.messages.map {
-            .init(value: BigInt(integerLiteral: $0.amount), recipientAddress: $0.address, comment: nil)
-        }
         
-        let boc = try await sendMessageBuilder.sendTonTransactionsBoc(payloads, sender: params.from)
+        let boc = try await transactionBoc(forParams: params)
 
         try await sendService.sendTransaction(boc: boc)
         await self.state.setValue(.confirmed)
@@ -116,6 +113,7 @@ private extension TonConnectConfirmationController {
                     )
                 }
             } catch {
+                await cancelAppRequest()
                 await MainActor.run {
                     output?.tonConnectConfirmationControllerDidFinishEmulation(
                         self,
@@ -126,8 +124,9 @@ private extension TonConnectConfirmationController {
         }
     }
     
-    func cancelAppRequest(_ appRequest: TonConnect.AppRequest,
-                          app: TonConnectApp) {
+    func cancelAppRequest() async {
+        guard case .confirmation(let appRequest, let app) = await state.property else { return }
+        await state.setValue(.idle)
         Task {
             let sessionCrypto = try TonConnectSessionCrypto(privateKey: app.keyPair.privateKey)
             let body = try TonConnectResponseBuilder.buildSendTransactionResponseError(
@@ -146,11 +145,7 @@ private extension TonConnectConfirmationController {
     }
     
     func emulate(appRequestParam: TonConnect.AppRequest.Param) async throws -> TonConnectConfirmationModel {
-        let payloads: [SendMessageBuilder.SendTonPayload] = appRequestParam.messages.map {
-            .init(value: BigInt(integerLiteral: $0.amount), recipientAddress: $0.address, comment: nil)
-        }
-        
-        async let bocTask = sendMessageBuilder.sendTonTransactionsBoc(payloads)
+        async let bocTask = transactionBoc(forParams: appRequestParam)
         async let ratesTask = loadRates()
         
         let loadedRates = await ratesTask
@@ -199,6 +194,21 @@ private extension TonConnectConfirmationController {
         }
         
         return Collectibles(collectibles: nfts)
+    }
+    
+    func transactionBoc(forParams params: TonConnect.AppRequest.Param) async throws -> String {
+        let payloads: [SendMessageBuilder.TonConnectSendPayload] = params.messages.map {
+            .init(
+                value: BigInt(integerLiteral: $0.amount),
+                recipientAddress: $0.address,
+                stateInit: $0.stateInit,
+                payload: $0.payload)
+        }
+        
+        return try await sendMessageBuilder.sendTonConnectTransactionBoc(
+            payloads,
+            sender: params.from
+        )
     }
 }
 

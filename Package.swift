@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "WalletCoreDynamic", type: .dynamic, targets: ["WalletCore"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/tonkeeper/ton-swift", branch: "feature/nft_transfer"),
+        .package(url: "https://github.com/tonkeeper/ton-swift", branch: "main"),
         .package(url: "https://github.com/tonkeeper/ton-api-swift", from: "0.1.1"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", .upToNextMinor(from: "0.3.0"))
     ],
