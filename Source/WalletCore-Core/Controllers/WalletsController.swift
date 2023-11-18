@@ -49,6 +49,12 @@ public final class WalletsController {
         notifyObserversWalletAdded(wallet: wallet)
     }
     
+    public func addExternalWallet(with publicKey: TonSwift.PublicKey) throws {
+        let wallet = Wallet(identity: .init(network: .mainnet, kind: .External(publicKey)))
+        try keeperInfoService.updateKeeperInfo(with: wallet)
+        notifyObserversWalletAdded(wallet: wallet)
+    }
+    
     // MARK: - Observering
     
     struct WalletsControllerObserverWrapper {
@@ -85,6 +91,8 @@ private extension WalletsController {
                     return false
                 case .Watchonly:
                     return false
+                case .External:
+                    return true
                 }
             }
             return validWallets

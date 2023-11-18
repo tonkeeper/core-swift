@@ -12,6 +12,7 @@ enum WalletKind {
     case Regular(TonSwift.PublicKey)
     case Lockup(TonSwift.PublicKey, LockupConfig)
     case Watchonly(ResolvableAddress)
+    case External(TonSwift.PublicKey)
 }
 
 extension WalletKind: CellCodable {
@@ -27,6 +28,9 @@ extension WalletKind: CellCodable {
         case let .Watchonly(resolvableAddress):
             try builder.store(uint: 2, bits: 2)
             try resolvableAddress.storeTo(builder: builder)
+        case let .External(publicKey):
+            try builder.store(uint: 3, bits: 2)
+            try publicKey.storeTo(builder: builder)
         }
     }
     
@@ -44,6 +48,9 @@ extension WalletKind: CellCodable {
             case 2:
                 let resolvableAddress: ResolvableAddress = try s.loadType()
                 return .Watchonly(resolvableAddress)
+            case 3:
+                let publicKey: TonSwift.PublicKey = try s.loadType()
+                return .External(publicKey)
             default:
                 throw TonError.custom("Invalid WalletKind type");
             }
