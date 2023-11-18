@@ -8,7 +8,7 @@
 import Foundation
 import TonSwift
 
-public struct WalletIdentity {
+public struct WalletIdentity: Equatable {
     let network: Network
     let kind: WalletKind
     
@@ -16,6 +16,10 @@ public struct WalletIdentity {
         let builder = Builder()
         try builder.store(self)
         return WalletID(hash: try builder.endCell().representationHash())
+    }
+    
+    public static func == (lhs: WalletIdentity, rhs: WalletIdentity) -> Bool {
+        (try? lhs.id() == rhs.id()) ?? false
     }
 }
 

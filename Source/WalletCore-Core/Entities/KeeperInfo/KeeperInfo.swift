@@ -13,7 +13,7 @@ public struct KeeperInfo: Codable {
     let wallets: [Wallet]
     
     /// Currently selected wallet
-    let currentWallet: Wallet
+    let currentWallet: WalletIdentity
     
     /// Common pin/faceid settings
     let securitySettings: SecuritySettings

@@ -58,7 +58,7 @@ public struct Wallet: Codable, Hashable {
     }
     
     public static func == (lhs: Wallet, rhs: Wallet) -> Bool {
-        (try? lhs.identity.id() == rhs.identity.id()) ?? false
+        lhs.identity == rhs.identity
     }
     
     public func hash(into hasher: inout Hasher) {
