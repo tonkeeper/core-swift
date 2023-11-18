@@ -16,6 +16,7 @@ public protocol WalletsControllerObserver: AnyObject {
 public final class WalletsController {
     enum Error: Swift.Error {
         case noActiveWallet
+        case noWalletPrivateKey
     }
     
     private let keeperInfoService: KeeperInfoService
@@ -53,6 +54,16 @@ public final class WalletsController {
         let wallet = Wallet(identity: .init(network: .mainnet, kind: .External(publicKey)))
         try keeperInfoService.updateKeeperInfo(with: wallet)
         notifyObserversWalletAdded(wallet: wallet)
+    }
+    
+    public func getWalletPrivateKey(_ wallet: Wallet) throws -> TonSwift.PrivateKey {
+        switch wallet.identity.kind {
+        case .Regular:
+            let walletMnemonic = try walletMnemonicRepository.getMnemonic(wallet: wallet)
+            return try TonSwift.Mnemonic.mnemonicToPrivateKey(mnemonicArray: walletMnemonic.mnemonicWords).privateKey
+        default:
+            throw Error.noWalletPrivateKey
+        }
     }
     
     // MARK: - Observering

@@ -66,4 +66,60 @@ public struct Wallet: Codable, Hashable {
     }
 }
 
-
+extension Wallet {
+    enum Error: Swift.Error {
+        case notAvailableWalletKind
+        case notAvailableWalletRevision
+    }
+    
+    var publicKey: TonSwift.PublicKey {
+        get throws {
+            switch identity.kind {
+            case let .Regular(publicKey):
+                return publicKey
+            case let .External(publicKey):
+                return publicKey
+            default:
+                throw Error.notAvailableWalletKind
+            }
+        }
+    }
+    
+    var contract: Contract {
+        get throws {
+            let publicKey = try publicKey
+            switch contractVersion {
+            case .v4R2:
+                return WalletV4R2(publicKey: publicKey.data)
+            case .v4R1:
+                return WalletV4R1(publicKey: publicKey.data)
+            case .v3R2:
+                return try WalletV3(workchain: 0, publicKey: publicKey.data, revision: .r2)
+            case .v3R1:
+                return try WalletV3(workchain: 0, publicKey: publicKey.data, revision: .r1)
+            case .NA:
+                throw Error.notAvailableWalletRevision
+            }
+        }
+    }
+    
+    var address: Address {
+        get throws {
+            try contract.address()
+        }
+    }
+    
+    var isRegular: Bool {
+        guard case .Regular = identity.kind else {
+            return false
+        }
+        return true
+    }
+    
+    var isExternal: Bool {
+        guard case .External = identity.kind else {
+            return false
+        }
+        return true
+    }
+}
