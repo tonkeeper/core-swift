@@ -125,8 +125,6 @@ final class WalletsControllerTests: XCTestCase {
     
     func test_get_active_wallet_if_wallet_is_not_valid() throws {
         let wallet = Wallet.wallet(with: "1")
-        let mockMnemonic = TonSwift.Mnemonic.mnemonicNew()
-        let mnemonic = try Mnemonic(mnemonicWords: mockMnemonic)
         try keeperInfoService.updateKeeperInfo(with: wallet)
         XCTAssertThrowsError(try walletsController.activeWallet)
     }

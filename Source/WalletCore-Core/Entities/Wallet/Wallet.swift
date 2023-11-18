@@ -85,7 +85,7 @@ extension Wallet {
         }
     }
     
-    var contract: Contract {
+    var contract: WalletContract {
         get throws {
             let publicKey = try publicKey
             switch contractVersion {
