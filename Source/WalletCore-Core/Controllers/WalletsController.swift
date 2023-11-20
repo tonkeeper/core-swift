@@ -8,12 +8,18 @@
 import Foundation
 import TonSwift
 
-public protocol WalletsControllerObserver: AnyObject {
-    func walletsController(_ walletsController: WalletsController, didAddWallet wallet: Wallet)
-    func walletsController(_ walletsController: WalletsController, didChangeActiveWallet wallet: Wallet)
+public protocol WalletProvider {
+    var activeWallet: Wallet { get throws }
+    
+    func getWalletPrivateKey(_ wallet: Wallet) throws -> TonSwift.PrivateKey
 }
 
-public final class WalletsController {
+public protocol WalletProviderObserver: AnyObject {
+    func walletProvider(_ walletProvider: WalletProvider, didAddWallet wallet: Wallet)
+    func walletProvider(_ walletProvider: WalletProvider, didChangeActiveWallet wallet: Wallet)
+}
+
+public final class WalletsController: WalletProvider {
     enum Error: Swift.Error {
         case noActiveWallet
         case noWalletPrivateKey
@@ -68,18 +74,18 @@ public final class WalletsController {
     
     // MARK: - Observering
     
-    struct WalletsControllerObserverWrapper {
-        weak var observer: WalletsControllerObserver?
+    struct WalletProviderObserverWrapper {
+        weak var observer: WalletProviderObserver?
     }
     
-    private var observers = [WalletsControllerObserverWrapper]()
+    private var observers = [WalletProviderObserverWrapper]()
     
-    public func addObserver(_ observer: WalletsControllerObserver) {
+    public func addObserver(_ observer: WalletProviderObserver) {
         removeNilObservers()
-        observers = observers + CollectionOfOne(WalletsControllerObserverWrapper.init(observer: observer))
+        observers = observers + CollectionOfOne(WalletProviderObserverWrapper(observer: observer))
     }
     
-    public func removeObserver(_ observer: WalletsControllerObserver) {
+    public func removeObserver(_ observer: WalletProviderObserver) {
         removeNilObservers()
         observers = observers.filter { $0.observer !== observer }
     }
@@ -117,10 +123,10 @@ private extension WalletsController {
     }
     
     func notifyObserversWalletAdded(wallet: Wallet) {
-        observers.forEach { $0.observer?.walletsController(self, didAddWallet: wallet) }
+        observers.forEach { $0.observer?.walletProvider(self, didAddWallet: wallet) }
     }
     
     func notifyObserversActiveWalletChanged(wallet: Wallet) {
-        observers.forEach { $0.observer?.walletsController(self, didChangeActiveWallet: wallet) }
+        observers.forEach { $0.observer?.walletProvider(self, didChangeActiveWallet: wallet) }
     }
 }

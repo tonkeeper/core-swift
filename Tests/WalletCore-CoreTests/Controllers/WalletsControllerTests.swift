@@ -150,16 +150,16 @@ final class WalletsControllerTests: XCTestCase {
     }
 }
 
-private final class Observer: WalletsControllerObserver {
+private final class Observer: WalletProviderObserver {
     var addedWallets = [Wallet]()
     
-    func walletsController(_ walletsController: WalletCore_Core.WalletsController,
-                           didAddWallet wallet: WalletCore_Core.Wallet) {
+    func walletProvider(_ walletProvider: WalletProvider,
+                        didAddWallet wallet: Wallet) {
         addedWallets.append(wallet)
     }
     
-    func walletsController(_ walletsController: WalletCore_Core.WalletsController, 
-                           didChangeActiveWallet wallet: WalletCore_Core.Wallet) {}
+    func walletProvider(_ walletProvider: WalletProvider, 
+                        didChangeActiveWallet wallet: Wallet) {}
     
     func reset() {
         addedWallets = []
