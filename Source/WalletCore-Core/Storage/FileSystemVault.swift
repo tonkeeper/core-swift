@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FileSystemVault<T: KeyValueVaultValue>: StorableVault {
+struct FileSystemVault<T: KeyValueVaultValue>: StorableKeyValueVault, Vault {
     enum Error: Swift.Error {
         case noItem(key: T.Key)
         case corruptedData(key: T.Key, error: DecodingError)
@@ -20,7 +20,6 @@ struct FileSystemVault<T: KeyValueVaultValue>: StorableVault {
          directory: URL) {
         self.fileManager = fileManager
         self.directory = directory
-        
     }
     
     func loadValue(key: T.Key) throws -> T {

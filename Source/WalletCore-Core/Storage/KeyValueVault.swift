@@ -9,7 +9,12 @@ import Foundation
 
 protocol KeyValueVaultValue: Codable {
     associatedtype Key: CustomStringConvertible
-    var key: Key { get }
+}
+
+public protocol Vault {
+    associatedtype StoreValue
+    func loadAllValues() throws -> [StoreValue]
+    func deleteAllValues() throws
 }
 
 public protocol KeyValueVault {
@@ -17,11 +22,9 @@ public protocol KeyValueVault {
     associatedtype StoreKey
     
     func loadValue(key: StoreKey) throws -> StoreValue
-    func loadAllValues() throws -> [StoreValue]
 }
 
-public protocol StorableVault: KeyValueVault {
+public protocol StorableKeyValueVault: KeyValueVault {
     func saveValue(_ value: StoreValue, for key: StoreKey) throws
     func deleteValue(for key: StoreKey) throws
-    func deleteAllValues() throws
 }
