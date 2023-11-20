@@ -8,7 +8,7 @@
 import Foundation
 import TonSwift
 
-public struct Mnemonic: Equatable {
+public struct Mnemonic: Equatable, Codable {
     public enum Error: Swift.Error {
         case incorrectMnemonicWords
     }
