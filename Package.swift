@@ -5,11 +5,12 @@ import PackageDescription
 let package = Package(
     name: "WalletCore",
     platforms: [
-        .macOS(.v12), .iOS(.v13)
+        .macOS(.v11), .iOS(.v14)
     ],
     products: [
         .library(name: "WalletCore", targets: ["WalletCore"]),
         .library(name: "WalletCoreDynamic", type: .dynamic, targets: ["WalletCore"]),
+        .library(name: "WalletCore-Core", targets: ["WalletCore-Core"])
     ],
     dependencies: [
         .package(url: "https://github.com/tonkeeper/ton-swift", branch: "main"),
@@ -28,6 +29,12 @@ let package = Package(
                 .target(name: "TonConnectAPI")
             ],
             resources: [.copy("PackageResources")]),
+        .target(name: "WalletCore-Core",
+                dependencies: [
+                    .product(name: "TonSwift", package: "ton-swift")
+                ]),
+        .testTarget(name: "WalletCore-CoreTests",
+                    dependencies: ["WalletCore-Core"]),
         .target(name: "TonConnectAPI",
                 dependencies: [
                     .product(

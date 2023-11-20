@@ -41,8 +41,8 @@
         "package": "TonSwift",
         "repositoryURL": "https://github.com/tonkeeper/ton-swift",
         "state": {
-          "branch": "feature/nft_transfer",
-          "revision": "299fba0e718b7f893b325316237ef6dfb11eb11b",
+          "branch": "main",
+          "revision": "77babfe33d165655f2072eabd4ff26df925ba915",
           "version": null
         }
       },
