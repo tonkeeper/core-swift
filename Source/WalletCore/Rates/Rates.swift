@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WalletCoreCore
 
 struct Rates: Codable, LocalStorable {
     struct Rate: Codable {

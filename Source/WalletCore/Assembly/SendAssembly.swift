@@ -13,7 +13,6 @@ final class SendAssembly {
     let coreAssembly: CoreAssembly
     let apiAssembly: APIAssembly
     let servicesAssembly: ServicesAssembly
-    let keeperAssembly: KeeperAssembly
     let balanceAssembly: WalletBalanceAssembly
     let formattersAssembly: FormattersAssembly
     let cacheURL: URL
@@ -22,7 +21,6 @@ final class SendAssembly {
     init(coreAssembly: CoreAssembly,
          apiAssembly: APIAssembly,
          servicesAssembly: ServicesAssembly,
-         keeperAssembly: KeeperAssembly,
          balanceAssembly: WalletBalanceAssembly,
          formattersAssembly: FormattersAssembly,
          cacheURL: URL,
@@ -30,7 +28,6 @@ final class SendAssembly {
         self.coreAssembly = coreAssembly
         self.apiAssembly = apiAssembly
         self.servicesAssembly = servicesAssembly
-        self.keeperAssembly = keeperAssembly
         self.balanceAssembly = balanceAssembly
         self.formattersAssembly = formattersAssembly
         self.cacheURL = cacheURL
@@ -43,23 +40,21 @@ final class SendAssembly {
                                    ratesService: servicesAssembly.ratesService,
                                    balanceService: servicesAssembly.walletBalanceService,
                                    tokenMapper: sendTokenMapper(),
-                                   walletProvider: keeperAssembly.keeperController,
+                                   walletProvider: coreAssembly.walletProvider,
                                    rateConverter: RateConverter())
     }
     
     func tokenSendController(tokenTransferModel: TokenTransferModel,
                              recipient: Recipient,
                              comment: String?,
-                             walletProvider: WalletProvider,
                              keychainGroup: String) -> SendController {
         return TokenSendController(
             tokenTransferModel: tokenTransferModel,
             recipient: recipient,
             comment: comment,
-            walletProvider: walletProvider,
+            walletProvider: coreAssembly.walletProvider,
             sendService: servicesAssembly.sendService,
             rateService: servicesAssembly.ratesService,
-            sendMessageBuilder: sendMessageBuilder(),
             intAmountFormatter: formattersAssembly.intAmountFormatter,
             amountFormatter: formattersAssembly.amountFormatter)
     }
@@ -67,17 +62,15 @@ final class SendAssembly {
     func nftSendController(nftAddress: Address,
                            recipient: Recipient,
                            comment: String?,
-                           walletProvider: WalletProvider,
                            keychainGroup: String) -> SendController {
         return NFTSendController(
             nftAddress: nftAddress,
             recipient: recipient,
             comment: comment,
-            walletProvider: walletProvider,
+            walletProvider: coreAssembly.walletProvider,
             sendService: servicesAssembly.sendService,
             rateService: servicesAssembly.ratesService,
             collectibleService: servicesAssembly.collectiblesService,
-            sendMessageBuilder: sendMessageBuilder(),
             amountFormatter: formattersAssembly.amountFormatter,
             bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter)
     }
@@ -85,12 +78,6 @@ final class SendAssembly {
     func sendRecipientController() -> SendRecipientController {
         SendRecipientController(domainService: servicesAssembly.dnsService,
                                 accountInfoService: servicesAssembly.accountInfoService)
-    }
-    
-    func sendMessageBuilder() -> SendMessageBuilder {
-        SendMessageBuilder(walletProvider: keeperAssembly.keeperController,
-                           mnemonicVault: coreAssembly.keychainMnemonicVault(keychainGroup: keychainGroup),
-                           sendService: servicesAssembly.sendService)
     }
 }
 

@@ -7,6 +7,7 @@
 
 import Foundation
 import TonSwift
+import WalletCoreCore
 
 struct WalletContractBuilder {
     enum Error: Swift.Error {

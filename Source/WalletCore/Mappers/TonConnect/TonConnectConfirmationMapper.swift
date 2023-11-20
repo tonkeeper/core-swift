@@ -8,6 +8,7 @@
 import Foundation
 import TonAPI
 import BigInt
+import WalletCoreCore
 
 struct TonConnectConfirmationMapper {
     private let accountEventMapper: AccountEventMapper

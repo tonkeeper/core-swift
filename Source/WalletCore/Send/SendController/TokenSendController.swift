@@ -8,6 +8,7 @@
 import Foundation
 import TonSwift
 import BigInt
+import WalletCoreCore
 
 public final class TokenSendController: SendController {
     
@@ -19,7 +20,6 @@ public final class TokenSendController: SendController {
     private let walletProvider: WalletProvider
     private let sendService: SendService
     private let rateService: RatesService
-    private let sendMessageBuilder: SendMessageBuilder
     private let intAmountFormatter: IntAmountFormatter
     private let amountFormatter: AmountFormatter
     
@@ -33,7 +33,6 @@ public final class TokenSendController: SendController {
          walletProvider: WalletProvider,
          sendService: SendService,
          rateService: RatesService,
-         sendMessageBuilder: SendMessageBuilder,
          intAmountFormatter: IntAmountFormatter,
          amountFormatter: AmountFormatter) {
         self.tokenTransferModel = tokenTransferModel
@@ -42,7 +41,6 @@ public final class TokenSendController: SendController {
         self.walletProvider = walletProvider
         self.sendService = sendService
         self.rateService = rateService
-        self.sendMessageBuilder = sendMessageBuilder
         self.intAmountFormatter = intAmountFormatter
         self.amountFormatter = amountFormatter
     }
@@ -70,11 +68,18 @@ public final class TokenSendController: SendController {
     }
     
     public func sendTransaction() async throws {
+        let wallet = try walletProvider.activeWallet
         let transactionBoc = try await prepareSendTransaction(
             tokenTransferModel: tokenTransferModel,
             recipientAddress: recipient.address,
-            comment: comment
-        )
+            comment: comment) { transfer in
+                if wallet.isRegular {
+                    let privateKey = try walletProvider.getWalletPrivateKey(wallet)
+                    return try transfer.signMessage(signer: WalletTransferSecretKeySigner(secretKey: privateKey.data))
+                }
+                // TBD: External wallet sign
+                return try transfer.signMessage(signer: WalletTransferEmptyKeySigner())
+            }
         
         try await sendService.sendTransaction(boc: transactionBoc)
     }
@@ -132,7 +137,8 @@ private extension TokenSendController {
         async let transactionBocTask = prepareSendTransaction(
             tokenTransferModel: tokenTransferModel,
             recipientAddress: recipient.address,
-            comment: comment)
+            comment: comment,
+            signClosure: { try $0.signMessage(signer: WalletTransferEmptyKeySigner()) })
         
         let rates = await ratesTask
         let transactionBoc = try await transactionBocTask
@@ -151,21 +157,31 @@ private extension TokenSendController {
     
     func prepareSendTransaction(tokenTransferModel: TokenTransferModel,
                                 recipientAddress: Address,
-                                comment: String?) async throws -> String {
+                                comment: String?,
+                                signClosure: (WalletTransfer) async throws -> Cell) async throws -> String {
+        let wallet = try walletProvider.activeWallet
+        let seqno = try await sendService.loadSeqno(address: wallet.address)
+        let boc: String
         switch tokenTransferModel.transferItem {
         case .ton:
-            return try await sendMessageBuilder.sendTonTransactionBoc(
+            boc = try await WalletCoreCore.TonTransferMessageBuilder.sendTonTransfer(
+                wallet: try walletProvider.activeWallet,
+                seqno: seqno,
                 value: tokenTransferModel.amount,
                 recipientAddress: recipientAddress,
-                comment: comment)
+                comment: comment,
+                signClosure: signClosure)
         case .token(let tokenAddress, _):
-            return try await sendMessageBuilder.sendTokenTransactionBoc(
-                tokenAddress: tokenAddress.toRaw(),
+            boc = try await WalletCoreCore.TokenTransferMessageBuilder.sendTokenTransfer(
+                wallet: wallet,
+                seqno: seqno,
+                tokenAddress: tokenAddress,
                 value: tokenTransferModel.amount,
                 recipientAddress: recipientAddress,
-                comment: comment
-            )
+                comment: comment,
+                signClosure: signClosure)
         }
+        return boc
     }
     
     func loadRates(for tokenTransferModel: TokenTransferModel) async -> (tokenRates: Rates.Rate?, tonRates: Rates.Rate?) {

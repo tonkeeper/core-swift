@@ -8,6 +8,7 @@
 import Foundation
 import TonSwift
 import TonConnectAPI
+import WalletCoreCore
 
 protocol TonConnectControllerObserver: AnyObject {
     func tonConnectControllerDidUpdateApps(_ controller: TonConnectController)
@@ -33,7 +34,7 @@ public actor TonConnectController {
     private let apiClient: TonConnectAPI.Client
     private let walletProvider: WalletProvider
     private let appsVault: TonConnectAppsVault
-    private let mnemonicVault: KeychainMnemonicVault
+    private let mnemonicRepository: WalletMnemonicRepository
     
     nonisolated
     private var walletAddress: Address {
@@ -53,13 +54,13 @@ public actor TonConnectController {
          apiClient: TonConnectAPI.Client,
          walletProvider: WalletProvider,
          appsVault: TonConnectAppsVault,
-         mnemonicVault: KeychainMnemonicVault) {
+         mnemonicRepository: WalletMnemonicRepository) {
         self.parameters = parameters
         self.manifest = manifest
         self.apiClient = apiClient
         self.appsVault = appsVault
         self.walletProvider = walletProvider
-        self.mnemonicVault = mnemonicVault
+        self.mnemonicRepository = mnemonicRepository
     }
     
     nonisolated
@@ -100,13 +101,14 @@ public actor TonConnectController {
     
     public func connect() async throws {
         let wallet = try walletProvider.activeWallet
+        let privateKey = try walletProvider.getWalletPrivateKey(wallet)
         let sessionCrypto = try TonConnectSessionCrypto()
         let body = try TonConnectResponseBuilder
             .buildConnectEventSuccesResponse(
                 requestPayloadItems: parameters.requestPayload.items,
                 wallet: wallet,
                 sessionCrypto: sessionCrypto,
-                mnemonicVault: mnemonicVault,
+                walletPrivateKey: privateKey,
                 manifest: manifest,
                 clientId: parameters.clientId
             )
@@ -129,7 +131,7 @@ public actor TonConnectController {
         } catch {
             apps = TonConnectApps(apps: [tonConnectApp])
         }
-        try appsVault.save(value: apps.addApp(tonConnectApp), for: wallet)
+        try appsVault.saveValue(apps.addApp(tonConnectApp), for: wallet)
         notifyObservers()
     }
     

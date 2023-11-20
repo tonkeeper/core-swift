@@ -9,25 +9,25 @@ import Foundation
 import TonAPI
 
 struct TokenDetailsAssembly {
+    let coreAssembly: CoreAssembly
     let formattersAssembly: FormattersAssembly
     let servicesAssembly: ServicesAssembly
-    let keeperAssembly: KeeperAssembly
     let apiAssembly: APIAssembly
     
-    init(formattersAssembly: FormattersAssembly,
+    init(coreAssembly: CoreAssembly,
+         formattersAssembly: FormattersAssembly,
          servicesAssembly: ServicesAssembly,
-         keeperAssembly: KeeperAssembly,
          apiAssembly: APIAssembly) {
         self.formattersAssembly = formattersAssembly
         self.servicesAssembly = servicesAssembly
-        self.keeperAssembly = keeperAssembly
+        self.coreAssembly = coreAssembly
         self.apiAssembly = apiAssembly
     }
     
     func tokenDetailsTonController() -> TokenDetailsController {
         let tokenDetailsController = TokenDetailsController(
             tokenDetailsProvider: tokenDetailsTonProvider(),
-            walletProvider: keeperAssembly.keeperController,
+            walletProvider: coreAssembly.walletProvider,
             balanceService: servicesAssembly.walletBalanceService
         )
         return tokenDetailsController
@@ -38,7 +38,7 @@ struct TokenDetailsAssembly {
             tokenDetailsProvider: tokenDetailsTokenProvider(
                 tokenInfo: tokenInfo
             ),
-            walletProvider: keeperAssembly.keeperController,
+            walletProvider: coreAssembly.walletProvider,
             balanceService: servicesAssembly.walletBalanceService)
         return tokenDetailsController
     }

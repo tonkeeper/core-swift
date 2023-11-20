@@ -7,6 +7,7 @@
 
 import Foundation
 import TonSwift
+import WalletCoreCore
 
 public actor ActivityListController {
     public typealias Stream = AsyncStream<Event>
@@ -189,13 +190,7 @@ private extension ActivityListController {
     }
     
     func getAddress() throws -> Address {
-        let wallet = try walletProvider.activeWallet
-        let publicKey = try wallet.publicKey
-        let contract = try contractBuilder.walletContract(
-            with: publicKey,
-            contractVersion: wallet.contractVersion
-        )
-        return try contract.address()
+        return try walletProvider.activeWallet.address
     }
     
     func handleLoadedEvents(loadedEvents: [AccountEvent], collectibles: Collectibles) -> [String: ActivityEventViewModel] {

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WalletCoreCore
 
 struct TokenDetailsTonProvider: TokenDetailsProvider {
     weak var output: TokenDetailsControllerOutput?

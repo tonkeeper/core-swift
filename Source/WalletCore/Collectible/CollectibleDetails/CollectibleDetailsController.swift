@@ -7,6 +7,7 @@
 
 import Foundation
 import TonSwift
+import WalletCoreCore
 
 public protocol CollectibleDetailsControllerDelegate: AnyObject {
     func collectibleDetailsController(_ collectibleDetailsController: CollectibleDetailsController,

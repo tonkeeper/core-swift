@@ -10,6 +10,7 @@ import BigInt
 import TonConnectAPI
 import TonAPI
 import TonSwift
+import WalletCoreCore
 
 public protocol TonConnectConfirmationControllerOutput: AnyObject {
     func tonConnectConfirmationControllerDidStartEmulation(_ controller: TonConnectConfirmationController)
@@ -26,7 +27,6 @@ public final class TonConnectConfirmationController {
     
     public weak var output: TonConnectConfirmationControllerOutput?
     
-    private let sendMessageBuilder: SendMessageBuilder
     private let sendService: SendService
     private let apiClient: TonConnectAPI.Client
     private let rateService: RatesService
@@ -36,14 +36,12 @@ public final class TonConnectConfirmationController {
     
     private let state: ThreadSafeProperty<State> = .init(property: .idle)
     
-    init(sendMessageBuilder: SendMessageBuilder,
-         sendService: SendService,
+    init(sendService: SendService,
          apiClient: TonConnectAPI.Client,
          rateService: RatesService,
          collectiblesService: CollectiblesService,
          walletProvider: WalletProvider,
          tonConnectConfirmationMapper: TonConnectConfirmationMapper) {
-        self.sendMessageBuilder = sendMessageBuilder
         self.sendService = sendService
         self.apiClient = apiClient
         self.rateService = rateService
@@ -76,7 +74,15 @@ public final class TonConnectConfirmationController {
         guard case .confirmation(let message, let app) = await state.property else { return }
         guard let params = message.params.first else { return }
         
-        let boc = try await transactionBoc(forParams: params)
+        let wallet = try walletProvider.activeWallet
+        let boc = try await transactionBoc(forParams: params) { transfer in
+            if wallet.isRegular {
+                let privateKey = try walletProvider.getWalletPrivateKey(wallet)
+                return try transfer.signMessage(signer: WalletTransferSecretKeySigner(secretKey: privateKey.data))
+            }
+            // TBD: External wallet sign
+            return try transfer.signMessage(signer: WalletTransferEmptyKeySigner())
+        }
 
         try await sendService.sendTransaction(boc: boc)
         await self.state.setValue(.confirmed)
@@ -145,7 +151,9 @@ private extension TonConnectConfirmationController {
     }
     
     func emulate(appRequestParam: TonConnect.AppRequest.Param) async throws -> TonConnectConfirmationModel {
-        async let bocTask = transactionBoc(forParams: appRequestParam)
+        async let bocTask = transactionBoc(forParams: appRequestParam) { transfer in
+            try transfer.signMessage(signer: WalletTransferEmptyKeySigner())
+        }
         async let ratesTask = loadRates()
         
         let loadedRates = await ratesTask
@@ -196,19 +204,25 @@ private extension TonConnectConfirmationController {
         return Collectibles(collectibles: nfts)
     }
     
-    func transactionBoc(forParams params: TonConnect.AppRequest.Param) async throws -> String {
-        let payloads: [SendMessageBuilder.TonConnectSendPayload] = params.messages.map {
-            .init(
-                value: BigInt(integerLiteral: $0.amount),
-                recipientAddress: $0.address,
-                stateInit: $0.stateInit,
-                payload: $0.payload)
+    func transactionBoc(forParams params: TonConnect.AppRequest.Param,
+                        signClosure: (WalletTransfer) async throws -> Cell) async throws -> String {
+        let wallet = try walletProvider.activeWallet
+        let seqno = try await sendService.loadSeqno(address: wallet.address)
+        let payloads = params.messages.map { message in
+            TonConnectTransferMessageBuilder.Payload(
+                value: BigInt(integerLiteral: message.amount),
+                recipientAddress: message.address,
+                stateInit: message.stateInit,
+                payload: message.payload)
         }
-        
-        return try await sendMessageBuilder.sendTonConnectTransactionBoc(
-            payloads,
-            sender: params.from
-        )
+        return try await WalletCoreCore
+            .TonConnectTransferMessageBuilder
+            .sendTonConnectTransfer(
+                wallet: wallet,
+                seqno: seqno,
+                payloads: payloads,
+                sender: params.from,
+                signClosure: signClosure)
     }
 }
 

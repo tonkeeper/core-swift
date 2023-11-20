@@ -8,6 +8,7 @@
 import Foundation
 import TonSwift
 import TonAPI
+import WalletCoreCore
 
 protocol RatesService {
     func loadRates(tonInfo: TonInfo, tokens: [TokenInfo], currencies: [Currency]) async throws -> Rates

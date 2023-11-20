@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WalletCoreCore
 
 public protocol TokenDetailsTonControllerOutput: AnyObject {
     func handleTonRecieve()

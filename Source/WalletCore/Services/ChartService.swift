@@ -7,6 +7,7 @@
 
 import Foundation
 import TonAPI
+import WalletCoreCore
 
 protocol ChartService {
     func loadChartData(period: Period,

@@ -8,8 +8,13 @@
 import Foundation
 
 final class ReceiveAssembly {
-    func receiveController(walletProvider: WalletProvider) -> ReceiveController {
-        ReceiveController(walletProvider: walletProvider,
-                          contractBuilder: WalletContractBuilder())
+    private let coreAssembly: CoreAssembly
+    
+    init(coreAssembly: CoreAssembly) {
+        self.coreAssembly = coreAssembly
+    }
+    
+    func receiveController() -> ReceiveController {
+        ReceiveController(walletProvider: coreAssembly.walletProvider)
     }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 import TonSwift
+import WalletCoreCore
 
 protocol WalletBalanceService {
     func loadWalletBalance(wallet: Wallet) async throws -> WalletBalance
@@ -34,41 +35,26 @@ final class WalletBalanceServiceImplementation: WalletBalanceService {
     }
     
     func getWalletBalance(wallet: Wallet) throws -> WalletBalance {
-        let publicKey = try wallet.publicKey
-        let contract = try walletContractBuilder.walletContract(
-            with: publicKey,
-            contractVersion: wallet.contractVersion
-        )
-        let address = try contract.address()
+        let address = try wallet.address
         return try localRepository.load(fileName: address.toRaw())
     }
     
     func loadWalletBalance(wallet: Wallet) async throws -> WalletBalance {
-        let publicKey = try wallet.publicKey
-        let contract = try walletContractBuilder.walletContract(
-            with: publicKey,
-            contractVersion: wallet.contractVersion
-        )
-        let address = try contract.address()
+        let address = try wallet.address
         
         async let tonBalanceTask = loadTonBalance(address: address)
         async let tokensTask = loadTokensBalance(address: address)
-        async let previousRevisionsBalancesTask = loadPreviousRevisionsTonBalances(
-            contractVersion: wallet.contractVersion,
-            publicKey: publicKey
-        )
         async let collectiblesBalancesTask = loadCollectiblesBalance(address: address)
         
         let tonBalance = try await tonBalanceTask
         let tokensBalance = try? await tokensTask
         let collectiblesBalance = try? await collectiblesBalancesTask
-        let previousRevisionsBalances = try? await previousRevisionsBalancesTask
         
         let walletBalance = WalletBalance(
             walletAddress: address,
             tonBalance: tonBalance,
             tokensBalance: tokensBalance ?? [],
-            previousRevisionsBalances: previousRevisionsBalances ?? [],
+            previousRevisionsBalances: [],
             collectibles: collectiblesBalance ?? []
         )
         
@@ -78,12 +64,7 @@ final class WalletBalanceServiceImplementation: WalletBalanceService {
     }
     
     func getEmptyWalletBalance(wallet: Wallet) throws -> WalletBalance {
-        let publicKey = try wallet.publicKey
-        let contract = try walletContractBuilder.walletContract(
-            with: publicKey,
-            contractVersion: wallet.contractVersion
-        )
-        let address = try contract.address()
+        let address = try wallet.address
         
         return WalletBalance(walletAddress: address,
                              tonBalance: .init(walletAddress: address, amount: .init(quantity: 0)),
@@ -164,22 +145,6 @@ private extension WalletContractVersion {
             return []
         case .NA:
             return []
-        }
-    }
-}
-
-extension Wallet {
-    enum Error: Swift.Error {
-        case notAvailableWalletKind
-    }
-    var publicKey: TonSwift.PublicKey {
-        get throws {
-            switch identity.kind {
-            case let .Regular(publicKey):
-                return publicKey
-            default:
-                throw Error.notAvailableWalletKind
-            }
         }
     }
 }

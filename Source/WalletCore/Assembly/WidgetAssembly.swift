@@ -11,21 +11,21 @@ import TonAPI
 final class WidgetAssembly {
     let formattersAssembly: FormattersAssembly
     let walletBalanceAssembly: WalletBalanceAssembly
-    let keeperAssembly: KeeperAssembly
     let servicesAssembly: ServicesAssembly
+    let coreAssembly: CoreAssembly
     
     init(formattersAssembly: FormattersAssembly,
          walletBalanceAssembly: WalletBalanceAssembly,
-         keeperAssembly: KeeperAssembly,
-         servicesAssembly: ServicesAssembly) {
+         servicesAssembly: ServicesAssembly,
+         coreAssembly: CoreAssembly) {
         self.formattersAssembly = formattersAssembly
         self.walletBalanceAssembly = walletBalanceAssembly
-        self.keeperAssembly = keeperAssembly
         self.servicesAssembly = servicesAssembly
+        self.coreAssembly = coreAssembly
     }
     
     func balanceWidgetController() -> BalanceWidgetController {
-        BalanceWidgetController(walletProvider: keeperAssembly.keeperController,
+        BalanceWidgetController(walletProvider: coreAssembly.walletProvider,
                                 balanceService: servicesAssembly.walletBalanceService,
                                 ratesService: servicesAssembly.ratesService,
                                 amountFormatter: formattersAssembly.amountFormatter)

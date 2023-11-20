@@ -7,6 +7,7 @@
 
 import Foundation
 import BigInt
+import WalletCoreCore
 
 public final class BalanceWidgetController {
     public enum Error: Swift.Error {

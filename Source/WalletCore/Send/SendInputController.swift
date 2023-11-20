@@ -8,6 +8,7 @@
 import Foundation
 import TonSwift
 import BigInt
+import WalletCoreCore
 
 public struct TokenListModel {
     public struct TokenModel {

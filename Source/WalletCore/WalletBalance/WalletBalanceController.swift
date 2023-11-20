@@ -7,6 +7,7 @@
 
 import Foundation
 import TonSwift
+import WalletCoreCore
 
 public class WalletBalanceController {
     public typealias BalanceModelStream = AsyncStream<WalletBalanceModel>
@@ -30,14 +31,7 @@ public class WalletBalanceController {
     
     public var walletAddress: Address {
         get throws {
-            let wallet = try walletProvider.activeWallet
-            let publicKey = try wallet.publicKey
-            let contract = try WalletContractBuilder().walletContract(
-                with: publicKey,
-                contractVersion: wallet.contractVersion
-            )
-            let address = try contract.address()
-            return address
+            return try walletProvider.activeWallet.address
         }
     }
     
@@ -148,7 +142,7 @@ public class WalletBalanceController {
 }
 
 extension WalletBalanceController: WalletProviderObserver {
-    public func didUpdateActiveWallet() {
+    public func walletProvider(_ walletProvider: WalletProvider, didUpdateActiveWallet wallet: Wallet) {
         Task {
             let loadedBalance = try getWalletBalance()
             balanceStreamContinuation?.yield(loadedBalance)

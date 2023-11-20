@@ -10,6 +10,7 @@ import TonAPI
 import TonSwift
 import BigInt
 import OpenAPIRuntime
+import WalletCoreCore
 
 struct API {
     private let tonAPIClient: TonAPI.Client
@@ -189,17 +190,17 @@ extension API {
             guard let tokenRates = rates[key] as? [String: AnyObject] else { continue }
             if key.lowercased() == tonInfo.symbol.lowercased() {
                 guard let prices = tokenRates["prices"] as? [String: Double] else { continue }
-                tonRates = prices.compactMap {
-                    guard let currency = Currency(rawValue: $0.key) else { return nil }
-                    return Rates.Rate(currency: currency, rate: Decimal($0.value))
+                tonRates = prices.compactMap { price -> Rates.Rate? in
+                    guard let currency = Currency(code: price.key) else { return nil }
+                    return Rates.Rate(currency: currency, rate: Decimal(price.value))
                 }
                 continue
             }
             guard let tokenInfo = tokens.first(where: { $0.address.toRaw() == key.lowercased()}) else { continue }
             guard let prices = tokenRates["prices"] as? [String: Double] else { continue }
-            let rates: [Rates.Rate] = prices.compactMap {
-                guard let currency = Currency(rawValue: $0.key) else { return nil }
-                return Rates.Rate(currency: currency, rate: Decimal($0.value))
+            let rates: [Rates.Rate] = prices.compactMap { price -> Rates.Rate? in
+                guard let currency = Currency(code: price.key) else { return nil }
+                return Rates.Rate(currency: currency, rate: Decimal(price.value))
             }
             tokensRates.append(.init(tokenInfo: tokenInfo, rates: rates))
             

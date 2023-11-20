@@ -7,6 +7,7 @@
 
 import Foundation
 import BigInt
+import WalletCoreCore
 
 enum AccountEventActionAmountMapperActionType {
     case income

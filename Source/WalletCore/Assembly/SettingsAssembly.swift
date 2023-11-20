@@ -9,36 +9,38 @@ import Foundation
 
 final class SettingsAssembly {
     
-    private var settingsController: SettingsController?
+    private var _settingsController: SettingsController?
     private let configurationAssembly: ConfigurationAssembly
+    private let coreAssembly: CoreAssembly
     
-    init(configurationAssembly: ConfigurationAssembly) {
+    init(configurationAssembly: ConfigurationAssembly,
+         coreAssembly: CoreAssembly) {
         self.configurationAssembly = configurationAssembly
+        self.coreAssembly = coreAssembly
     }
     
-    func settingsController(keeperController: KeeperController) -> SettingsController {
-        guard let settingsController = settingsController else {
+    func settingsController() -> SettingsController {
+        guard let settingsController = _settingsController else {
             let settingsController = SettingsControllerImplementation(
-                keeperController: keeperController,
-                configurationController: configurationAssembly.configurationController()
+                walletProvider: coreAssembly.walletProvider,
+                securityController: coreAssembly.securityController,
+                configurationController: configurationAssembly.configurationController(),
+                keeperInfoService: coreAssembly.keeperInfoService
             )
-            self.settingsController = settingsController
+            self._settingsController = settingsController
             return settingsController
         }
         return settingsController
     }
     
     func logoutController(cacheURL: URL,
-                          keychainGroup: String,
-                          keeperInfoService: KeeperInfoService,
-                          fileManager: FileManager,
-                          keychainManager: KeychainManager) -> LogoutController {
+                          keychainGroup: String) -> LogoutController {
         LogoutController(
             cacheURL: cacheURL,
             keychainGroup: keychainGroup,
-            keeperInfoService: keeperInfoService,
-            fileManager: fileManager,
-            keychainManager: keychainManager
+            keeperInfoService: coreAssembly.keeperInfoService,
+            fileManager: coreAssembly.fileManager,
+            keychainVault: coreAssembly.keychainVault
         )
     }
 }

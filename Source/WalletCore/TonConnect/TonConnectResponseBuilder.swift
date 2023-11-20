@@ -7,22 +7,16 @@
 
 import Foundation
 import TonSwift
+import WalletCoreCore
 
 struct TonConnectResponseBuilder {
     static func buildConnectEventSuccesResponse(requestPayloadItems: [TonConnectRequestPayload.Item],
                                                 wallet: Wallet,
                                                 sessionCrypto: TonConnectSessionCrypto,
-                                                mnemonicVault: KeychainMnemonicVault,
+                                                walletPrivateKey: TonSwift.PrivateKey,
                                                 manifest: TonConnectManifest,
                                                 clientId: String) throws -> String {
-        let contractBuilder = WalletContractBuilder()
-        let contract = try contractBuilder.walletContract(
-            with: try wallet.publicKey,
-            contractVersion: wallet.contractVersion
-        )
-        let mnemonic = try mnemonicVault.loadValue(key: wallet)
-        let keyPair = try Mnemonic.mnemonicToPrivateKey(mnemonicArray: mnemonic)
-        let address = try contract.address()
+        let address = try wallet.address
         
         let replyItems = try requestPayloadItems.compactMap { item in
             switch item {
@@ -31,14 +25,14 @@ struct TonConnectResponseBuilder {
                     address: address,
                     network: wallet.identity.network,
                     publicKey: try wallet.publicKey,
-                    walletStateInit: contract.stateInit)
+                    walletStateInit: try wallet.stateInit)
                 )
             case .tonProof(let payload):
                 return TonConnect.ConnectItemReply.tonProof(.success(.init(
                     address: address,
                     domain: manifest.host,
                     payload: payload,
-                    privateKey: keyPair.privateKey
+                    privateKey: walletPrivateKey
                 )))
             case .unknown:
                 return nil

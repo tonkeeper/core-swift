@@ -27,10 +27,6 @@ final class ServicesAssembly {
         self.sharedCacheURL = sharedCacheURL
     }
     
-    var keeperInfoService: KeeperInfoService {
-        KeeperInfoServiceImplementation(localRepository: localRepository(cacheURL: sharedCacheURL))
-    }
-
     var collectiblesService: CollectiblesService {
         CollectiblesServiceImplementation(
             api: apiAssembly.api,
@@ -98,7 +94,7 @@ private extension ServicesAssembly {
     func localRepository<T: LocalStorable>(cacheURL: URL) -> any LocalRepository<T> {
         LocalDiskRepository(fileManager: coreAssembly.fileManager,
                             directory: cacheURL,
-                            encoder: coreAssembly.encoder,
-                            decoder: coreAssembly.decoder)
+                            encoder: JSONEncoder(),
+                            decoder: JSONDecoder())
     }
 }

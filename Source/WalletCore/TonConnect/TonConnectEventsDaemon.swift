@@ -9,6 +9,7 @@ import Foundation
 import TonConnectAPI
 import EventSource
 import TonSwift
+import WalletCoreCore
 
 public protocol TonConnectEventsDaemonObserver: AnyObject {
     func tonConnectEventsDaemonDidReceiveRequest(_ daemon: TonConnectEventsDaemon,

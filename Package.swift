@@ -8,9 +8,8 @@ let package = Package(
         .macOS(.v11), .iOS(.v14)
     ],
     products: [
-        .library(name: "WalletCore", targets: ["WalletCore"]),
         .library(name: "WalletCoreDynamic", type: .dynamic, targets: ["WalletCore"]),
-        .library(name: "WalletCore-Core", targets: ["WalletCore-Core"])
+        .library(name: "WalletCoreCore", targets: ["WalletCoreCore"])
     ],
     dependencies: [
         .package(url: "https://github.com/tonkeeper/ton-swift", branch: "main"),
@@ -26,15 +25,16 @@ let package = Package(
                 .product(name: "TonStreamingAPI", package: "ton-api-swift"),
                 .product(name: "StreamURLSessionTransport", package: "ton-api-swift"),
                 .product(name: "EventSource", package: "ton-api-swift"),
-                .target(name: "TonConnectAPI")
+                .target(name: "TonConnectAPI"),
+                .target(name: "WalletCoreCore")
             ],
             resources: [.copy("PackageResources")]),
-        .target(name: "WalletCore-Core",
+        .target(name: "WalletCoreCore",
                 dependencies: [
                     .product(name: "TonSwift", package: "ton-swift")
                 ]),
-        .testTarget(name: "WalletCore-CoreTests",
-                    dependencies: ["WalletCore-Core"]),
+        .testTarget(name: "WalletCoreCoreTests",
+                    dependencies: ["WalletCoreCore"]),
         .target(name: "TonConnectAPI",
                 dependencies: [
                     .product(

@@ -11,21 +11,21 @@ import TonAPI
 final class WalletBalanceAssembly {
     let servicesAssembly: ServicesAssembly
     let formattersAssembly: FormattersAssembly
-    let keeperAssembly: KeeperAssembly
+    let coreAssembly: CoreAssembly
     
     init(servicesAssembly: ServicesAssembly,
          formattersAssembly: FormattersAssembly,
-         keeperAssembly: KeeperAssembly) {
+         coreAssembly: CoreAssembly) {
         self.servicesAssembly = servicesAssembly
         self.formattersAssembly = formattersAssembly
-        self.keeperAssembly = keeperAssembly
+        self.coreAssembly = coreAssembly
     }
     
     var walletBalanceController: WalletBalanceController {
         WalletBalanceController(
             balanceService: servicesAssembly.walletBalanceService,
             ratesService: servicesAssembly.ratesService,
-            walletProvider: keeperAssembly.keeperController,
+            walletProvider: coreAssembly.walletProvider,
             walletBalanceMapper: walletBalanceMapper(),
             transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
         )

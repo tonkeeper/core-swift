@@ -14,16 +14,13 @@ import EventSource
 import OpenAPIRuntime
 
 final class APIAssembly {
-    let coreAssembly: CoreAssembly
     let configurationAssembly: ConfigurationAssembly
     
     // MARK: - Private properties
     
     // MARK: - Init
     
-    init(coreAssembly: CoreAssembly,
-         configurationAssembly: ConfigurationAssembly) {
-        self.coreAssembly = coreAssembly
+    init(configurationAssembly: ConfigurationAssembly) {
         self.configurationAssembly = configurationAssembly
     }
     

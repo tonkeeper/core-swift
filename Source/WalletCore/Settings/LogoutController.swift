@@ -6,24 +6,25 @@
 //
 
 import Foundation
+import WalletCoreCore
 
 public final class LogoutController {
     private let cacheURL: URL
     private let sharedKeychainGroup: String
     private let keeperInfoService: KeeperInfoService
     private let fileManager: FileManager
-    private let keychainManager: KeychainManager
+    private let keychainVault: KeychainVault
     
     init(cacheURL: URL,
          keychainGroup: String,
          keeperInfoService: KeeperInfoService,
          fileManager: FileManager,
-         keychainManager: KeychainManager) {
+         keychainVault: KeychainVault) {
         self.cacheURL = cacheURL
         self.sharedKeychainGroup = keychainGroup
         self.keeperInfoService = keeperInfoService
         self.fileManager = fileManager
-        self.keychainManager = keychainManager
+        self.keychainVault = keychainVault
     }
     
     public func logout() {
@@ -31,7 +32,7 @@ public final class LogoutController {
             try? fileManager.removeItem(at: cacheURL)
         }
         
-        try? keeperInfoService.removeKeeperInfo()
-        try? keychainManager.deleteAll(group: sharedKeychainGroup)
+        try? keeperInfoService.deleteKeeperInfo()
+//        try? keychainManager.deleteAll(group: sharedKeychainGroup)
     }
 }

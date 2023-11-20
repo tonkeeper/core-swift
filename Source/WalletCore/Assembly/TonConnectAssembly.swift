@@ -6,11 +6,11 @@
 //
 
 import Foundation
+import WalletCoreCore
 
 final class TonConnectAssembly {
     private let coreAssembly: CoreAssembly
     private let apiAssembly: APIAssembly
-    private let keeperAssembly: KeeperAssembly
     private let sendAssembly: SendAssembly
     private let servicesAssembly: ServicesAssembly
     private let formattersAssembly: FormattersAssembly
@@ -19,7 +19,6 @@ final class TonConnectAssembly {
     
     init(coreAssembly: CoreAssembly,
          apiAssembly: APIAssembly,
-         keeperAssembly: KeeperAssembly,
          sendAssembly: SendAssembly,
          servicesAssembly: ServicesAssembly,
          formattersAssembly: FormattersAssembly,
@@ -27,7 +26,6 @@ final class TonConnectAssembly {
          keychainGroup: String) {
         self.coreAssembly = coreAssembly
         self.apiAssembly = apiAssembly
-        self.keeperAssembly = keeperAssembly
         self.sendAssembly = sendAssembly
         self.servicesAssembly = servicesAssembly
         self.formattersAssembly = formattersAssembly
@@ -45,9 +43,9 @@ final class TonConnectAssembly {
             parameters: parameters,
             manifest: manifest,
             apiClient: apiAssembly.tonConnectAPIClient(),
-            walletProvider: keeperAssembly.keeperController,
+            walletProvider: coreAssembly.walletProvider,
             appsVault: appsVault,
-            mnemonicVault: coreAssembly.keychainMnemonicVault(keychainGroup: keychainGroup)
+            mnemonicRepository: coreAssembly.walletMnemonicRepository
         )
         Task { await controller.addObserver(tonConnectEventsDaemon) }
         return controller
@@ -55,19 +53,18 @@ final class TonConnectAssembly {
     
     func tonConnectConfirmationController() -> TonConnectConfirmationController {
         TonConnectConfirmationController(
-            sendMessageBuilder: sendAssembly.sendMessageBuilder(),
             sendService: servicesAssembly.sendService,
             apiClient: apiAssembly.tonConnectAPIClient(),
             rateService: servicesAssembly.ratesService,
             collectiblesService: servicesAssembly.collectiblesService,
-            walletProvider: keeperAssembly.keeperController,
+            walletProvider: coreAssembly.walletProvider,
             tonConnectConfirmationMapper: tonConnectConfirmationMapper
         )
     }
     
     lazy var tonConnectEventsDaemon: TonConnectEventsDaemon = {
         TonConnectEventsDaemon(
-            walletProvider: keeperAssembly.keeperController,
+            walletProvider: coreAssembly.walletProvider,
             appsVault: appsVault,
             apiClient: apiAssembly.tonConnectAPIClient(),
             localRepository: localRepository(cacheURL: cacheURL))
@@ -91,25 +88,15 @@ private extension TonConnectAssembly {
     }
     
     var appsVault: TonConnectAppsVault {
-        TonConnectAppsVault(
-            keychainManager: coreAssembly.keychainManager,
-            keychainGroup: keychainGroup
-        )
+        TonConnectAppsVault(keychainVault: coreAssembly.keychainVault,
+                            accessGroup: keychainGroup)
     }
     
     func localRepository<T: LocalStorable>(cacheURL: URL) -> any LocalRepository<T> {
         LocalDiskRepository(fileManager: coreAssembly.fileManager,
                             directory: cacheURL,
-                            encoder: coreAssembly.encoder,
-                            decoder: coreAssembly.decoder)
-    }
-    
-    func sendMessageBuilder(walletProvider: WalletProvider,
-                            keychainGroup: String,
-                            sendService: SendService) -> SendMessageBuilder {
-        SendMessageBuilder(walletProvider: walletProvider,
-                           mnemonicVault: coreAssembly.keychainMnemonicVault(keychainGroup: keychainGroup),
-                           sendService: sendService)
+                            encoder: JSONEncoder(),
+                            decoder: JSONDecoder())
     }
     
     var accountEventMapper: AccountEventMapper {

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WalletCoreCore
 
 protocol TokenDetailsProvider {
     var output: TokenDetailsControllerOutput? { get set }

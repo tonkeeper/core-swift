@@ -7,6 +7,7 @@
 
 import Foundation
 import BigInt
+import WalletCoreCore
 
 struct AccountEventMapper {
     private let dateFormatter: DateFormatter

@@ -13,20 +13,17 @@ struct ActivityAssembly {
     let apiAssembly: APIAssembly
     let servicesAssembly: ServicesAssembly
     let formattersAssembly: FormattersAssembly
-    let keeperAssembly: KeeperAssembly
     let cacheURL: URL
     
     init(coreAssembly: CoreAssembly,
          apiAssembly: APIAssembly,
          servicesAssembly: ServicesAssembly,
          formattersAssembly: FormattersAssembly,
-         keeperAssembly: KeeperAssembly,
          cacheURL: URL) {
         self.coreAssembly = coreAssembly
         self.apiAssembly = apiAssembly
         self.servicesAssembly = servicesAssembly
         self.formattersAssembly = formattersAssembly
-        self.keeperAssembly = keeperAssembly
         self.cacheURL = cacheURL
     }
     
@@ -34,7 +31,7 @@ struct ActivityAssembly {
         ActivityListController(
             activityListLoader: activityListLoader(),
             collectiblesService: servicesAssembly.collectiblesService,
-            walletProvider: keeperAssembly.keeperController,
+            walletProvider: coreAssembly.walletProvider,
             contractBuilder: WalletContractBuilder(),
             activityEventMapper: activityEventMapper(),
             dateFormatter: formattersAssembly.dateFormatter,
@@ -45,7 +42,7 @@ struct ActivityAssembly {
     var activityListTonEventsController: ActivityListController {
         ActivityListController(activityListLoader: activityListTonEventsLoader(),
                                collectiblesService: servicesAssembly.collectiblesService,
-                               walletProvider: keeperAssembly.keeperController,
+                               walletProvider: coreAssembly.walletProvider,
                                contractBuilder: WalletContractBuilder(),
                                activityEventMapper: activityEventMapper(),
                                dateFormatter: formattersAssembly.dateFormatter,
@@ -59,7 +56,7 @@ struct ActivityAssembly {
                 tokenInfo: tokenInfo
             ),
             collectiblesService: servicesAssembly.collectiblesService,
-            walletProvider: keeperAssembly.keeperController,
+            walletProvider: coreAssembly.walletProvider,
             contractBuilder: WalletContractBuilder(),
             activityEventMapper: activityEventMapper(),
             dateFormatter: formattersAssembly.dateFormatter,

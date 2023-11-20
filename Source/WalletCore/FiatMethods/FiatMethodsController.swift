@@ -8,6 +8,7 @@
 import Foundation
 import CryptoKit
 import TonSwift
+import WalletCoreCore
 
 public actor FiatMethodsController {
     private let fiatMethodsService: FiatMethodsService

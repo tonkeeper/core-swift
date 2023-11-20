@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WalletCoreCore
 
 public enum Period: CaseIterable {
     case hour
@@ -81,7 +82,7 @@ public actor ChartController {
                              currency: Currency) async throws -> [Coordinate] {
         loadChartDataTask?.cancel()
         let task = Task {
-            async let coordinatesTask = chartService.loadChartData(
+            async let coordinatesTask = self.chartService.loadChartData(
                 period: period,
                 token: "ton",
                 currency: currency)

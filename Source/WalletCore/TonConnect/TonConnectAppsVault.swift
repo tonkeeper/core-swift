@@ -7,51 +7,40 @@
 
 import Foundation
 import TonSwift
+import WalletCoreCore
 
-struct TonConnectAppsVault: StorableVault {
-    enum Error: Swift.Error {
-        case noConnectedApps
-        case connectedAppsDataCorrupted
-    }
-    
+struct TonConnectAppsVault: StorableKeyValueVault {
     typealias StoreValue = TonConnectApps
     typealias StoreKey = Wallet
     
-    private let keychainManager: KeychainManager
-    private let keychainGroup: String
+    private let keychainVault: KeychainVault
+    private let accessGroup: String?
     
-    init(keychainManager: KeychainManager,
-         keychainGroup: String) {
-        self.keychainManager = keychainManager
-        self.keychainGroup = keychainGroup
+    init(keychainVault: KeychainVault,
+         accessGroup: String?) {
+        self.keychainVault = keychainVault
+        self.accessGroup = accessGroup
     }
     
-    func save(value: TonConnectApps, for key: Wallet) throws {
-        let query = KeychainQuery(
-            class: .genericPassword(service: try key.identity.id().string,
-                                    account: .key),
-            accessible: .whenUnlockedThisDeviceOnly,
-            accessGroup: keychainGroup
-        )
-        let encoder = JSONEncoder()
-        let data = try encoder.encode(value)
-        try keychainManager.save(data: data, query: query)
+    func saveValue(_ value: TonConnectApps, for key: WalletCoreCore.Wallet) throws {
+        try keychainVault.saveValue(value, to: key.query(accessGroup: accessGroup))
     }
     
-    func loadValue(key: Wallet) throws -> TonConnectApps {
-        do {
-            let query = KeychainQuery(class: .genericPassword(service: try key.identity.id().string,
-                                                              account: .key),
-                                      accessible: .whenUnlockedThisDeviceOnly,
-                                      accessGroup: keychainGroup)
-            let data = try keychainManager.get(query: query)
-            let decoder = JSONDecoder()
-            return try decoder.decode(TonConnectApps.self, from: data)
-        } catch is KeychainManager.Error {
-            throw Error.noConnectedApps
-        } catch is DecodingError {
-            throw Error.connectedAppsDataCorrupted
-        }
+    func deleteValue(for key: WalletCoreCore.Wallet) throws {
+        try keychainVault.deleteItem(key.query(accessGroup: accessGroup))
+    }
+    
+    func loadValue(key: WalletCoreCore.Wallet) throws -> TonConnectApps {
+        try keychainVault.readValue(key.query(accessGroup: accessGroup))
+    }
+}
+
+private extension Wallet {
+    func query(accessGroup: String?) throws -> WalletCoreCore.KeychainQueryable {
+        KeychainGenericPasswordItem(service: try identity.id().string,
+                                    account: .key,
+                                    accessGroup: accessGroup,
+                                    accessible: .whenUnlockedThisDeviceOnly)
     }
 }
 

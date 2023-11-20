@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WalletCoreCore
 
 public protocol SettingsController: SecuritySettingsController, CurrencySettingsController, SocialLinksSettingsController {
     func addObserver(_ observer: SettingsControllerObserver)
@@ -38,15 +39,21 @@ public final class SettingsControllerImplementation: SettingsController, Securit
       weak var observer: SettingsControllerObserver?
     }
 
-    private let keeperController: KeeperController
+    private let walletProvider: WalletProvider
+    private let securityController: SecurityController
     private let configurationController: ConfigurationController
+    private let keeperInfoService: KeeperInfoService
     
     private var observers = [SettingsControllerObserverWrapper]()
     
-    init(keeperController: KeeperController,
-         configurationController: ConfigurationController) {
-        self.keeperController = keeperController
+    init(walletProvider: WalletProvider,
+         securityController: SecurityController,
+         configurationController: ConfigurationController,
+         keeperInfoService: KeeperInfoService) {
+        self.walletProvider = walletProvider
+        self.securityController = securityController
         self.configurationController = configurationController
+        self.keeperInfoService = keeperInfoService
     }
     
     public func addObserver(_ observer: SettingsControllerObserver) {
@@ -60,7 +67,7 @@ public final class SettingsControllerImplementation: SettingsController, Securit
     // MARK: - Currency
     
     public func getSelectedCurrency() throws -> Currency {
-        try keeperController.activeWallet.currency
+        try walletProvider.activeWallet.currency
     }
     
     public func getAvailableCurrencies() -> [Currency] {
@@ -68,21 +75,19 @@ public final class SettingsControllerImplementation: SettingsController, Securit
     }
     
     public func setCurrency(_ currency: Currency) throws {
-        try keeperController.update(wallet: try keeperController.activeWallet, currency: currency)
+        let wallet = try walletProvider.activeWallet.setCurrency(currency)
+        try keeperInfoService.updateKeeperInfo(with: wallet)
         notifyObservers()
     }
     
     // MARK: - Biometry
     
     public func getIsBiometryEnabled() -> Bool {
-        (try? keeperController.getSecuritySettings().isBiometryEnabled) ?? false
+        securityController.getIsBiometryEnabled()
     }
     
     public func setIsBiometryEnabled(_ isBiometryEnabled: Bool) throws {
-        let securitySettings = try keeperController
-            .getSecuritySettings()
-            .setIsBiometryEnabled(isBiometryEnabled)
-        try keeperController.setSecuritySettings(securitySettings)
+        try securityController.setIsBiometryEnabled(isBiometryEnabled)
     }
     
     // MARK: - Links

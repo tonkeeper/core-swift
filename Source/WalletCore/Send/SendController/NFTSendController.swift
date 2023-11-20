@@ -8,6 +8,7 @@
 import Foundation
 import TonSwift
 import BigInt
+import WalletCoreCore
 
 public final class NFTSendController: SendController {
     
@@ -22,7 +23,6 @@ public final class NFTSendController: SendController {
     private let sendService: SendService
     private let rateService: RatesService
     private let collectibleService: CollectiblesService
-    private let sendMessageBuilder: SendMessageBuilder
     private let amountFormatter: AmountFormatter
     private let bigIntAmountFormatter: BigIntAmountFormatter
     
@@ -42,7 +42,6 @@ public final class NFTSendController: SendController {
          sendService: SendService,
          rateService: RatesService,
          collectibleService: CollectiblesService,
-         sendMessageBuilder: SendMessageBuilder,
          amountFormatter: AmountFormatter,
          bigIntAmountFormatter: BigIntAmountFormatter) {
         self.nftAddress = nftAddress
@@ -52,7 +51,6 @@ public final class NFTSendController: SendController {
         self.sendService = sendService
         self.rateService = rateService
         self.collectibleService = collectibleService
-        self.sendMessageBuilder = sendMessageBuilder
         self.amountFormatter = amountFormatter
         self.bigIntAmountFormatter = bigIntAmountFormatter
     }
@@ -182,11 +180,16 @@ private extension NFTSendController {
                                    recipientAddress: Address,
                                    comment: String?) async throws -> String {
         let transferAmount = BigUInt(stringLiteral: "10000000000")
-        return try await sendMessageBuilder.sendNFTEstimateBoc(
+        let wallet = try walletProvider.activeWallet
+        let seqno = try await sendService.loadSeqno(address: wallet.address)
+        return try await NFTTransferMessageBuilder.sendNFTTransfer(
+            wallet: wallet,
+            seqno: seqno,
             nftAddress: nft.address,
             recipientAddress: recipientAddress,
-            transferAmount: transferAmount
-        )
+            transferAmount: transferAmount) { transfer in
+                try transfer.signMessage(signer: WalletTransferEmptyKeySigner())
+            }
     }
     
     func prepareSendTransaction(nft: Collectible,
@@ -198,11 +201,21 @@ private extension NFTSendController {
         transferAmount = transferAmount < minimumTransferAmount
         ? minimumTransferAmount
         : transferAmount
-        return try await sendMessageBuilder.sendNFTEstimateBoc(
+        let wallet = try walletProvider.activeWallet
+        let seqno = try await sendService.loadSeqno(address: wallet.address)
+        return try await NFTTransferMessageBuilder.sendNFTTransfer(
+            wallet: wallet,
+            seqno: seqno,
             nftAddress: nft.address,
             recipientAddress: recipientAddress,
-            transferAmount: transferAmount.magnitude
-        )
+            transferAmount: transferAmount.magnitude) { transfer in
+                if wallet.isRegular {
+                    let privateKey = try walletProvider.getWalletPrivateKey(wallet)
+                    return try transfer.signMessage(signer: WalletTransferSecretKeySigner(secretKey: privateKey.data))
+                }
+                // TBD: External wallet sign
+                return try transfer.signMessage(signer: WalletTransferEmptyKeySigner())
+            }
     }
 
     func getTonRates() async throws -> Rates.Rate? {

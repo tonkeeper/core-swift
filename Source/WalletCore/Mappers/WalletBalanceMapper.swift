@@ -8,6 +8,7 @@
 import Foundation
 import TonSwift
 import BigInt
+import WalletCoreCore
 
 struct WalletBalanceMapper {
     private let walletItemMapper: WalletItemMapper
