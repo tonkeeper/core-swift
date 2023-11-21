@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@testable import WalletCore
+@testable import WalletCoreKeeper
 
 final class MockCacheConfigurationProvider: CacheConfigurationProvider {
     
@@ -21,7 +21,7 @@ final class MockCacheConfigurationProvider: CacheConfigurationProvider {
     
     var _configuration: RemoteConfiguration?
     
-    func saveConfiguration(_ configuration: WalletCore.RemoteConfiguration) throws {
+    func saveConfiguration(_ configuration: WalletCoreKeeper.RemoteConfiguration) throws {
         self._configuration = configuration
     }
 }

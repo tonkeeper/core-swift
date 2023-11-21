@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@testable import WalletCore_Core
+@testable import WalletCoreCore
 
 final class WalletMnemonicMockRepository: WalletMnemonicRepository {
     
@@ -16,14 +16,14 @@ final class WalletMnemonicMockRepository: WalletMnemonicRepository {
     
     var mnemonics = [WalletID: Mnemonic]()
     
-    func getMnemonic(wallet: WalletCore_Core.Wallet) throws -> WalletCore_Core.Mnemonic {
+    func getMnemonic(wallet: Wallet) throws -> Mnemonic {
         guard let mnemonic = mnemonics[try wallet.identity.id()] else {
             throw Error.noMnemonic
         }
         return mnemonic
     }
     
-    func saveMnemonic(_ mnemonic: WalletCore_Core.Mnemonic, for wallet: WalletCore_Core.Wallet) throws {
+    func saveMnemonic(_ mnemonic: Mnemonic, for wallet: Wallet) throws {
         mnemonics[try wallet.identity.id()] = mnemonic
     }
     

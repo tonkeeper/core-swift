@@ -7,7 +7,7 @@
 
 import XCTest
 import TonSwift
-@testable import WalletCore_Core
+@testable import WalletCoreCore
 
 final class KeeperInfoServiceTests: XCTestCase {
     

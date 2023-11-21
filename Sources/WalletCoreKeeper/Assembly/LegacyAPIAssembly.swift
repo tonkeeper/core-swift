@@ -11,7 +11,7 @@ final class LegacyAPIAssembly {
     // MARK: - Internal
 
     var legacyAPI: LegacyAPI {
-        LegacyAPI(urlSession: .shared,
+        LegacyAPIImplementation(urlSession: .shared,
                   host: apiV1URL,
                   configurationProvider: DefaultConfigurationProvider())
     }

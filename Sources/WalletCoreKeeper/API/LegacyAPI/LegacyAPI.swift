@@ -7,7 +7,16 @@
 
 import Foundation
 
-struct LegacyAPI {
+protocol LegacyAPI {
+    func loadConfiguration(lang: String,
+                           build: String,
+                           chainName: String,
+                           platform: String) async throws -> RemoteConfiguration
+    func loadChart(period: Period) async throws -> [Coordinate]
+    func loadFiatMethods() async throws -> FiatMethods
+}
+
+struct LegacyAPIImplementation: LegacyAPI {
     enum Error: Swift.Error {
         case incorrectURL
     }
@@ -25,7 +34,7 @@ struct LegacyAPI {
     }
 }
 
-extension LegacyAPI {
+extension LegacyAPIImplementation {
     func loadConfiguration(lang: String,
                            build: String,
                            chainName: String,

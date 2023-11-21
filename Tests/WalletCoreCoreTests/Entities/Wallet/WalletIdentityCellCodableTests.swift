@@ -7,10 +7,10 @@
 
 import XCTest
 import TonSwift
-@testable import WalletCore
+@testable import WalletCoreCore
 
 final class WalletIdentityCellCodableTests: XCTestCase {
-    func testWalletIdentittyCoding() throws {
+    func test_wallet_identitty_coding() throws {
         // GIVEN
         let publicKey = TonSwift.PublicKey(data: Data(hex: "5754865e86d0ade1199301bbb0319a25ed6b129c4b0a57f28f62449b3df9c522")!)
         let walletKind = WalletKind.Regular(publicKey)
@@ -35,7 +35,7 @@ final class WalletIdentityCellCodableTests: XCTestCase {
 // WalletKind
 
 extension WalletIdentityCellCodableTests {
-    func testWalletKindRegularCoding() throws {
+    func test_wallet_kind_regular_coding() throws {
         // GIVEN
         let publicKey = TonSwift.PublicKey(data: Data(hex: "5754865e86d0ade1199301bbb0319a25ed6b129c4b0a57f28f62449b3df9c522")!)
         let walletKind = WalletKind.Regular(publicKey)
@@ -54,7 +54,7 @@ extension WalletIdentityCellCodableTests {
         }
     }
     
-    func testWalletKindLockupCoding() throws {
+    func test_wallet_kind_lockup_coding() throws {
         // GIVEN
         let lockupConfig = LockupConfig()
         let publicKey = TonSwift.PublicKey(data: Data(hex: "5754865e86d0ade1199301bbb0319a25ed6b129c4b0a57f28f62449b3df9c522")!)
@@ -75,7 +75,7 @@ extension WalletIdentityCellCodableTests {
         }
     }
     
-    func testWalletKindWatchonlyCoding() throws {
+    func test_wallet_kind_watchonly_coding() throws {
         // GIVEN
         let address = Address.mock(workchain: 0, seed: "testResolvableAddressResolvedCoding")
         let resolvableAddress = ResolvableAddress.Resolved(address)
@@ -91,6 +91,25 @@ extension WalletIdentityCellCodableTests {
         guard case let .Watchonly(decodedResolvableAddress) = decodedWalletKind,
               case let .Resolved(decodedAddress) = decodedResolvableAddress,
               decodedAddress == address else {
+            XCTFail()
+            return
+        }
+    }
+    
+    func test_wallet_kind_external_coding() throws {
+        // GIVEN
+        let publicKey = TonSwift.PublicKey(data: Data(hex: "5754865e86d0ade1199301bbb0319a25ed6b129c4b0a57f28f62449b3df9c522")!)
+        let walletKind = WalletKind.External(publicKey)
+        let builder = Builder()
+        
+        // WHEN
+        try walletKind.storeTo(builder: builder)
+        let slice = Slice(bits: builder.bitstring())
+        let decodedWalletKind: WalletKind = try slice.loadType()
+        
+        // THEN
+        guard case let .External(decodedPublicKey) = decodedWalletKind,
+        decodedPublicKey.data == publicKey.data else {
             XCTFail()
             return
         }

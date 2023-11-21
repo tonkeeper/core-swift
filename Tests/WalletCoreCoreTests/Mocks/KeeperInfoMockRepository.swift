@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import WalletCore_Core
+import WalletCoreCore
 
 final class KeeperInfoMockRepository: KeeperInfoRepository {
     
@@ -16,12 +16,12 @@ final class KeeperInfoMockRepository: KeeperInfoRepository {
     
     var keeperInfo: KeeperInfo?
     
-    func getKeeperInfo() throws -> WalletCore_Core.KeeperInfo {
+    func getKeeperInfo() throws -> KeeperInfo {
         guard let keeperInfo = keeperInfo else { throw Error.noKeeperInfo }
         return keeperInfo
     }
     
-    func saveKeeperInfo(_ keeperInfo: WalletCore_Core.KeeperInfo) throws {
+    func saveKeeperInfo(_ keeperInfo: KeeperInfo) throws {
         self.keeperInfo = keeperInfo
     }
     

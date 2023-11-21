@@ -6,10 +6,10 @@
 //
 
 import Foundation
-@testable import WalletCore
+@testable import WalletCoreKeeper
 
 final class MockDefaultConfigurationProvider: ConfigurationProvider {
-    var configuration: WalletCore.RemoteConfiguration {
+    var configuration: WalletCoreKeeper.RemoteConfiguration {
         .empty
     }
 }

@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import WalletCore
+@testable import WalletCoreKeeper
 
 final class DefaultConfigurationProviderTests: XCTestCase {
 
