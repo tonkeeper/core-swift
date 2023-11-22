@@ -13,6 +13,7 @@ enum ExternalWalletControllerError: Swift.Error {
     case incorrectUrl
     case noWalletToSignTransfer
     case alreadyProcessingTransfer
+    case failedToBuildWalletExportURL
 }
 
 public enum ExternalWalletControllerAction {
@@ -22,7 +23,7 @@ public enum ExternalWalletControllerAction {
 public protocol ExternalWalletController {
     func processUrl(_ url: URL) throws -> ExternalWalletControllerAction
     func reset()
-    func exportWallet(_ wallet: Wallet)
+    func exportWallet(_ wallet: Wallet) throws -> URL
 }
 
 public final class ExternalWalletControllerImplementation: ExternalWalletController {
@@ -35,11 +36,14 @@ public final class ExternalWalletControllerImplementation: ExternalWalletControl
     
     private let walletProvider: WalletProvider
     private let urlParser: ExternalWalletURLParser
+    private let urlBuilder: ExternalWalletURLBuilder
     
     init(walletProvider: WalletProvider,
-         urlParser: ExternalWalletURLParser) {
+         urlParser: ExternalWalletURLParser,
+         urlBuilder: ExternalWalletURLBuilder) {
         self.walletProvider = walletProvider
         self.urlParser = urlParser
+        self.urlBuilder = urlBuilder
     }
     
     public func processUrl(_ url: URL) throws -> ExternalWalletControllerAction {
@@ -70,5 +74,11 @@ public final class ExternalWalletControllerImplementation: ExternalWalletControl
         state = .idle
     }
     
-    public func exportWallet(_ wallet: Wallet) {}
+    public func exportWallet(_ wallet: Wallet) throws -> URL {
+        do {
+            return try urlBuilder.buildWalletExportUrl(wallet: wallet)
+        } catch {
+            throw ExternalWalletControllerError.failedToBuildWalletExportURL
+        }
+    }
 }

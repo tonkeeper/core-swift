@@ -15,8 +15,12 @@ enum ExternalWalletURLBuilderError: Swift.Error {
     case failedToBuildUrl
 }
 
-struct ExternalWalletURLBuilder {
-    func buildExportUrl(wallet: Wallet) throws -> URL {
+protocol ExternalWalletURLBuilder {
+    func buildWalletExportUrl(wallet: Wallet) throws -> URL
+}
+
+struct ExternalWalletURLBuilderImplementation: ExternalWalletURLBuilder {
+    func buildWalletExportUrl(wallet: Wallet) throws -> URL {
         guard wallet.isRegular else { throw ExternalWalletURLBuilderError.notRegularWallet }
         let publicKey: TonSwift.PublicKey
         do {

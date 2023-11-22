@@ -12,7 +12,7 @@ import TonSwift
 
 final class ExternalWalletURLBuilderTests: XCTestCase {
     
-    let builder = ExternalWalletURLBuilder()
+    let builder = ExternalWalletURLBuilderImplementation()
     
     func test_build_export_wallet_url_success() throws {
         // GIVEN
@@ -22,7 +22,7 @@ final class ExternalWalletURLBuilderTests: XCTestCase {
         let wallet = Wallet(identity: .init(network: .mainnet, kind: .Regular(publicKey)))
         
         //WHEN
-        let builtUrl = try builder.buildExportUrl(wallet: wallet)
+        let builtUrl = try builder.buildWalletExportUrl(wallet: wallet)
         
         // THEN
         XCTAssertEqual(builtUrl, url)
@@ -37,7 +37,7 @@ final class ExternalWalletURLBuilderTests: XCTestCase {
         
         // WHEN
         var error: Error?
-        XCTAssertThrowsError(try builder.buildExportUrl(wallet: wallet)) {
+        XCTAssertThrowsError(try builder.buildWalletExportUrl(wallet: wallet)) {
             error = $0
         }
         // THEN
