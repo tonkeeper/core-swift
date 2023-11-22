@@ -10,6 +10,7 @@ import WalletCoreCore
 import TonSwift
 
 enum ExternalWalletControllerError: Swift.Error {
+    case incorrectUrl
     case noWalletToSignTransfer
     case alreadyProcessingTransfer
 }
@@ -42,7 +43,13 @@ public final class ExternalWalletControllerImplementation: ExternalWalletControl
     }
     
     public func processUrl(_ url: URL) throws -> ExternalWalletControllerAction {
-        let action = try urlParser.parseUrl(url)
+        let action: ExternalWalletAction
+        do {
+            action = try urlParser.parseUrl(url)
+        } catch {
+            throw ExternalWalletControllerError.incorrectUrl
+        }
+        
         switch action {
         case .signTransfer(let publicKey, let boc):
             let walletsToSign = walletProvider
