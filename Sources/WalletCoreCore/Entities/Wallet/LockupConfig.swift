@@ -10,6 +10,8 @@ import TonSwift
 
 public struct LockupConfig: Equatable {
     // TBD: lockup-1.0 config
+    
+    public init() {}
 }
 
 extension LockupConfig: CellCodable {
