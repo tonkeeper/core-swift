@@ -115,7 +115,6 @@ final class ExternalWalletControllerImplementationTests: XCTestCase {
     
     func test_export_wallet_failed() throws {
         // GIVEN
-        let url = URL(string: "https://tonkeeper.com")!
         mockExternalWalletURLBuilder._error = .failedToBuildUrl
         let publicKey = TonSwift.PublicKey(data: Data(hex: "7075626c69634b6579537472696e67")!)
         let wallet = Wallet(identity: .init(network: .mainnet, kind: .Regular(publicKey)))

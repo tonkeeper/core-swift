@@ -48,4 +48,12 @@ struct MockWalletProvider: WalletProvider {
     func addObserver(_ observer: WalletCoreCore.WalletProviderObserver) {}
     
     func removeObserver(_ observer: WalletCoreCore.WalletProviderObserver) {}
+    
+    mutating
+    func reset() {
+        _activeWallet = nil
+        _wallets = []
+        _privateKeys = [:]
+        _mnemonics = [:]
+    }
 }
