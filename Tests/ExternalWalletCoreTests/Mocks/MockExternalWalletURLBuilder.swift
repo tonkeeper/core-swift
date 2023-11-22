@@ -26,4 +26,14 @@ struct MockExternalWalletURLBuilder: ExternalWalletURLBuilder {
         }
         throw Error.incorrect
     }
+    
+    func buildTransactionSignedUrl(wallet: Wallet, signedBoc: String) throws -> URL {
+        if let _url = _url {
+            return _url
+        }
+        if let _error = _error {
+            throw _error
+        }
+        throw Error.incorrect
+    }
 }

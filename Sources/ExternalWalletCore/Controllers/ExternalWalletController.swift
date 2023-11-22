@@ -23,7 +23,7 @@ public enum ExternalWalletControllerAction {
 public protocol ExternalWalletController {
     func processUrl(_ url: URL) throws -> ExternalWalletControllerAction
     func reset()
-    func exportWallet(_ wallet: Wallet) throws -> URL
+    func exportWalletUrl(_ wallet: Wallet) throws -> URL
 }
 
 public final class ExternalWalletControllerImplementation: ExternalWalletController {
@@ -74,7 +74,7 @@ public final class ExternalWalletControllerImplementation: ExternalWalletControl
         state = .idle
     }
     
-    public func exportWallet(_ wallet: Wallet) throws -> URL {
+    public func exportWalletUrl(_ wallet: Wallet) throws -> URL {
         do {
             return try urlBuilder.buildWalletExportUrl(wallet: wallet)
         } catch {

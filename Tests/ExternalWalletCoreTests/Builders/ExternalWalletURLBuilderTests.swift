@@ -32,7 +32,6 @@ final class ExternalWalletURLBuilderTests: XCTestCase {
         // GIVEN
         let publicKeyString = "7075626c69634b6579537472696e67"
         let publicKey = TonSwift.PublicKey(data: Data(hex: publicKeyString)!)
-        let url = URL(string: "tk://export?pk=\(publicKeyString)")!
         let wallet = Wallet(identity: .init(network: .mainnet, kind: .External(publicKey)))
         
         // WHEN
@@ -42,5 +41,20 @@ final class ExternalWalletURLBuilderTests: XCTestCase {
         }
         // THEN
         XCTAssertEqual(error as? ExternalWalletURLBuilderError, ExternalWalletURLBuilderError.notRegularWallet)
+    }
+    
+    func test_build_transaction_signed_url_success() throws {
+        // GIVEN
+        let publicKeyString = "7075626c69634b6579537472696e67"
+        let publicKey = TonSwift.PublicKey(data: Data(hex: publicKeyString)!)
+        let wallet = Wallet(identity: .init(network: .mainnet, kind: .Regular(publicKey)))
+        let boc = "signedBoc"
+        let url = URL(string: "tk://signedTransfer?pk=\(publicKeyString)&boc=\(boc)")!
+        
+        //WHEN
+        let builtUrl = try builder.buildTransactionSignedUrl(wallet: wallet, signedBoc: boc)
+        
+        // THEN
+        XCTAssertEqual(builtUrl, url)
     }
 }

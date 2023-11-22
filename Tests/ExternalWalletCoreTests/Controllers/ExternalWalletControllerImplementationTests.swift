@@ -107,7 +107,7 @@ final class ExternalWalletControllerImplementationTests: XCTestCase {
         let wallet = Wallet(identity: .init(network: .mainnet, kind: .Regular(publicKey)))
         
         // WHEN
-        let controllerUrl = try controller.exportWallet(wallet)
+        let controllerUrl = try controller.exportWalletUrl(wallet)
         
         // THEN
         XCTAssertEqual(controllerUrl, url)
@@ -121,7 +121,7 @@ final class ExternalWalletControllerImplementationTests: XCTestCase {
         
         // WHEN
         var error: Error?
-        XCTAssertThrowsError(try controller.exportWallet(wallet)) { error = $0 }
+        XCTAssertThrowsError(try controller.exportWalletUrl(wallet)) { error = $0 }
         
         // THEN
         XCTAssertEqual(error as? ExternalWalletControllerError, ExternalWalletControllerError.failedToBuildWalletExportURL)
