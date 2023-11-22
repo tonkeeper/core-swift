@@ -9,6 +9,7 @@ import Foundation
 import TonSwift
 
 public protocol WalletProvider {
+    var wallets: [Wallet] { get }
     var activeWallet: Wallet { get throws }
     var hasWallets: Bool { get }
     
@@ -47,6 +48,10 @@ public final class WalletsController: WalletProvider {
     
     public var hasWallets: Bool {
         !getValidWallets().isEmpty
+    }
+    
+    public var wallets: [Wallet] {
+        getValidWallets()
     }
     
     public var activeWallet: Wallet {
