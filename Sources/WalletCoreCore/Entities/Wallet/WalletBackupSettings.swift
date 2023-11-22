@@ -13,4 +13,10 @@ public struct WalletBackupSettings: Codable {
     let enabled: Bool
     let revision: Int
     let voucher: WalletVoucher?
+    
+    public init(enabled: Bool, revision: Int, voucher: WalletVoucher?) {
+        self.enabled = enabled
+        self.revision = revision
+        self.voucher = voucher
+    }
 }

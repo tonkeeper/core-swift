@@ -7,4 +7,6 @@
 
 import Foundation
 
-struct NotificationSettings: Codable {}
+public struct NotificationSettings: Codable {
+    public init() {}
+}

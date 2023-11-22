@@ -40,14 +40,14 @@ public struct Wallet: Codable, Hashable {
     func availableWalletVersions() -> [WalletContractVersion] {
         return []
     }
-
-    init(identity: WalletIdentity,
-         label: String = "",
-         notificationSettings: NotificationSettings = .init(),
-         backupSettings: WalletBackupSettings = .init(enabled: true, revision: 1, voucher: nil),
-         currency: Currency = .USD,
-         addressBook: [AddressBookEntry] = [],
-         contractVersion: WalletContractVersion = .NA) {
+    
+    public init(identity: WalletIdentity,
+                label: String = "",
+                notificationSettings: NotificationSettings = .init(),
+                backupSettings: WalletBackupSettings = .init(enabled: true, revision: 1, voucher: nil),
+                currency: Currency = .USD,
+                addressBook: [AddressBookEntry] = [],
+                contractVersion: WalletContractVersion = .NA) {
         self.identity = identity
         self.label = label
         self.notificationSettings = notificationSettings

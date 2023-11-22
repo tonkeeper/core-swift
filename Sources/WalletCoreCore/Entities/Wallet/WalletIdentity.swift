@@ -12,6 +12,11 @@ public struct WalletIdentity: Equatable {
     public let network: Network
     public let kind: WalletKind
     
+    public init(network: Network, kind: WalletKind) {
+        self.network = network
+        self.kind = kind
+    }
+    
     public func id() throws -> WalletID {
         let builder = Builder()
         try builder.store(self)
