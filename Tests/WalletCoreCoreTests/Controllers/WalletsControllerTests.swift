@@ -48,7 +48,7 @@ final class WalletsControllerTests: XCTestCase {
         try mockWalletMnemonicRepository.saveMnemonic(mnemonic, for: wallet)
         
         let publicKey = TonSwift.PublicKey(data: String(repeating: "2", count: 32).data(using: .utf8)!)
-        try walletsController.addExternalWallet(with: publicKey)
+        try walletsController.addExternalWallet(with: publicKey, label: "")
         
         XCTAssertTrue(walletsController.hasWallets)
         XCTAssertEqual(mockKeeperInfoRepository.keeperInfo?.wallets.count, 2)
@@ -57,7 +57,7 @@ final class WalletsControllerTests: XCTestCase {
     func test_add_regular_wallet_updates_keeper_info_and_save_mnemonic() throws {
         let mockMnemonic = TonSwift.Mnemonic.mnemonicNew()
         let mnemonic = try Mnemonic(mnemonicWords: mockMnemonic)
-        try walletsController.addWallet(with: mnemonic)
+        try walletsController.addWallet(with: mnemonic, label: "")
         XCTAssertEqual(mockKeeperInfoRepository.keeperInfo?.wallets.count, 1)
         XCTAssertEqual(mockWalletMnemonicRepository.mnemonics.count, 1)
         
@@ -67,7 +67,7 @@ final class WalletsControllerTests: XCTestCase {
     
     func test_add_external_wallet_updates_keeper_info() throws {
         let publicKey = TonSwift.PublicKey(data: String(repeating: "2", count: 32).data(using: .utf8)!)
-        try walletsController.addExternalWallet(with: publicKey)
+        try walletsController.addExternalWallet(with: publicKey, label: "")
         XCTAssertEqual(mockKeeperInfoRepository.keeperInfo?.wallets.count, 1)
     }
     
@@ -77,11 +77,11 @@ final class WalletsControllerTests: XCTestCase {
         XCTAssertTrue(observer.addedWallets.isEmpty)
         
         let mnemonic1 = try Mnemonic(mnemonicWords: TonSwift.Mnemonic.mnemonicNew())
-        try walletsController.addWallet(with: mnemonic1)
+        try walletsController.addWallet(with: mnemonic1, label: "")
         XCTAssertEqual(observer.addedWallets.count, 1)
         
         let mnemonic2 = try Mnemonic(mnemonicWords: TonSwift.Mnemonic.mnemonicNew())
-        try walletsController.addWallet(with: mnemonic2)
+        try walletsController.addWallet(with: mnemonic2, label: "")
         XCTAssertEqual(observer.addedWallets.count, 2)
     }
     
@@ -91,11 +91,11 @@ final class WalletsControllerTests: XCTestCase {
         XCTAssertTrue(observer.addedWallets.isEmpty)
         
         let publicKey1 = TonSwift.PublicKey(data: String(repeating: "2", count: 32).data(using: .utf8)!)
-        try walletsController.addExternalWallet(with: publicKey1)
+        try walletsController.addExternalWallet(with: publicKey1, label: "")
         XCTAssertEqual(observer.addedWallets.count, 1)
         
         let publicKey2 = TonSwift.PublicKey(data: String(repeating: "3", count: 32).data(using: .utf8)!)
-        try walletsController.addExternalWallet(with: publicKey2)
+        try walletsController.addExternalWallet(with: publicKey2, label: "")
         XCTAssertEqual(observer.addedWallets.count, 2)
     }
     
@@ -105,12 +105,12 @@ final class WalletsControllerTests: XCTestCase {
         XCTAssertTrue(observer.addedWallets.isEmpty)
         
         let mnemonic1 = try Mnemonic(mnemonicWords: TonSwift.Mnemonic.mnemonicNew())
-        try walletsController.addWallet(with: mnemonic1)
+        try walletsController.addWallet(with: mnemonic1, label: "")
         XCTAssertEqual(observer.addedWallets.count, 1)
         
         walletsController.removeObserver(observer)
         let mnemonic2 = try Mnemonic(mnemonicWords: TonSwift.Mnemonic.mnemonicNew())
-        try walletsController.addWallet(with: mnemonic2)
+        try walletsController.addWallet(with: mnemonic2, label: "")
         XCTAssertEqual(observer.addedWallets.count, 1)
     }
     
@@ -136,7 +136,7 @@ final class WalletsControllerTests: XCTestCase {
     func test_get_private_key_for_regular_wallet() throws {
         let mnemonic1 = try Mnemonic(mnemonicWords: TonSwift.Mnemonic.mnemonicNew())
         let keyPair = try TonSwift.Mnemonic.mnemonicToPrivateKey(mnemonicArray: mnemonic1.mnemonicWords)
-        try walletsController.addWallet(with: mnemonic1)
+        try walletsController.addWallet(with: mnemonic1, label: "")
         
         let privateKey = try walletsController.getWalletPrivateKey(try walletsController.activeWallet)
         XCTAssertEqual(privateKey, keyPair.privateKey)
@@ -144,7 +144,7 @@ final class WalletsControllerTests: XCTestCase {
     
     func test_get_private_key_for_external_wallet_throws_error() throws {
         let publicKey = TonSwift.PublicKey(data: String(repeating: "3", count: 32).data(using: .utf8)!)
-        try walletsController.addExternalWallet(with: publicKey)
+        try walletsController.addExternalWallet(with: publicKey, label: "")
         
         XCTAssertThrowsError(try walletsController.getWalletPrivateKey(try walletsController.activeWallet))
     }

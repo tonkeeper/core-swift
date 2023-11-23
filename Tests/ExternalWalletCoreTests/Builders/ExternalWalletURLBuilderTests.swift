@@ -18,10 +18,10 @@ final class ExternalWalletURLBuilderTests: XCTestCase {
         // GIVEN
         let publicKeyString = "7075626c69634b6579537472696e67"
         let publicKey = TonSwift.PublicKey(data: Data(hex: publicKeyString)!)
-        let url = URL(string: "tk://export?pk=\(publicKeyString)")!
+        let url = URL(string: "tk://import?pk=\(publicKeyString)")!
         let wallet = Wallet(identity: .init(network: .mainnet, kind: .Regular(publicKey)))
         
-        //WHEN
+        // WHEN
         let builtUrl = try builder.buildWalletExportUrl(wallet: wallet)
         
         // THEN

@@ -32,7 +32,7 @@ struct ExternalWalletURLBuilderImplementation: ExternalWalletURLBuilder {
         let publicKeyHex = publicKey.data.hexString()
         var components = URLComponents()
         components.scheme = "tk"
-        components.host = "export"
+        components.host = "import"
         components.queryItems = [URLQueryItem(name: "pk", value: publicKeyHex)]
         guard let url = components.url else { throw ExternalWalletURLBuilderError.failedToBuildUrl }
         return url

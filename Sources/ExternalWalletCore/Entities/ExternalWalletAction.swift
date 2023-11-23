@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  ExternalWalletAction.swift
 //  
 //
 //  Created by Grigory Serebryanyy on 22.11.2023.
