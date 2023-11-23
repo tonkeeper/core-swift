@@ -10,7 +10,8 @@ let package = Package(
     products: [
         .library(name: "WalletCore", type: .dynamic, targets: ["WalletCore"]),
         .library(name: "WalletCoreCore", targets: ["WalletCoreCore"]),
-        .library(name: "WalletCoreKeeper", targets: ["WalletCoreKeeper"])
+        .library(name: "WalletCoreKeeper", targets: ["WalletCoreKeeper"]),
+        .library(name: "ExternalWalletCore", targets: ["ExternalWalletCore"])
     ],
     dependencies: [
         .package(url: "https://github.com/tonkeeper/ton-swift", branch: "main"),
@@ -45,6 +46,12 @@ let package = Package(
                     dependencies: ["WalletCoreKeeper"],
                     path: "Tests/WalletCoreKeeperTests",
                     resources: [.copy("PackageResources")]),
+        .target(name: "ExternalWalletCore",
+                dependencies: ["WalletCoreCore"],
+                path: "Sources/ExternalWalletCore"),
+        .testTarget(name: "ExternalWalletCoreTests",
+                    dependencies: ["ExternalWalletCore"],
+                    path: "Tests/ExternalWalletCoreTests"),
         .target(name: "TonConnectAPI",
                 dependencies: [
                     .product(
