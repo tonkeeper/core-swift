@@ -9,13 +9,13 @@ import Foundation
 import WalletCoreCore
 import TonSwift
 
-enum ExternalWalletURLBuilderError: Swift.Error {
+public enum ExternalWalletURLBuilderError: Swift.Error {
     case notRegularWallet
     case failedToGetWalletPublicKey
     case failedToBuildUrl
 }
 
-protocol ExternalWalletURLBuilder {
+public protocol ExternalWalletURLBuilder {
     func buildWalletExportUrl(wallet: Wallet) throws -> URL
     func buildTransactionSignedUrl(wallet: Wallet, signedBoc: String) throws -> URL
 }

@@ -25,14 +25,14 @@ public final class Assembly {
     public var transferSignController: TransferSignController {
         TransferSignControllerImplementation(walletProvider: walletCoreCoreAssembly.walletProvider)
     }
+  
+    public var urlBuilder: ExternalWalletURLBuilder {
+      ExternalWalletURLBuilderImplementation()
+    }
 }
 
 private extension Assembly {
     var urlParser: ExternalWalletURLParser {
         ExternalWalletURLParserImplementation()
-    }
-    
-    var urlBuilder: ExternalWalletURLBuilder {
-        ExternalWalletURLBuilderImplementation()
     }
 }
