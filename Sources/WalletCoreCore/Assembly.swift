@@ -10,11 +10,11 @@ import Foundation
 public struct Dependencies {
     public let cacheURL: URL
     public let sharedCacheURL: URL
-    public let sharedKeychainGroup: String
+    public let sharedKeychainGroup: String?
     
     public init(cacheURL: URL,
                 sharedCacheURL: URL,
-                sharedKeychainGroup: String) {
+                sharedKeychainGroup: String?) {
         self.cacheURL = cacheURL
         self.sharedCacheURL = sharedCacheURL
         self.sharedKeychainGroup = sharedKeychainGroup

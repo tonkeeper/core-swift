@@ -64,16 +64,26 @@ public final class WalletsController: WalletProvider {
         }
     }
     
-    public func addWallet(with mnemonic: Mnemonic) throws {
+    public func addWallet(with mnemonic: Mnemonic,
+                          label: String) throws {
         let keyPair = try TonSwift.Mnemonic.mnemonicToPrivateKey(mnemonicArray: mnemonic.mnemonicWords)
-        let wallet = Wallet(identity: .init(network: .mainnet, kind: .Regular(keyPair.publicKey)), contractVersion: .v4R2)
+        let wallet = Wallet(
+          identity: .init(network: .mainnet, 
+                          kind: .Regular(keyPair.publicKey)),
+          label: label,
+          contractVersion: .v4R2
+        )
         try walletMnemonicRepository.saveMnemonic(mnemonic, for: wallet)
         try keeperInfoService.updateKeeperInfo(with: wallet)
         notifyObserversWalletAdded(wallet: wallet)
     }
     
-    public func addExternalWallet(with publicKey: TonSwift.PublicKey) throws {
-        let wallet = Wallet(identity: .init(network: .mainnet, kind: .External(publicKey)))
+    public func addExternalWallet(with publicKey: TonSwift.PublicKey,
+                                  label: String) throws {
+        let wallet = Wallet(
+          identity: .init(network: .mainnet, 
+                          kind: .External(publicKey)),
+          label: label)
         try keeperInfoService.updateKeeperInfo(with: wallet)
         notifyObserversWalletAdded(wallet: wallet)
     }
