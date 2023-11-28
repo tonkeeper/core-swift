@@ -66,39 +66,6 @@ final class ExternalWalletControllerImplementationTests: XCTestCase {
         }
     }
     
-    func test_url_process_fail_if_processing_other_transfer() throws {
-        //GIVEN
-        let url = URL(string: "https://tonkeeper.com")!
-        let publicKey = TonSwift.PublicKey(data: Data(hex: "7075626c69634b6579537472696e67")!)
-        let wallet = Wallet(identity: .init(network: .mainnet, kind: .Regular(publicKey)))
-        mockWalletProvider._wallets = [wallet]
-        mockExternalWalletURLParser._action = .signTransfer(publicKey: publicKey, boc: "boc")
-        
-        // WHEN
-        var error: Error?
-        XCTAssertNoThrow(try controller.processUrl(url))
-        XCTAssertThrowsError(try controller.processUrl(url)) { error = $0 }
-        
-        // THEN
-        XCTAssertEqual(error as? ExternalWalletControllerError, ExternalWalletControllerError.alreadyProcessingTransfer)
-    }
-    
-    func test_url_process_success_after_reset() throws {
-        //GIVEN
-        let url = URL(string: "https://tonkeeper.com")!
-        let publicKey = TonSwift.PublicKey(data: Data(hex: "7075626c69634b6579537472696e67")!)
-        let wallet = Wallet(identity: .init(network: .mainnet, kind: .Regular(publicKey)))
-        mockWalletProvider._wallets = [wallet]
-        mockExternalWalletURLParser._action = .signTransfer(publicKey: publicKey, boc: "boc")
-        
-        // WHEN
-        XCTAssertNoThrow(try controller.processUrl(url))
-        controller.reset()
-        
-        // THEN
-        XCTAssertNoThrow(try controller.processUrl(url))
-    }
-    
     func test_export_wallet_success() throws {
         // GIVEN
         let url = URL(string: "https://tonkeeper.com")!

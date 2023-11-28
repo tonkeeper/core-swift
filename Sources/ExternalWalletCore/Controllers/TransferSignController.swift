@@ -44,10 +44,7 @@ final class TransferSignControllerImplementation: TransferSignController {
             
             let transfer = WalletTransfer(signingMessage: signingMessage)
             let signedTransfer = try transfer.signMessage(signer: WalletTransferSecretKeySigner(secretKey: privateKey.data))
-            let signedExternalMessage = Message.external(to: try wallet.address,
-                                                         stateInit: nil,
-                                                         body: signedTransfer)
-            return try Builder().store(signedExternalMessage).endCell().toBoc().base64EncodedString()
+            return try signedTransfer.toBoc().base64EncodedString()
         } catch {
             throw TransferSignControllerError.failedToSignTransfer
         }
