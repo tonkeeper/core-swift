@@ -45,6 +45,14 @@ final class ServicesAssembly {
         SendServiceImplementation(api: apiAssembly.api)
     }
     
+    var balanceService: BalanceService {
+        BalanceServiceImplementation(
+            tonBalanceService: tonBalanceService,
+            tokensBalanceService: tokensBalanceService,
+            collectiblesService: collectiblesService,
+            localRepository: localRepository(cacheURL: cacheURL))
+    }
+    
     var walletBalanceService: WalletBalanceService {
         WalletBalanceServiceImplementation(
             tonBalanceService: tonBalanceService,

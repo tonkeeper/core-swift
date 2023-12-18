@@ -12,7 +12,7 @@ import WalletCoreCore
 
 protocol RatesService {
     func loadRates(tonInfo: TonInfo, tokens: [TokenInfo], currencies: [Currency]) async throws -> Rates
-    func getRates() throws -> Rates
+    func getRates() -> Rates
 }
 
 actor RatesServiceImplementation: RatesService {
@@ -26,8 +26,12 @@ actor RatesServiceImplementation: RatesService {
         self.localRepository = localRepository
     }
     
-    nonisolated func getRates() throws -> Rates {
-        return try localRepository.load(fileName: Rates.fileName)
+    nonisolated func getRates() -> Rates {
+        do {
+            return try localRepository.load(fileName: Rates.fileName)
+        } catch {
+            return Rates(ton: [], tokens: [])
+        }
     }
     
     func loadRates(tonInfo: TonInfo, tokens: [TokenInfo], currencies: [Currency]) async throws -> Rates {
@@ -42,21 +46,20 @@ actor RatesServiceImplementation: RatesService {
 
 private extension RatesServiceImplementation {
     func updateCache(with rates: Rates) {
-        guard var cachedRates = try? getRates() else {
-            try? localRepository.save(item: rates)
-            return
-        }
-        
+        var cachedRates = getRates()
         cachedRates.ton = rates.ton
         
         for tokenRate in rates.tokens {
-            guard let cachedTokenRatesIndex = cachedRates.tokens.firstIndex(where: { $0.tokenInfo == tokenRate.tokenInfo }) else {
-                continue
+            if let cachedTokenRatesIndex = cachedRates.tokens.firstIndex(where: { $0.tokenInfo == tokenRate.tokenInfo }) {
+                cachedRates.tokens[cachedTokenRatesIndex].rates = tokenRate.rates
+            } else {
+                cachedRates.tokens.append(tokenRate)
             }
-            
-            cachedRates.tokens[cachedTokenRatesIndex].rates = tokenRate.rates
         }
-        
-        try? localRepository.save(item: cachedRates)
+        do {
+            try localRepository.save(item: cachedRates)
+        } catch {
+            print(error)
+        }
     }
 }

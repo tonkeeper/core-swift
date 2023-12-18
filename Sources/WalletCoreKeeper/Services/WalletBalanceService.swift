@@ -36,7 +36,17 @@ final class WalletBalanceServiceImplementation: WalletBalanceService {
     
     func getWalletBalance(wallet: Wallet) throws -> WalletBalance {
         let address = try wallet.address
-        return try localRepository.load(fileName: address.toRaw())
+        do {
+            return try localRepository.load(fileName: address.toRaw())
+        } catch {
+            return WalletBalance(
+                walletAddress: address,
+                tonBalance: .init(walletAddress: address, amount: .init(quantity: 0)),
+                tokensBalance: [],
+                previousRevisionsBalances: [],
+                collectibles: []
+            )
+        }
     }
     
     func loadWalletBalance(wallet: Wallet) async throws -> WalletBalance {

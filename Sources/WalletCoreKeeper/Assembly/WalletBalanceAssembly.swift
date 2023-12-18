@@ -12,25 +12,25 @@ final class WalletBalanceAssembly {
     let servicesAssembly: ServicesAssembly
     let formattersAssembly: FormattersAssembly
     let coreAssembly: CoreAssembly
+    let storesAssembly: StoresAssembly
     
     init(servicesAssembly: ServicesAssembly,
          formattersAssembly: FormattersAssembly,
-         coreAssembly: CoreAssembly) {
+         coreAssembly: CoreAssembly,
+         storesAssembly: StoresAssembly) {
         self.servicesAssembly = servicesAssembly
         self.formattersAssembly = formattersAssembly
         self.coreAssembly = coreAssembly
+        self.storesAssembly = storesAssembly
     }
     
-    var walletBalanceController: WalletBalanceController {
-        WalletBalanceController(
-            balanceService: servicesAssembly.walletBalanceService,
-            ratesService: servicesAssembly.ratesService,
-            walletProvider: coreAssembly.walletProvider,
-            walletBalanceMapper: walletBalanceMapper(),
-            transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
-        )
+    func balanceController() -> BalanceController {
+        BalanceController(balanceStore: storesAssembly.balanceStore,
+                          ratesStore: storesAssembly.ratesStore,
+                          walletProvider: coreAssembly.walletProvider,
+                          walletBalanceMapper: walletBalanceMapper())
     }
-    
+
     func walletBalanceMapper() -> WalletBalanceMapper {
         let rateConverter = RateConverter()
         let walletItemMapper = WalletItemMapper(intAmountFormatter: formattersAssembly.intAmountFormatter,

@@ -9,9 +9,12 @@ import Foundation
 
 public struct WalletBalanceModel {
     public struct Header {
+        public enum Subtitle {
+            case address(String)
+            case date(String)
+        }
         public let amount: String
-        public let fullAddress: String
-        public let shortAddress: String
+        public let subtitle: Subtitle
     }
 
     public enum Section {

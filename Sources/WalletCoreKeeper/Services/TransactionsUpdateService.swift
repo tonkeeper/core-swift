@@ -52,30 +52,30 @@ actor TransactionsUpdateServiceImplementation: TransactionsUpdateService {
     }
     
     func start(addresses: [Address]) {
-        guard task == nil else { return }
-        let addressesStrings = addresses.map { $0.toRaw() }
-        let task = Task {
-            do {
-                state = .connecting
-                let stream = try await EventSource.eventSource {
-                    let response = try await self.streamingAPI.getTransactions(
-                        query: .init(accounts: addressesStrings)
-                    )
-                    return try response.ok.body.text_event_hyphen_stream
-                }
-                state = .connected
-                for try await events in stream {
-                    try? handleEventSourceEvents(events)
-                }
-                guard Task.isCancelled else { return }
-                stop()
-                start(addresses: addresses)
-            } catch {
-                state = .closed(error)
-                stop()
-            }
-        }
-        self.task = task
+//        guard task == nil else { return }
+//        let addressesStrings = addresses.map { $0.toRaw() }
+//        let task = Task {
+//            do {
+//                state = .connecting
+//                let stream = try await EventSource.eventSource {
+//                    let response = try await self.streamingAPI.getTransactions(
+//                        query: .init(accounts: addressesStrings)
+//                    )
+//                    return try response.ok.body.text_event_hyphen_stream
+//                }
+//                state = .connected
+//                for try await events in stream {
+//                    try? handleEventSourceEvents(events)
+//                }
+//                guard Task.isCancelled else { return }
+//                stop()
+//                start(addresses: addresses)
+//            } catch {
+//                state = .closed(error)
+//                stop()
+//            }
+//        }
+//        self.task = task
     }
     
     func stop() {

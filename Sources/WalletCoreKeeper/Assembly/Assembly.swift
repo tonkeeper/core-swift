@@ -43,6 +43,10 @@ public final class Assembly {
         cacheURL: dependencies.cacheURL,
         sharedCacheURL: dependencies.sharedCacheURL
     )
+    private lazy var storesAssembly = StoresAssembly(
+        servicesAssembly: servicesAssembly,
+        coreAssembly: coreAssembly
+    )
     private lazy var receiveAssembly = ReceiveAssembly(coreAssembly: coreAssembly)
     private lazy var sendAssembly = SendAssembly(
         coreAssembly: coreAssembly,
@@ -56,7 +60,8 @@ public final class Assembly {
     private lazy var walletBalanceAssembly = WalletBalanceAssembly(
         servicesAssembly: servicesAssembly,
         formattersAssembly: formattersAssembly,
-        coreAssembly: coreAssembly
+        coreAssembly: coreAssembly,
+        storesAssembly: storesAssembly
     )
     private lazy var collectibleAssembly = CollectibleAssembly(
         servicesAssembly: servicesAssembly,
@@ -100,6 +105,18 @@ public final class Assembly {
         keychainGroup: dependencies.sharedKeychainGroup
     )
     
+    private weak var _transactionsEventsDaemon: TransactionsEventDaemon?
+    
+    public var transactionsEventsDaemon: TransactionsEventDaemon {
+        if let _transactionsEventsDaemon = _transactionsEventsDaemon {
+            return _transactionsEventsDaemon
+        } else {
+            let transactionsEventsDaemon = TransactionsEventDaemonImplementation(streamingAPI: apiAssembly.streamingTonAPIClient())
+            self._transactionsEventsDaemon = transactionsEventsDaemon
+            return transactionsEventsDaemon
+        }
+    }
+    
     public init(dependencies: Dependencies) {
         self.dependencies = dependencies
         self.coreAssembly = CoreAssembly(
@@ -123,11 +140,11 @@ public extension Assembly {
     var walletsProvider: WalletProvider {
         coreAssembly.walletProvider
     }
-
-    var walletBalanceController: WalletBalanceController {
-        walletBalanceAssembly.walletBalanceController
-    }
     
+    var balanceController: BalanceController {
+        return walletBalanceAssembly.balanceController()
+    }
+
     var sendInputController: SendInputController {
         sendAssembly.sendInputController()
     }
