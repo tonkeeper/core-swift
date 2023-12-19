@@ -38,7 +38,7 @@ struct TokenDetailsTokenProvider: TokenDetailsProvider {
                                                       maximumFractionDigits: tokenInfo.fractionDigits)
         
         var price: String?
-        if let priceValue = itemViewModel.leftSubtitle {
+        if let priceValue = itemViewModel.leftLeftSubtitle {
             price = "Price: \(priceValue)"
         }
         

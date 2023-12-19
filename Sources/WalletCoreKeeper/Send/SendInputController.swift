@@ -423,7 +423,7 @@ private extension SendInputController {
     
     func convertFiatAmount(amount: BigInt, fractionalDigits: Int) -> (amount: BigInt, fractionLength: Int)?  {
         guard let rate = getTokenRate() else { return nil }
-        let reversedRate = Rates.Rate(currency: rate.currency, rate: 1/rate.rate)
+        let reversedRate = Rates.Rate(currency: rate.currency, rate: 1/rate.rate, diff24h: nil)
         return rateConverter.convert(amount: amount, amountFractionLength: fractionalDigits, rate: reversedRate)
     }
 }

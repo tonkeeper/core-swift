@@ -190,17 +190,21 @@ extension API {
             guard let tokenRates = rates[key] as? [String: AnyObject] else { continue }
             if key.lowercased() == tonInfo.symbol.lowercased() {
                 guard let prices = tokenRates["prices"] as? [String: Double] else { continue }
+                let diff24h = tokenRates["diff_24h"] as? [String: String]
                 tonRates = prices.compactMap { price -> Rates.Rate? in
                     guard let currency = Currency(code: price.key) else { return nil }
-                    return Rates.Rate(currency: currency, rate: Decimal(price.value))
+                    let diff24h = diff24h?[price.key]
+                    return Rates.Rate(currency: currency, rate: Decimal(price.value), diff24h: diff24h)
                 }
                 continue
             }
             guard let tokenInfo = tokens.first(where: { $0.address.toRaw() == key.lowercased()}) else { continue }
             guard let prices = tokenRates["prices"] as? [String: Double] else { continue }
+            let diff24h = tokenRates["diff_24h"] as? [String: String]
             let rates: [Rates.Rate] = prices.compactMap { price -> Rates.Rate? in
                 guard let currency = Currency(code: price.key) else { return nil }
-                return Rates.Rate(currency: currency, rate: Decimal(price.value))
+                let diff24h = diff24h?[price.key]
+                return Rates.Rate(currency: currency, rate: Decimal(price.value), diff24h: diff24h)
             }
             tokensRates.append(.init(tokenInfo: tokenInfo, rates: rates))
             
