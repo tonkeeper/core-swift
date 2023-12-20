@@ -17,21 +17,27 @@ struct BigIntAmountFormatter {
     func format(amount: BigInt,
                 fractionDigits: Int,
                 maximumFractionDigits: Int) -> String {
-        var initialString = amount.description
+        guard !amount.isZero else { return "0" }
+        let initialString = amount.description
         if initialString.count < fractionDigits {
-            initialString = String(repeating: "0", count: fractionDigits - initialString.count) + initialString
+            let significantLength = initialString.count
+            let nonSignificantLength = fractionDigits - significantLength
+            let significantPart = initialString.prefix(maximumFractionDigits).filter { $0 != "0" }
+            let string = String(repeating: "0", count: nonSignificantLength) + significantPart
+            return "0" + (.fractionalSeparator ?? ".") + string
+        } else {
+            let fractional = String(initialString.suffix(fractionDigits))
+            let fractionalLength = min(fractionDigits, maximumFractionDigits)
+            let fractionalResult = String(fractional[fractional.startIndex..<fractional.index(fractional.startIndex, offsetBy: fractionalLength)])
+                .replacingOccurrences(of: "0+$", with: "", options: .regularExpression)
+            let integer = String(initialString.prefix(initialString.count - fractional.count))
+            let separatedInteger = groups(string: integer.isEmpty ? "0" : integer, size: .groupSize).joined(separator: .groupSeparator)
+            var result = separatedInteger
+            if fractionalResult.count > 0 {
+                result += (.fractionalSeparator ?? ".") + fractionalResult
+            }
+            return result
         }
-        let fractional = String(initialString.suffix(fractionDigits))
-        let fractionalLength = min(fractionDigits, maximumFractionDigits)
-        let fractionalResult = String(fractional[fractional.startIndex..<fractional.index(fractional.startIndex, offsetBy: fractionalLength)])
-            .replacingOccurrences(of: "0+$", with: "", options: .regularExpression)
-        let integer = String(initialString.prefix(initialString.count - fractional.count))
-        let separatedInteger = groups(string: integer.isEmpty ? "0" : integer, size: .groupSize).joined(separator: .groupSeparator)
-        var result = separatedInteger
-        if fractionalResult.count > 0 {
-            result += (.fractionalSeparator ?? ".") + fractionalResult
-        }
-        return result
     }
     
     func bigInt(string: String, targetFractionalDigits: Int) throws -> (amount: BigInt, fractionalDigits: Int) {

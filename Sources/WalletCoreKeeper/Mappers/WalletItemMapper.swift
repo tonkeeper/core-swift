@@ -147,7 +147,7 @@ private extension WalletItemMapper {
             fiatAmount = amountFormatter.formatAmount(
                 fiat.amount,
                 fractionDigits: fiat.fractionLength,
-                maximumFractionDigits: maximumFractionDigits,
+                maximumFractionDigits: 2,
                 currency: currency
             )
             
