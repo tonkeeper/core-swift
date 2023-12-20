@@ -30,7 +30,7 @@ struct TokenDetailsTokenProvider: TokenDetailsProvider {
     func getHeader(walletBalance: WalletBalance,
                    currency: Currency) -> TokenDetailsController.TokenDetailsHeader {
         let tokenBalance = walletBalance.tokensBalance.first(where: { $0.amount.tokenInfo == tokenInfo })?.amount.quantity ?? BigInt("0")
-        let tokenRates = (try? ratesService.getRates().tokens.first(where: { $0.tokenInfo == tokenInfo })?.rates) ?? []
+        let tokenRates = ratesService.getRates().tokens.first(where: { $0.tokenInfo == tokenInfo })?.rates ?? []
         let itemViewModel = walletItemMapper.mapToken(amount: tokenBalance,
                                                       rates: tokenRates,
                                                       tokenInfo: tokenInfo,
@@ -42,12 +42,17 @@ struct TokenDetailsTokenProvider: TokenDetailsProvider {
             price = "Price: \(priceValue)"
         }
         
+        var amount = itemViewModel.rightValue ?? ""
+        if let symbol = tokenInfo.symbol {
+            amount += " " + symbol
+        }
+        
         return TokenDetailsController.TokenDetailsHeader(name: tokenInfo.name,
-                                                         amount: itemViewModel.rightValue ?? "", 
+                                                         amount: amount,
                                                          fiatAmount: itemViewModel.rightSubvalue,
                                                          price: price,
                                                          image: .url(tokenInfo.imageURL),
-                                                         buttons: [.send, .receive, .swap])
+                                                         buttons: [.send, .receive])
     }
     
     func reloadRate(currency: Currency) async throws {
