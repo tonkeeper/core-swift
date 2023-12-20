@@ -32,10 +32,8 @@ struct ActivityAssembly {
             activityListLoader: activityListLoader(),
             collectiblesService: servicesAssembly.collectiblesService,
             walletProvider: coreAssembly.walletProvider,
-            contractBuilder: WalletContractBuilder(),
             activityEventMapper: activityEventMapper(),
-            dateFormatter: formattersAssembly.dateFormatter,
-            transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
+            dateFormatter: formattersAssembly.dateFormatter
         )
     }
     
@@ -43,10 +41,8 @@ struct ActivityAssembly {
         ActivityListController(activityListLoader: activityListTonEventsLoader(),
                                collectiblesService: servicesAssembly.collectiblesService,
                                walletProvider: coreAssembly.walletProvider,
-                               contractBuilder: WalletContractBuilder(),
                                activityEventMapper: activityEventMapper(),
-                               dateFormatter: formattersAssembly.dateFormatter,
-                               transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
+                               dateFormatter: formattersAssembly.dateFormatter
         )
     }
     
@@ -57,10 +53,8 @@ struct ActivityAssembly {
             ),
             collectiblesService: servicesAssembly.collectiblesService,
             walletProvider: coreAssembly.walletProvider,
-            contractBuilder: WalletContractBuilder(),
             activityEventMapper: activityEventMapper(),
-            dateFormatter: formattersAssembly.dateFormatter,
-            transactionsUpdatePublishService: servicesAssembly.transactionsUpdateService
+            dateFormatter: formattersAssembly.dateFormatter
         )
     }
     

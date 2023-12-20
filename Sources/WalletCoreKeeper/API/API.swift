@@ -67,7 +67,8 @@ extension API {
             guard let activityEvent = try? AccountEvent(accountEvent: $0) else { return nil }
             return activityEvent
         }
-        return ActivityEvents(events: events,
+        return ActivityEvents(address: address,
+                              events: events,
                               startFrom: beforeLt ?? 0,
                               nextFrom: entity.next_from)
     }
@@ -89,7 +90,8 @@ extension API {
             guard let activityEvent = try? AccountEvent(accountEvent: $0) else { return nil }
             return activityEvent
         }
-        return ActivityEvents(events: events,
+        return ActivityEvents(address: address,
+                              events: events,
                               startFrom: beforeLt ?? 0,
                               nextFrom: entity.next_from)
     }

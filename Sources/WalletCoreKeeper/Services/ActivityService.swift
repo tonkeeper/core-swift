@@ -10,7 +10,9 @@ import TonAPI
 import TonSwift
 
 protocol ActivityService {
-    func loadEvents(address: Address, 
+    func cachedEvents(address: Address) throws -> ActivityEvents
+    func cachedEvents(address: Address, tokenInfo: TokenInfo) throws -> ActivityEvents
+    func loadEvents(address: Address,
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents
     func loadEvents(address: Address,
@@ -23,31 +25,52 @@ protocol ActivityService {
 
 final class ActivityServiceImplementation: ActivityService {
     private let api: API
+    private let localRepository: any LocalRepository<ActivityEvents>
     
-    init(api: API) {
+    init(api: API,
+         localRepository: any LocalRepository<ActivityEvents>) {
         self.api = api
+        self.localRepository = localRepository
+    }
+    
+    func cachedEvents(address: Address) throws -> ActivityEvents {
+        try localRepository.load(key: address.toRaw())
+    }
+    
+    func cachedEvents(address: Address, tokenInfo: TokenInfo) throws -> ActivityEvents {
+        let key = address.toRaw() + tokenInfo.address.toRaw()
+        return try localRepository.load(key: key)
     }
     
     func loadEvents(address: Address, 
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents {
-        try await api.getAccountEvents(
+        let events = try await api.getAccountEvents(
             address: address,
             beforeLt: beforeLt,
             limit: limit
         )
+        if events.startFrom == 0 {
+            try? localRepository.save(item: events)
+        }
+        return events
     }
     
     func loadEvents(address: Address, 
                     tokenInfo: TokenInfo,
                     beforeLt: Int64?,
                     limit: Int) async throws -> ActivityEvents {
-        try await api.getAccountJettonEvents(
+        let events = try await api.getAccountJettonEvents(
             address: address,
             tokenInfo: tokenInfo,
             beforeLt: beforeLt,
             limit: limit
         )
+        if events.startFrom == 0 {
+            let key = address.toRaw() + tokenInfo.address.toRaw()
+            try? localRepository.save(item: events, key: key)
+        }
+        return events
     }
     
     func loadEvent(accountAddress: Address, 

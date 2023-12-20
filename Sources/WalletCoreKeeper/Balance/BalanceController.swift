@@ -27,6 +27,7 @@ public class BalanceController {
         self.walletProvider = walletProvider
         self.walletBalanceMapper = walletBalanceMapper
         startStoresObservation()
+        walletProvider.addObserver(self)
     }
     
     deinit {
@@ -139,5 +140,13 @@ private extension BalanceController {
     func loadRates(for walletBalance: WalletBalance)  {
         let tokensInfo = walletBalance.tokensBalance.map { $0.amount.tokenInfo }
         ratesStore.reloadRates(tokens: tokensInfo)
+    }
+}
+
+extension BalanceController: WalletProviderObserver {
+    public func walletProvider(_ walletProvider: WalletProvider, didUpdateActiveWallet wallet: Wallet) {
+        Task {
+            reload()
+        }
     }
 }

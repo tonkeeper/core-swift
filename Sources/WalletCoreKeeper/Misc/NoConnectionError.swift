@@ -14,8 +14,7 @@ public extension Swift.Error {
         case let urlError as URLError:
             switch urlError.code {
             case URLError.Code.notConnectedToInternet,
-                URLError.Code.networkConnectionLost,
-                URLError.Code.cannotConnectToHost:
+                URLError.Code.networkConnectionLost:
                 return true
             default: return false
             }

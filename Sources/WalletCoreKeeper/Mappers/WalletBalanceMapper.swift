@@ -134,7 +134,8 @@ private extension WalletBalanceMapper {
     func mapTokens(_ tokens: [TokenBalance], 
                    tokenRates: [Rates.TokenRate],
                    currency: Currency) -> [WalletItemViewModel] {
-        tokens.map { token in
+        tokens.compactMap { token -> WalletItemViewModel? in
+            guard !token.amount.quantity.isZero else { return nil }
             let rates = tokenRates.first(where: { $0.tokenInfo == token.amount.tokenInfo })
             return walletItemMapper.mapToken(amount: token.amount.quantity,
                                              rates: rates?.rates ?? [],

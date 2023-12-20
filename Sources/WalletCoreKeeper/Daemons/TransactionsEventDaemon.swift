@@ -12,9 +12,9 @@ public enum TransactionsEventDaemonState {
 }
 
 public struct TransactionsEventDaemonTransaction {
-    let accountAddress: Address
-    let lt: Int64
-    let txHash: String
+    public let accountAddress: Address
+    public let lt: Int64
+    public let txHash: String
 }
 
 public protocol TransactionsEventDaemon: AnyObject {
@@ -32,7 +32,7 @@ public protocol TransactionsEventDaemonObserver: AnyObject {
     func didReceiveTransaction(_ transaction: TransactionsEventDaemonTransaction)
 }
 
-actor TransactionsEventDaemonImplementation: TransactionsEventDaemon {
+final class TransactionsEventDaemonImplementation: TransactionsEventDaemon {
     final class WeakObserverBox {
         weak var observer: TransactionsEventDaemonObserver?
         init(observer: TransactionsEventDaemonObserver) {
@@ -42,6 +42,7 @@ actor TransactionsEventDaemonImplementation: TransactionsEventDaemon {
     
     private let streamingAPI: TonStreamingAPI.Client
     private var jsonDecoder = JSONDecoder()
+    private var retryTimer: Timer?
     
     var state: TransactionsEventDaemonState = .disconnected {
         didSet {
@@ -62,10 +63,23 @@ actor TransactionsEventDaemonImplementation: TransactionsEventDaemon {
     
     deinit {
         task?.cancel()
+        retryTimer?.invalidate()
     }
     
+    @MainActor
     func start(addresses: [Address]) {
-        connect(addresses: addresses)
+        switch state {
+        case .connecting(let connectingAddresses):
+            guard addresses != connectingAddresses else { return }
+            connect(addresses: addresses)
+        case .connected(let connectedAddresses):
+            guard addresses != connectedAddresses else { return }
+            connect(addresses: addresses)
+        case .disconnected:
+            connect(addresses: addresses)
+        case .noConnection:
+            connect(addresses: addresses)
+        }
     }
     
     func stop() {
@@ -87,10 +101,12 @@ actor TransactionsEventDaemonImplementation: TransactionsEventDaemon {
 
 private extension TransactionsEventDaemonImplementation {
     func connect(addresses: [Address]) {
+        self.retryTimer?.invalidate()
+        self.retryTimer = nil
         let task = Task {
             let addressesStrings = addresses.map { $0.toRaw() }
             do {
-                self.state = .connecting(addresses: addresses)
+                await MainActor.run { self.state = .connecting(addresses: addresses) }
                 let stream = try await EventSource.eventSource {
                     let response = try await self.streamingAPI.getTransactions(
                         query: .init(accounts: addressesStrings)
@@ -100,21 +116,30 @@ private extension TransactionsEventDaemonImplementation {
                 if Task.isCancelled {
                     return
                 }
-                self.state = .connected(addresses: addresses)
+                await MainActor.run { self.state = .connected(addresses: addresses) }
                 for try await events in stream {
                     handleReceivedEvents(events)
                 }
-                self.state = .disconnected
+                await MainActor.run { self.state = .disconnected }
                 guard !Task.isCancelled else {
                     return
                 }
                 connect(addresses: addresses)
             } catch {
                 if error.isNoConnectionError {
-                    self.state = .noConnection
+                    await MainActor.run { self.state = .noConnection }
                 } else {
-                    self.state = .disconnected
-                    connect(addresses: addresses)
+                    await MainActor.run {
+                        let timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false, block: { [weak self] _ in
+                            guard let self = self else { return }
+                            Task {
+                                await self.start(addresses: addresses)
+                            }
+                        })
+                        self.retryTimer = timer
+                        RunLoop.current.add(timer, forMode: .common)
+                    }
+                    await MainActor.run { self.state = .disconnected }
                 }
             }
         }

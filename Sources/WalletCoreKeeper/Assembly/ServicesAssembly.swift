@@ -75,7 +75,7 @@ final class ServicesAssembly {
     }
     
     var activityService: ActivityService {
-        ActivityServiceImplementation(api: apiAssembly.api)
+        ActivityServiceImplementation(api: apiAssembly.api, localRepository: localRepository(cacheURL: cacheURL))
     }
     
     var chartService: ChartService {

@@ -39,6 +39,17 @@ struct LocalDiskRepository<T: Codable & LocalStorable>: LocalRepository {
         try data.write(to: path, options: .atomic)
     }
     
+    func save(item: Codable, key: String) throws {
+        let path = folderPath().appendingPathComponent(key)
+        try createFolderIfNeeded(url: path)
+        if fileManager.fileExists(atPath: path.path) {
+            try fileManager.removeItem(at: path)
+        }
+        
+        let data = try encoder.encode(item)
+        try data.write(to: path, options: .atomic)
+    }
+    
     func load(fileName: String) throws -> T {
         let path = folderPath().appendingPathComponent(fileName)
         do {

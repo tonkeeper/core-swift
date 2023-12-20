@@ -10,7 +10,7 @@ import TonAPI
 import TonSwift
 import BigInt
 
-struct AccountEvent {
+struct AccountEvent: Codable {
     let eventId: String
     let timestamp: TimeInterval
     let account: WalletAccount
