@@ -18,7 +18,8 @@ public struct WalletItemViewModel {
     public let image: Image
     public let leftTitle: String
     public let rightTitle: String?
-    public let leftSubtitle: String?
+    public let leftLeftSubtitle: String?
+    public let leftRightSubtitle: String?
     public let rightSubtitle: String?
     public let rightValue: String?
     public let rightSubvalue: String?

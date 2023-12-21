@@ -181,7 +181,7 @@ private extension AccountEventMapper {
             .mapAmount(
                 amount: BigInt(integerLiteral: action.amount),
                 fractionDigits: tonInfo.fractionDigits,
-                maximumFractionDigits: tonInfo.fractionDigits,
+                maximumFractionDigits: 2,
                 type: amountType,
                 currency: .TON)
         return ActivityEventViewModel.ActionViewModel(eventType: eventType,
@@ -221,7 +221,7 @@ private extension AccountEventMapper {
             .mapAmount(
                 amount: action.amount,
                 fractionDigits: action.tokenInfo.fractionDigits,
-                maximumFractionDigits: action.tokenInfo.fractionDigits,
+                maximumFractionDigits: 2,
                 type: amountType,
                 symbol: action.tokenInfo.symbol)
         
@@ -244,7 +244,7 @@ private extension AccountEventMapper {
         let amount = amountMapper.mapAmount(
             amount: action.amount,
             fractionDigits: action.tokenInfo.fractionDigits,
-            maximumFractionDigits: action.tokenInfo.fractionDigits,
+            maximumFractionDigits: 2,
             type: .income,
             symbol: action.tokenInfo.symbol)
         
@@ -267,7 +267,7 @@ private extension AccountEventMapper {
         let amount = amountMapper.mapAmount(
             amount: action.amount,
             fractionDigits: action.tokenInfo.fractionDigits,
-            maximumFractionDigits: action.tokenInfo.fractionDigits,
+            maximumFractionDigits: 2,
             type: .outcome,
             symbol: action.tokenInfo.symbol)
         
@@ -317,7 +317,7 @@ private extension AccountEventMapper {
         let amount = amountMapper.mapAmount(
             amount: BigInt(integerLiteral: action.amount),
             fractionDigits: tonInfo.fractionDigits,
-            maximumFractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: 2,
             type: .outcome,
             currency: .TON)
         
@@ -343,7 +343,7 @@ private extension AccountEventMapper {
         let amount = amountMapper.mapAmount(
             amount: BigInt(integerLiteral: action.amount ?? 0),
             fractionDigits: tonInfo.fractionDigits,
-            maximumFractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: 2,
             type: .none,
             currency: .TON)
         
@@ -398,7 +398,7 @@ private extension AccountEventMapper {
             .mapAmount(
                 amount: action.price,
                 fractionDigits: tonInfo.fractionDigits,
-                maximumFractionDigits: tonInfo.fractionDigits,
+                maximumFractionDigits: 2,
                 type: action.buyer == activityEvent.account ? .outcome : .income,
                 currency: .TON
             )
@@ -444,7 +444,7 @@ private extension AccountEventMapper {
             .mapAmount(
                 amount: BigInt(integerLiteral: action.tonAttached),
                 fractionDigits: tonInfo.fractionDigits,
-                maximumFractionDigits: tonInfo.fractionDigits,
+                maximumFractionDigits: 2,
                 type: action.executor == activityEvent.account ? .outcome : .income,
                 currency: .TON
             )
@@ -508,14 +508,17 @@ private extension AccountEventMapper {
         let outAmount: String? = {
             let amount: BigInt
             let fractionDigits: Int
+            let maximumFractionDigits: Int
             let symbol: String?
             if let tonOut = action.tonOut {
                 amount = BigInt(integerLiteral: tonOut)
                 fractionDigits = tonInfo.fractionDigits
+                maximumFractionDigits = 2
                 symbol = tonInfo.symbol
             } else if let tokenInfoOut = action.tokenInfoOut {
                 amount = action.amountOut
                 fractionDigits = tokenInfoOut.fractionDigits
+                maximumFractionDigits = 2
                 symbol = tokenInfoOut.symbol
             } else {
                 return nil
@@ -525,7 +528,7 @@ private extension AccountEventMapper {
                 .mapAmount(
                     amount: amount,
                     fractionDigits: fractionDigits,
-                    maximumFractionDigits: fractionDigits,
+                    maximumFractionDigits: maximumFractionDigits,
                     type: .income,
                     symbol: symbol
                 )
@@ -534,14 +537,17 @@ private extension AccountEventMapper {
         let inAmount: String? = {
             let amount: BigInt
             let fractionDigits: Int
+            let maximumFractionDigits: Int
             let symbol: String?
             if let tonIn = action.tonIn {
                 amount = BigInt(integerLiteral: tonIn)
                 fractionDigits = tonInfo.fractionDigits
+                maximumFractionDigits = 2
                 symbol = tonInfo.symbol
             } else if let tokenInfoIn = action.tokenInfoIn {
                 amount = action.amountIn
                 fractionDigits = tokenInfoIn.fractionDigits
+                maximumFractionDigits = 2
                 symbol = tokenInfoIn.symbol
             } else {
                 return nil
@@ -550,7 +556,7 @@ private extension AccountEventMapper {
                 .mapAmount(
                     amount: amount,
                     fractionDigits: fractionDigits,
-                    maximumFractionDigits: fractionDigits,
+                    maximumFractionDigits: maximumFractionDigits,
                     type: .outcome,
                     symbol: symbol
                 )

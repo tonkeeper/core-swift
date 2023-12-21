@@ -12,6 +12,7 @@ struct Rates: Codable, LocalStorable {
     struct Rate: Codable {
         let currency: Currency
         let rate: Decimal
+        let diff24h: String?
     }
 
     struct TokenRate: Codable {

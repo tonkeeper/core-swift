@@ -11,6 +11,7 @@ protocol LocalRepository<T> {
     associatedtype T: LocalStorable
     
     func save(item: T) throws
+    func save(item: Codable, key: String) throws
     func load(fileName: String) throws -> T
     func load(key: T.KeyType) throws -> T
     func loadAll() throws -> [T]

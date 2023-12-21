@@ -38,7 +38,7 @@ final class SendAssembly {
         return SendInputController(bigIntAmountFormatter: formattersAssembly.bigIntAmountFormatter,
                                    amountFormatter: formattersAssembly.amountFormatter,
                                    ratesService: servicesAssembly.ratesService,
-                                   balanceService: servicesAssembly.walletBalanceService,
+                                   balanceService: servicesAssembly.balanceService,
                                    tokenMapper: sendTokenMapper(),
                                    walletProvider: coreAssembly.walletProvider,
                                    rateConverter: RateConverter())

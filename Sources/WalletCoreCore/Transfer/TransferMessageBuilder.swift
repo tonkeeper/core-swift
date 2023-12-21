@@ -161,7 +161,7 @@ public struct ExternalMessageTransferBuilder {
         let transfer = try contract.createTransfer(args: transferData)
         let transferCell = try await signClosure(transfer)
         let externalMessage = Message.external(to: sender,
-                                               stateInit: nil,
+                                               stateInit: contract.stateInit,
                                                body: transferCell)
         let cell = try Builder().store(externalMessage).endCell()
         return try cell.toBoc().base64EncodedString()

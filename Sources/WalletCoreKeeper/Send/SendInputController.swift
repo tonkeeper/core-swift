@@ -115,7 +115,7 @@ public final class SendInputController {
     private let bigIntAmountFormatter: BigIntAmountFormatter
     private let amountFormatter: AmountFormatter
     private let ratesService: RatesService
-    private let balanceService: WalletBalanceService
+    private let balanceService: BalanceService
     private let tokenMapper: SendTokenMapper
     private let walletProvider: WalletProvider
     private let rateConverter: RateConverter
@@ -132,7 +132,7 @@ public final class SendInputController {
     init(bigIntAmountFormatter: BigIntAmountFormatter,
          amountFormatter: AmountFormatter,
          ratesService: RatesService,
-         balanceService: WalletBalanceService,
+         balanceService: BalanceService,
          tokenMapper: SendTokenMapper,
          walletProvider: WalletProvider,
          rateConverter: RateConverter) {
@@ -154,8 +154,8 @@ public final class SendInputController {
             )
         case .token(let tokenInfo):
             guard let wallet = try? walletProvider.activeWallet,
-                  let walletBalance = try? balanceService.getWalletBalance(wallet: wallet),
-                  let tokenBalance = walletBalance.tokensBalance.first(where: { $0.amount.tokenInfo == tokenInfo }) else {
+                  let walletBalance = try? balanceService.getCachedBalance(address: wallet.address),
+                  let tokenBalance = walletBalance.balance.tokensBalance.first(where: { $0.amount.tokenInfo == tokenInfo }) else {
                 return nil
             }
             return TokenTransferModel(
@@ -217,8 +217,8 @@ public final class SendInputController {
             state.updateToken(token: .ton(tonInfo))
         default:
             let wallet = try walletProvider.activeWallet
-            let walletBalance = try balanceService.getWalletBalance(wallet: wallet)
-            let token = walletBalance.tokensBalance[index - 1]
+            let walletBalance = try balanceService.getCachedBalance(address: wallet.address)
+            let token = walletBalance.balance.tokensBalance[index - 1]
             state.updateToken(token: .token(token.amount.tokenInfo))
         }
         update()
@@ -227,11 +227,11 @@ public final class SendInputController {
     public func tokenListModel() -> TokenListModel {
         do {
             let wallet = try walletProvider.activeWallet
-            let walletBalance = try balanceService.getWalletBalance(wallet: wallet)
+            let walletBalance = try balanceService.getCachedBalance(address: wallet.address)
             
             var models = [TokenListModel.TokenModel]()
-            models.append(tokenMapper.mapTon(tonBalance: walletBalance.tonBalance))
-            models.append(contentsOf: walletBalance.tokensBalance.map { token in
+            models.append(tokenMapper.mapTon(tonBalance: walletBalance.balance.tonBalance))
+            models.append(contentsOf: walletBalance.balance.tokensBalance.map { token in
                 tokenMapper.mapToken(tokenBalance: token)
             })
             
@@ -240,7 +240,7 @@ public final class SendInputController {
             case .ton:
                 selectedIndex = 0
             case let .token(tokenInfo):
-                selectedIndex = (walletBalance.tokensBalance
+                selectedIndex = (walletBalance.balance.tokensBalance
                     .firstIndex(where: { $0.amount.tokenInfo == tokenInfo }) ?? 0) + 1
             }
             
@@ -293,8 +293,8 @@ public final class SendInputController {
     
     func updateTokenSelection() throws {
         let wallet = try walletProvider.activeWallet
-        let walletBalance = try balanceService.getWalletBalance(wallet: wallet)
-        if walletBalance.tokensBalance.isEmpty {
+        let walletBalance = try balanceService.getCachedBalance(address: wallet.address)
+        if walletBalance.balance.tokensBalance.isEmpty {
             didChangeToken?(nil)
         } else {
             didChangeToken?(state.tokenState.token.code)
@@ -336,7 +336,7 @@ public final class SendInputController {
 
 private extension SendInputController {
     func getTokenRate() -> Rates.Rate? {
-        guard let rates = try? ratesService.getRates() else { return nil }
+        let rates = ratesService.getRates()
         
         switch state.tokenState.token {
         case .ton:
@@ -397,7 +397,7 @@ private extension SendInputController {
     func activeTokenBalanceInfo() -> (balance: BigInt, fractionalDigits: Int, code: String?)? {
         do {
             let wallet = try walletProvider.activeWallet
-            let balance = try balanceService.getWalletBalance(wallet: wallet)
+            let balance = try balanceService.getCachedBalance(address: wallet.address).balance
             switch state.tokenState.token {
             case .ton:
                 return (BigInt(integerLiteral: balance.tonBalance.amount.quantity),
@@ -423,7 +423,7 @@ private extension SendInputController {
     
     func convertFiatAmount(amount: BigInt, fractionalDigits: Int) -> (amount: BigInt, fractionLength: Int)?  {
         guard let rate = getTokenRate() else { return nil }
-        let reversedRate = Rates.Rate(currency: rate.currency, rate: 1/rate.rate)
+        let reversedRate = Rates.Rate(currency: rate.currency, rate: 1/rate.rate, diff24h: nil)
         return rateConverter.convert(amount: amount, amountFractionLength: fractionalDigits, rate: reversedRate)
     }
 }

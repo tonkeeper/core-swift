@@ -89,6 +89,7 @@ private extension WalletItemMapper {
         
         var price: String?
         var fiatAmount: String?
+        var diff: String?
         
         if let currencyRate = rates.first(where: { $0.currency == currency }) {
             let fiat = rateConverter.convert(amount: amount,
@@ -106,6 +107,8 @@ private extension WalletItemMapper {
                 amount: currencyRate.rate,
                 currency: currency
             )
+            
+            diff = currencyRate.diff24h
         }
         
         return WalletItemViewModel(
@@ -113,7 +116,8 @@ private extension WalletItemMapper {
             image: image,
             leftTitle: title,
             rightTitle: tonInfo.symbol,
-            leftSubtitle: price,
+            leftLeftSubtitle: price,
+            leftRightSubtitle: diff,
             rightSubtitle: nil,
             rightValue: tokenAmount,
             rightSubvalue: fiatAmount
@@ -133,6 +137,7 @@ private extension WalletItemMapper {
         
         var price: String?
         var fiatAmount: String?
+        var diff: String?
         
         if let currencyRate = rates.first(where: { $0.currency == currency}) {
             let fiat = rateConverter.convert(amount: amount,
@@ -142,7 +147,7 @@ private extension WalletItemMapper {
             fiatAmount = amountFormatter.formatAmount(
                 fiat.amount,
                 fractionDigits: fiat.fractionLength,
-                maximumFractionDigits: maximumFractionDigits,
+                maximumFractionDigits: 2,
                 currency: currency
             )
             
@@ -150,14 +155,17 @@ private extension WalletItemMapper {
                 amount: currencyRate.rate, 
                 currency: currency
             )
+            
+            diff = currencyRate.diff24h
         }
         
         return WalletItemViewModel(
             type: .token(tokenInfo),
             image: .url(tokenInfo.imageURL),
-            leftTitle: tokenInfo.name,
+            leftTitle: tokenInfo.symbol ?? tokenInfo.name,
             rightTitle: tokenInfo.symbol,
-            leftSubtitle: price,
+            leftLeftSubtitle: price,
+            leftRightSubtitle: diff,
             rightSubtitle: nil,
             rightValue: tokenAmount,
             rightSubvalue: fiatAmount

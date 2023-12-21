@@ -35,10 +35,8 @@ public actor ActivityListController {
     private let activityListLoader: ActivityListLoader
     private let collectiblesService: CollectiblesService
     private let walletProvider: WalletProvider
-    private let contractBuilder: WalletContractBuilder
     private let activityEventMapper: AccountEventMapper
     private let dateFormatter: DateFormatter
-    private let transactionsUpdatePublishService: TransactionsUpdateService
     
     // MARK: - State
     
@@ -60,17 +58,13 @@ public actor ActivityListController {
     init(activityListLoader: ActivityListLoader,
          collectiblesService: CollectiblesService,
          walletProvider: WalletProvider,
-         contractBuilder: WalletContractBuilder,
          activityEventMapper: AccountEventMapper,
-         dateFormatter: DateFormatter,
-         transactionsUpdatePublishService: TransactionsUpdateService) {
+         dateFormatter: DateFormatter) {
         self.activityListLoader = activityListLoader
         self.collectiblesService = collectiblesService
         self.walletProvider = walletProvider
-        self.contractBuilder = contractBuilder
         self.activityEventMapper = activityEventMapper
         self.dateFormatter = dateFormatter
-        self.transactionsUpdatePublishService = transactionsUpdatePublishService
     }
     
     deinit {
@@ -81,7 +75,13 @@ public actor ActivityListController {
     public func start() {
         reset()
         Task {
-            streamContinuation?.yield(.startLoading)
+            do {
+                let cachedEvents = try activityListLoader.cachedEvents(address: getAddress())
+                let viewModels = handleLoadedEvents(loadedEvents: cachedEvents.events, collectibles: Collectibles(collectibles: [:]))
+                streamContinuation?.yield(.updateEvents(viewModels))
+            } catch {
+                streamContinuation?.yield(.startLoading)
+            }
             defer {
                 isLoading = false
             }
@@ -91,12 +91,6 @@ public actor ActivityListController {
                 streamContinuation?.yield(.updateEvents(sections))
             } catch {
                 streamContinuation?.yield(.updateEvents([:]))
-            }
-            for try await transaction in await transactionsUpdatePublishService.getEventStream() {
-                let event = try await activityListLoader.loadEvent(address: try getAddress(), eventId: transaction.txHash)
-                let collectibles = await handleEventsWithNFTs(events: [event])
-                let sections = handleLoadedEvents(loadedEvents: [event], collectibles: collectibles)
-                streamContinuation?.yield(.updateEvents(sections))
             }
         }
     }
@@ -148,6 +142,28 @@ public actor ActivityListController {
                 eventIndex: eventIndex,
                 actionIndex: actionIndex
             )
+        }
+    }
+    
+    public func getEvent(sectionIndex: Int, eventIndex: Int, actionIndex: Int) throws -> ActivityEventAction {
+        let eventId = eventsSections[sectionIndex].eventsIds[eventIndex]
+        guard let event = events[eventId] else {
+            throw Error.noCollectible(
+                sectionIndex: sectionIndex,
+                eventIndex: eventIndex,
+                actionIndex: actionIndex
+            )
+        }
+        
+        return ActivityEventAction(accountEvent: event, actionIndex: actionIndex)
+    }
+    
+    public func didReceiveEvent(id: String) {
+        Task {
+            let event = try await activityListLoader.loadEvent(address: try getAddress(), eventId: id)
+            let collectibles = await handleEventsWithNFTs(events: [event])
+            let sections = handleLoadedEvents(loadedEvents: [event], collectibles: collectibles)
+            streamContinuation?.yield(.updateEvents(sections))
         }
     }
 }

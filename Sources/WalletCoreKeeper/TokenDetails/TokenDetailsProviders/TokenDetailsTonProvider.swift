@@ -32,7 +32,7 @@ struct TokenDetailsTonProvider: TokenDetailsProvider {
                                                     currency: currency)
         
         var price: String?
-        if let priceValue = itemViewModel.leftSubtitle {
+        if let priceValue = itemViewModel.leftLeftSubtitle {
             price = "Price: \(priceValue)"
         }
         

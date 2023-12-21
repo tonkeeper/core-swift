@@ -6,14 +6,20 @@
 //
 
 import Foundation
+import OpenAPIRuntime
 
 public extension Swift.Error {
     var isNoConnectionError: Bool {
-        guard (self as NSError).domain == URLError.errorDomain else { return false }
-        switch (self as NSError).code {
-        case URLError.Code.notConnectedToInternet.rawValue,
-            URLError.Code.networkConnectionLost.rawValue:
-            return true
+        switch self {
+        case let urlError as URLError:
+            switch urlError.code {
+            case URLError.Code.notConnectedToInternet,
+                URLError.Code.networkConnectionLost:
+                return true
+            default: return false
+            }
+        case let clientError as OpenAPIRuntime.ClientError:
+            return clientError.underlyingError.isNoConnectionError
         default:
             return false
         }
