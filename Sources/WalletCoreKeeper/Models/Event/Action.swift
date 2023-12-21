@@ -9,7 +9,7 @@ import Foundation
 import TonSwift
 import BigInt
 
-struct Action: Codable {
+public struct Action: Codable {
     let type: ActionType
     let status: Status
     let preview: SimplePreview

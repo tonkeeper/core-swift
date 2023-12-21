@@ -72,6 +72,7 @@ public final class Assembly {
         apiAssembly: apiAssembly,
         servicesAssembly: servicesAssembly,
         formattersAssembly: formattersAssembly,
+        storesAssembly: storesAssembly,
         cacheURL: dependencies.cacheURL
     )
     private lazy var widgetAssembly = WidgetAssembly(
@@ -220,6 +221,10 @@ public extension Assembly {
     
     func activityController() -> ActivityController {
         activityAssembly.activityController()
+    }
+    
+    func activityEventDetailsController(action: ActivityEventAction) -> ActivityEventDetailsController {
+        activityAssembly.activityEventDetailsController(action: action)
     }
     
     func chartController() -> ChartController {

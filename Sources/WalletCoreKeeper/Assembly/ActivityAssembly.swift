@@ -13,17 +13,20 @@ struct ActivityAssembly {
     let apiAssembly: APIAssembly
     let servicesAssembly: ServicesAssembly
     let formattersAssembly: FormattersAssembly
+    let storesAssembly: StoresAssembly
     let cacheURL: URL
     
     init(coreAssembly: CoreAssembly,
          apiAssembly: APIAssembly,
          servicesAssembly: ServicesAssembly,
          formattersAssembly: FormattersAssembly,
+         storesAssembly: StoresAssembly,
          cacheURL: URL) {
         self.coreAssembly = coreAssembly
         self.apiAssembly = apiAssembly
         self.servicesAssembly = servicesAssembly
         self.formattersAssembly = formattersAssembly
+        self.storesAssembly = storesAssembly
         self.cacheURL = cacheURL
     }
     
@@ -60,6 +63,20 @@ struct ActivityAssembly {
     
     func activityController() -> ActivityController {
         ActivityController(collectiblesService: servicesAssembly.collectiblesService)
+    }
+    
+    func activityEventDetailsController(action: ActivityEventAction) -> ActivityEventDetailsController {
+        let amountMapper = SignedAmountAccountEventActionAmountMapper(
+            amountAccountEventActionAmountMapper: AmountAccountEventActionAmountMapper(
+                amountFormatter: formattersAssembly.amountFormatter
+            )
+        )
+        return ActivityEventDetailsController(
+            action: action,
+            amountMapper: amountMapper,
+            ratesStore: storesAssembly.ratesStore,
+            walletProvider: coreAssembly.walletProvider
+        )
     }
 }
 

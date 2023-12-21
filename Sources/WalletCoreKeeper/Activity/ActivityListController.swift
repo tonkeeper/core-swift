@@ -145,6 +145,19 @@ public actor ActivityListController {
         }
     }
     
+    public func getEvent(sectionIndex: Int, eventIndex: Int, actionIndex: Int) throws -> ActivityEventAction {
+        let eventId = eventsSections[sectionIndex].eventsIds[eventIndex]
+        guard let event = events[eventId] else {
+            throw Error.noCollectible(
+                sectionIndex: sectionIndex,
+                eventIndex: eventIndex,
+                actionIndex: actionIndex
+            )
+        }
+        
+        return ActivityEventAction(accountEvent: event, actionIndex: actionIndex)
+    }
+    
     public func didReceiveEvent(id: String) {
         Task {
             let event = try await activityListLoader.loadEvent(address: try getAddress(), eventId: id)

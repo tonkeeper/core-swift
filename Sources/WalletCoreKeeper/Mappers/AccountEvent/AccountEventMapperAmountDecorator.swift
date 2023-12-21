@@ -76,7 +76,6 @@ struct SignedAmountAccountEventActionAmountMapper: AccountEventActionAmountMappe
         self.amountAccountEventActionAmountMapper = amountAccountEventActionAmountMapper
     }
     
-    
     func mapAmount(amount: BigInt,
                    fractionDigits: Int, 
                    maximumFractionDigits: Int,

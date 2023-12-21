@@ -517,7 +517,7 @@ private extension AccountEventMapper {
                 symbol = tonInfo.symbol
             } else if let tokenInfoOut = action.tokenInfoOut {
                 amount = action.amountOut
-                fractionDigits = tonInfo.fractionDigits
+                fractionDigits = tokenInfoOut.fractionDigits
                 maximumFractionDigits = 2
                 symbol = tokenInfoOut.symbol
             } else {
