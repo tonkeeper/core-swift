@@ -75,7 +75,8 @@ struct ActivityAssembly {
             action: action,
             amountMapper: amountMapper,
             ratesStore: storesAssembly.ratesStore,
-            walletProvider: coreAssembly.walletProvider
+            walletProvider: coreAssembly.walletProvider,
+            collectiblesService: servicesAssembly.collectiblesService
         )
     }
 }

@@ -16,6 +16,13 @@ public final class ActivityEventDetailsController {
                 self.bottomValue = bottomValue
             }
         }
+        public enum HeaderImage {
+            case image(Image)
+            case nft(URL)
+            case swap(fromImage: Image, toImage: Image)
+        }
+        
+        public let headerImage: HeaderImage?
         public let title: String?
         public let aboveTitle: String?
         public let date: String?
@@ -26,7 +33,16 @@ public final class ActivityEventDetailsController {
         
         public let listItems: [ListItem]
         
-        init(title: String? = nil, aboveTitle: String? = nil, date: String? = nil, fiatPrice: String? = nil, nftName: String? = nil, nftCollectionName: String? = nil, status: String? = nil, listItems: [ListItem] = []) {
+        init(headerImage: HeaderImage? = nil,
+             title: String? = nil,
+             aboveTitle: String? = nil,
+             date: String? = nil,
+             fiatPrice: String? = nil,
+             nftName: String? = nil,
+             nftCollectionName: String? = nil,
+             status: String? = nil,
+             listItems: [ListItem] = []) {
+            self.headerImage = headerImage
             self.title = title
             self.aboveTitle = aboveTitle
             self.date = date
@@ -42,6 +58,7 @@ public final class ActivityEventDetailsController {
     private let amountMapper: AccountEventActionAmountMapper
     private let ratesStore: RatesStore
     private let walletProvider: WalletProvider
+    private let collectiblesService: CollectiblesService
     
     private let rateConverter = RateConverter()
     private let dateFormatter: DateFormatter = {
@@ -54,11 +71,13 @@ public final class ActivityEventDetailsController {
     init(action: ActivityEventAction,
          amountMapper: AccountEventActionAmountMapper,
          ratesStore: RatesStore,
-         walletProvider: WalletProvider) {
+         walletProvider: WalletProvider,
+         collectiblesService: CollectiblesService) {
         self.action = action
         self.amountMapper = amountMapper
         self.ratesStore = ratesStore
         self.walletProvider = walletProvider
+        self.collectiblesService = collectiblesService
     }
     
     public var transactionHash: String {
@@ -93,7 +112,7 @@ private extension ActivityEventDetailsController {
         
         let title: String?
         switch eventAction.type {
-        case let .auctionBid(auctionBid):
+        case let .auctionBid:
             title = "none"
         case let .contractDeploy(contractDeploy):
             return mapContractDeploy(
@@ -165,7 +184,7 @@ private extension ActivityEventDetailsController {
                 date: date,
                 feeListItem: feeListItem,
                 status: eventAction.status)
-        case let .withdrawStake(withdrawStake):
+        case let .withdrawStake:
             title = "none"
         case let .withdrawStakeRequest(withdrawStakeRequest):
             return mapWithdrawStakeRequest(
@@ -237,8 +256,12 @@ private extension ActivityEventDetailsController {
         }
         listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue))
         listItems.append(feeListItem)
+        if let comment = tonTransfer.comment {
+            listItems.append(Model.ListItem(title: .comment, topValue: comment))
+        }
         
         return Model(
+            headerImage: .image(.ton),
             title: title,
             date: dateString,
             fiatPrice: fiatPrice,
@@ -278,7 +301,6 @@ private extension ActivityEventDetailsController {
             nameValue = nftTransfer.recipient?.name
             addressValue = nftTransfer.recipient?.address.toString(bounceable: !(nftTransfer.recipient?.isWallet ?? false))
         }
-        
         let title = "NFT"
         let dateString = "\(actionString) on \(date)"
         
@@ -291,10 +313,22 @@ private extension ActivityEventDetailsController {
             listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue))
         }
         listItems.append(feeListItem)
+        if let comment = nftTransfer.comment {
+            listItems.append(Model.ListItem(title: .comment, topValue: comment))
+        }
+        
+        let nft = try? collectiblesService.getCollectible(address: nftTransfer.nftAddress)
+        var headerImage: Model.HeaderImage?
+        if let nftImageUrl = nft?.imageURL {
+            headerImage = .nft(nftImageUrl)
+        }
         
         return Model(
+            headerImage: headerImage,
             title: title,
             date: dateString,
+            nftName: nft?.name,
+            nftCollectionName: nft?.collection?.name,
             status: status.rawValue,
             listItems: listItems
         )
@@ -324,7 +358,13 @@ private extension ActivityEventDetailsController {
         listItems.append(Model.ListItem(title: "Sender address", topValue: action.seller.address.toString(bounceable: !action.seller.isWallet)))
         listItems.append(feeListItem)
         
+        var headerImage: Model.HeaderImage?
+        if let nftImageUrl = action.collectible.imageURL {
+            headerImage = .nft(nftImageUrl)
+        }
+        
         return Model(
+            headerImage: headerImage,
             title: title,
             date: dateString,
             fiatPrice: fiatPrice,
@@ -455,7 +495,30 @@ private extension ActivityEventDetailsController {
         listItems.append(Model.ListItem(title: .recipient, topValue: action.user.address.toString(bounceable: !action.user.isWallet)))
         listItems.append(feeListItem)
         
+        let headerImage: Model.HeaderImage = {
+            let fromImage: Image
+            if let _ = action.tonIn {
+                fromImage = .ton
+            } else if let tokenInfoIn = action.tokenInfoIn {
+                fromImage = .url(tokenInfoIn.imageURL)
+            } else {
+                fromImage = .ton
+            }
+            
+            let toImage: Image
+            if let _ = action.tonOut {
+                toImage = .ton
+            } else if let tokenInfoOut = action.tokenInfoOut {
+                toImage = .url(tokenInfoOut.imageURL)
+            } else {
+                toImage = .ton
+            }
+            
+            return .swap(fromImage: fromImage, toImage: toImage)
+        }()
+        
         return Model(
+            headerImage: headerImage,
             title: title,
             aboveTitle: aboveTitle,
             date: dateString,
@@ -531,9 +594,9 @@ private extension ActivityEventDetailsController {
     }
     
     func mapJettonMint(activityEvent: AccountEvent,
-                         action: Action.JettonMint,
-                         date: String,
-                         feeListItem: Model.ListItem,
+                       action: Action.JettonMint,
+                       date: String,
+                       feeListItem: Model.ListItem,
                        status: Status) -> Model {
         let title = amountMapper.mapAmount(
             amount: action.amount,
@@ -550,7 +613,12 @@ private extension ActivityEventDetailsController {
         listItems.append(Model.ListItem(title: .recipientAddress, topValue: action.recipient.address.toString(bounceable: !action.recipient.isWallet)))
         listItems.append(feeListItem)
         
+        var headerImage: Model.HeaderImage?
+        if let imageUrl = action.tokenInfo.imageURL {
+            headerImage = .image(.url(imageUrl))
+        }
         return Model(
+            headerImage: headerImage,
             title: title,
             aboveTitle: nil,
             date: dateString,
@@ -615,8 +683,17 @@ private extension ActivityEventDetailsController {
             listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue))
         }
         listItems.append(feeListItem)
+        if let comment = action.comment {
+            listItems.append(Model.ListItem(title: .comment, topValue: comment))
+        }
+        
+        var headerImage: Model.HeaderImage?
+        if let imageUrl = action.tokenInfo.imageURL {
+            headerImage = .image(.url(imageUrl))
+        }
         
         return Model(
+            headerImage: headerImage,
             title: title,
             date: dateString,
             fiatPrice: fiatPrice,
@@ -640,7 +717,13 @@ private extension ActivityEventDetailsController {
         let fiatPrice = tonFiatString(amount: action.amount)
         let listItems = [feeListItem]
         
+        var headerImage: Model.HeaderImage?
+        if let imageUrl = action.tokenInfo.imageURL {
+            headerImage = .image(.url(imageUrl))
+        }
+        
         return Model(
+            headerImage: headerImage,
             title: title,
             aboveTitle: nil,
             date: dateString,
@@ -678,4 +761,5 @@ private extension String {
     static let recipient = "Recipient"
     static let senderAddress = "Sender address"
     static let recipientAddress = "Recipient address"
+    static let comment = "Comment"
 }
