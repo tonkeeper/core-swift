@@ -41,8 +41,11 @@ public class BalanceController {
     }
     
     public func reload() {
-        balanceStore.reloadBalance()
-        ratesStore.reloadRates(tokens: [])
+        Task {
+            guard await checkIfNeedToReload() else { return }
+            balanceStore.reloadBalance()
+            ratesStore.reloadRates(tokens: [])
+        }
     }
 }
 
@@ -140,6 +143,19 @@ private extension BalanceController {
     func loadRates(for walletBalance: WalletBalance)  {
         let tokensInfo = walletBalance.tokensBalance.map { $0.amount.tokenInfo }
         ratesStore.reloadRates(tokens: tokensInfo)
+    }
+    
+    func checkIfNeedToReload() async -> Bool {
+        await Task {
+            do {
+                let state = try balanceStore.balanceState
+                guard let seconds = Calendar.current.dateComponents([.second], from: state.date, to: Date()).second else { return true }
+                return seconds > 5
+            } catch {
+                return true
+            }
+        }
+        .value
     }
 }
 

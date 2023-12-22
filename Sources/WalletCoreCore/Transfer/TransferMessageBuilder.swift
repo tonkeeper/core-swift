@@ -26,10 +26,12 @@ public struct TonTransferMessageBuilder {
                 if let comment = comment {
                     internalMessage = try MessageRelaxed.internal(to: recipientAddress,
                                                                   value: value.magnitude,
+                                                                  bounce: false,
                                                                   textPayload: comment)
                 } else {
                     internalMessage = MessageRelaxed.internal(to: recipientAddress,
-                                                              value: value.magnitude)
+                                                              value: value.magnitude,
+                                                              bounce: false)
                 }
                 return [internalMessage]
             }, 
@@ -78,6 +80,7 @@ public struct TonConnectTransferMessageBuilder {
             return MessageRelaxed.internal(
                 to: payload.recipientAddress,
                 value: payload.value.magnitude,
+                bounce: false,
                 stateInit: stateInit,
                 body: body)
         }
@@ -109,6 +112,7 @@ public struct TokenTransferMessageBuilder {
                     let internalMessage = try JettonTransferMessage.internalMessage(
                         jettonAddress: tokenAddress,
                         amount: value,
+                        bounce: false,
                         to: recipientAddress,
                         from: sender,
                         comment: comment
@@ -135,6 +139,7 @@ public struct NFTTransferMessageBuilder {
                     let internalMessage = try NFTTransferMessage.internalMessage(
                         nftAddress: nftAddress,
                         nftTransferAmount: transferAmount,
+                        bounce: false,
                         to: recipientAddress,
                         from: sender,
                         forwardPayload: nil)

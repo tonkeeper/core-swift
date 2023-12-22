@@ -25,7 +25,7 @@ struct TokenDetailsTonProvider: TokenDetailsProvider {
 
     func getHeader(walletBalance: WalletBalance,
                    currency: Currency) -> TokenDetailsController.TokenDetailsHeader {
-        let tonRates = (try? ratesService.getRates().ton) ?? []
+        let tonRates = ratesService.getRates().ton
     
         let itemViewModel = walletItemMapper.mapTon(amount: walletBalance.tonBalance.amount.quantity,
                                                     rates: tonRates,
@@ -36,8 +36,10 @@ struct TokenDetailsTonProvider: TokenDetailsProvider {
             price = "Price: \(priceValue)"
         }
         
+        let amount = (itemViewModel.rightValue ?? "") + " " + TonInfo().symbol
+        
         return .init(name: itemViewModel.leftTitle,
-                     amount: itemViewModel.rightValue ?? "",
+                     amount: amount,
                      fiatAmount: itemViewModel.rightSubvalue,
                      price: price,
                      image: .ton,

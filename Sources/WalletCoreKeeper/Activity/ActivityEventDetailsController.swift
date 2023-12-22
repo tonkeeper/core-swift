@@ -8,11 +8,13 @@ public final class ActivityEventDetailsController {
         public struct ListItem {
             public let title: String
             public let topValue: String
+            public let topNumberOfLines: Int
             public let bottomValue: String?
             
-            public init(title: String, topValue: String, bottomValue: String? = nil) {
+            public init(title: String, topValue: String, topNumberOfLines: Int = 1, bottomValue: String? = nil) {
                 self.title = title
                 self.topValue = topValue
+                self.topNumberOfLines = topNumberOfLines
                 self.bottomValue = bottomValue
             }
         }
@@ -184,7 +186,7 @@ private extension ActivityEventDetailsController {
                 date: date,
                 feeListItem: feeListItem,
                 status: eventAction.status)
-        case let .withdrawStake:
+        case .withdrawStake:
             title = "none"
         case let .withdrawStakeRequest(withdrawStakeRequest):
             return mapWithdrawStakeRequest(
@@ -257,7 +259,7 @@ private extension ActivityEventDetailsController {
         listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue))
         listItems.append(feeListItem)
         if let comment = tonTransfer.comment {
-            listItems.append(Model.ListItem(title: .comment, topValue: comment))
+            listItems.append(Model.ListItem(title: .comment, topValue: comment, topNumberOfLines: 0))
         }
         
         return Model(
@@ -314,7 +316,7 @@ private extension ActivityEventDetailsController {
         }
         listItems.append(feeListItem)
         if let comment = nftTransfer.comment {
-            listItems.append(Model.ListItem(title: .comment, topValue: comment))
+            listItems.append(Model.ListItem(title: .comment, topValue: comment, topNumberOfLines: 0))
         }
         
         let nft = try? collectiblesService.getCollectible(address: nftTransfer.nftAddress)
@@ -684,7 +686,7 @@ private extension ActivityEventDetailsController {
         }
         listItems.append(feeListItem)
         if let comment = action.comment {
-            listItems.append(Model.ListItem(title: .comment, topValue: comment))
+            listItems.append(Model.ListItem(title: .comment, topValue: comment, topNumberOfLines: 0))
         }
         
         var headerImage: Model.HeaderImage?
