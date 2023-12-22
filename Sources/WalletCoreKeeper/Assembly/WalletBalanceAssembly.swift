@@ -28,7 +28,8 @@ final class WalletBalanceAssembly {
         BalanceController(balanceStore: storesAssembly.balanceStore,
                           ratesStore: storesAssembly.ratesStore,
                           walletProvider: coreAssembly.walletProvider,
-                          walletBalanceMapper: walletBalanceMapper())
+                          walletBalanceMapper: walletBalanceMapper(),
+                          dateAndTimeCheckService: servicesAssembly.dateTimeService)
     }
 
     func walletBalanceMapper() -> WalletBalanceMapper {

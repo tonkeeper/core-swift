@@ -239,3 +239,13 @@ extension API {
         return Date(timeIntervalSince1970: TimeInterval(integerLiteral: Int64(expiringAt)))
     }
 }
+
+// MARK: - Time
+
+extension API {
+  func getTime() async throws -> TimeInterval {
+    let response = try await tonAPIClient.getRawTime(Operations.getRawTime.Input())
+    let entity = try response.ok.body.json
+    return TimeInterval(entity.time)
+  }
+}

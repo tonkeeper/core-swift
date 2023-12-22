@@ -5,6 +5,7 @@ import WalletCoreCore
 public class BalanceController {
     
     public var didUpdateBalance: ((WalletBalanceModel) -> Void)?
+    public var didCheckDateAndTime: ((_ isCorrect: Bool) -> Void)?
     
     public var address: Address? {
         try? walletProvider.activeWallet.address
@@ -14,6 +15,7 @@ public class BalanceController {
     private let ratesStore: RatesStore
     private let walletProvider: WalletProvider
     private let walletBalanceMapper: WalletBalanceMapper
+    private let dateAndTimeCheckService: DateAndTimeCheckService
     
     private var observingTask: Task<Void, Never>?
     private var isBalanceOutdated = false
@@ -21,11 +23,13 @@ public class BalanceController {
     init(balanceStore: BalanceStore, 
          ratesStore: RatesStore,
          walletProvider: WalletProvider,
-         walletBalanceMapper: WalletBalanceMapper) {
+         walletBalanceMapper: WalletBalanceMapper,
+         dateAndTimeCheckService: DateAndTimeCheckService) {
         self.balanceStore = balanceStore
         self.ratesStore = ratesStore
         self.walletProvider = walletProvider
         self.walletBalanceMapper = walletBalanceMapper
+        self.dateAndTimeCheckService = dateAndTimeCheckService
         startStoresObservation()
         walletProvider.addObserver(self)
     }
@@ -38,6 +42,7 @@ public class BalanceController {
         showBalanceState()
         balanceStore.reloadBalance()
         ratesStore.reloadRates(tokens: [])
+        checkDateAndTime()
     }
     
     public func reload() {
@@ -45,7 +50,9 @@ public class BalanceController {
             guard await checkIfNeedToReload() else { return }
             balanceStore.reloadBalance()
             ratesStore.reloadRates(tokens: [])
+            
         }
+        checkDateAndTime()
     }
 }
 
@@ -156,6 +163,15 @@ private extension BalanceController {
             }
         }
         .value
+    }
+    
+    func checkDateAndTime() {
+        Task {
+            let serverTimeInterval = try await dateAndTimeCheckService.getTime()
+            let localTimeInterval = Date().timeIntervalSince1970
+            let isCorrect = abs(localTimeInterval - serverTimeInterval) < 60
+            self.didCheckDateAndTime?(isCorrect)
+        }
     }
 }
 

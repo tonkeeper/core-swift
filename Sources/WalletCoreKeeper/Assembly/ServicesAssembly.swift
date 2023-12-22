@@ -93,6 +93,10 @@ final class ServicesAssembly {
         )
     }
     
+    var dateTimeService: DateAndTimeCheckService {
+        DateAndTimeCheckServiceImplementation(api: apiAssembly.api)
+    }
+    
     lazy var transactionsUpdateService: TransactionsUpdateService = {
         TransactionsUpdateServiceImplementation(streamingAPI: apiAssembly.streamingTonAPIClient())
     }()
