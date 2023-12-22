@@ -162,7 +162,7 @@ private extension BalanceController {
 extension BalanceController: WalletProviderObserver {
     public func walletProvider(_ walletProvider: WalletProvider, didUpdateActiveWallet wallet: Wallet) {
         Task {
-            reload()
+            showBalanceState()
         }
     }
 }

@@ -210,7 +210,7 @@ private extension ActivityListController {
             try Task.checkCancellation()
             let collectibles = await handleEventsWithNFTs(events: loadedEvents.events)
             try Task.checkCancellation()
-            self.nextFrom = loadedEvents.events.count < limit ? 0 : loadedEvents.nextFrom
+            self.nextFrom = loadedEvents.nextFrom
             return (loadedEvents, collectibles)
         }
         let taskValue = try await task.value

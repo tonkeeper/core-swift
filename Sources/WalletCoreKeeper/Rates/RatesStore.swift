@@ -25,7 +25,7 @@ final class RatesStore {
                 let rates = try await ratesService.loadRates(
                     tonInfo: TonInfo(),
                     tokens: tokens,
-                    currencies: [walletProvider.activeWallet.currency]
+                    currencies: Currency.allCases
                 )
                 continuations.values.forEach { $0.yield(.success(rates)) }
             } catch {
