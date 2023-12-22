@@ -95,6 +95,22 @@ public actor ActivityListController {
         }
     }
     
+    public func reload() {
+        reset()
+        Task {
+            defer {
+                isLoading = false
+            }
+            isLoading = true
+            do {
+                let sections = try await loadNextEvents()
+                streamContinuation?.yield(.updateEvents(sections))
+            } catch {
+                streamContinuation?.yield(.updateEvents([:]))
+            }
+        }
+    }
+    
     public func fetchNext() {
         streamContinuation?.yield(.startPagination)
         Task {
