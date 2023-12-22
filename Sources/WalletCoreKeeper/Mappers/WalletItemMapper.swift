@@ -108,7 +108,7 @@ private extension WalletItemMapper {
                 currency: currency
             )
             
-            diff = currencyRate.diff24h
+            diff = currencyRate.diff24h == "0" ? nil : currencyRate.diff24h
         }
         
         return WalletItemViewModel(
@@ -156,7 +156,7 @@ private extension WalletItemMapper {
                 currency: currency
             )
             
-            diff = currencyRate.diff24h
+            diff = currencyRate.diff24h == "0" ? nil : currencyRate.diff24h
         }
         
         return WalletItemViewModel(
