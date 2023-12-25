@@ -46,7 +46,7 @@ struct CollectibleDetailsMapper {
         }
         
         return CollectibleDetailsViewModel(
-            title: collectible.name,
+            title: collectible.name ?? collectible.address.toShortString(bounceable: false),
             collectibleDetails: mapCollectibleDetails(collectible: collectible),
             collectionDetails: mapCollectionDetails(collectible: collectible),
             properties: mapProperties(collectible: collectible),
