@@ -50,6 +50,25 @@ public enum Currency: String, Codable, CaseIterable {
         }
     }
     
+    public var title: String {
+        switch self {
+        case .TON: return "Toncoin"
+        case .USD: return "United States Dollar"
+        case .JPY: return "Japanese Yen"
+        case .AED: return "United Arab Emirates Dirham"
+        case .EUR: return "Euro"
+        case .CHF: return "Swiss Franc"
+        case .CNY: return "China Yuan"
+        case .GBP: return "Great Britain Pound"
+        case .IDR: return "Indonesian Rupiah"
+        case .INR: return "Indian Rupee"
+        case .KRW: return "South Korean Won"
+        case .KZT: return "Kazakhstani Tenge"
+        case .RUB: return "Russian Ruble"
+        case .UAH: return "Ukrainian hryvnian"
+        }
+    }
+    
     public var symbolOnLeft: Bool {
         switch self {
         case .EUR, .USD, .GBP: return true
