@@ -19,6 +19,7 @@ public class BalanceController {
     
     private var observingTask: Task<Void, Never>?
     private var isBalanceOutdated = false
+    private var rateRefreshTimer: Timer?
     
     init(balanceStore: BalanceStore, 
          ratesStore: RatesStore,
@@ -32,10 +33,12 @@ public class BalanceController {
         self.dateAndTimeCheckService = dateAndTimeCheckService
         startStoresObservation()
         walletProvider.addObserver(self)
+        startRateRefresh()
     }
     
     deinit {
         stopStoresObservation()
+        stopRateRefresh()
     }
     
     public func load() {
@@ -172,6 +175,25 @@ private extension BalanceController {
             let isCorrect = abs(localTimeInterval - serverTimeInterval) < 60
             self.didCheckDateAndTime?(isCorrect)
         }
+    }
+    
+    func startRateRefresh() {
+        let refreshInterval: TimeInterval = 60 * 10
+        let timer = Timer.scheduledTimer(withTimeInterval: refreshInterval, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            Task {
+                let balanceState = try self.balanceStore.balanceState
+                let tokensInfo = balanceState.balance.tokensBalance.map { $0.amount.tokenInfo }
+                self.ratesStore.reloadRates(tokens: tokensInfo)
+            }
+        }
+        RunLoop.current.add(timer, forMode: .common)
+        self.rateRefreshTimer = timer
+    }
+    
+    func stopRateRefresh() {
+        rateRefreshTimer?.invalidate()
+        rateRefreshTimer = nil
     }
 }
 
