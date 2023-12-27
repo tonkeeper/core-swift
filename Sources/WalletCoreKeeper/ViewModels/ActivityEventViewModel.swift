@@ -33,6 +33,7 @@ public struct ActivityEventViewModel {
             case putUpForAuction
             case endOfAuction
             case putUpForSale
+            case domainRenew
         }
         
         public struct CollectibleViewModel {
@@ -49,7 +50,29 @@ public struct ActivityEventViewModel {
         public let rightTopDescription: String?
         public let status: String?
         public let comment: String?
+        public let description: String?
         public let collectible: CollectibleViewModel?
+        
+        init(eventType: ActionType,
+             amount: String?,
+             subamount: String?,
+             leftTopDescription: String?,
+             leftBottomDescription: String?,
+             rightTopDescription: String?,
+             status: String?,
+             comment: String?,
+             description: String? = nil, collectible: CollectibleViewModel?) {
+            self.eventType = eventType
+            self.amount = amount
+            self.subamount = subamount
+            self.leftTopDescription = leftTopDescription
+            self.leftBottomDescription = leftBottomDescription
+            self.rightTopDescription = rightTopDescription
+            self.status = status
+            self.comment = comment
+            self.description = description
+            self.collectible = collectible
+        }
     }
     
     public let actions: [ActionViewModel]

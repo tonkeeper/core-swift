@@ -39,6 +39,7 @@ public struct Action: Codable {
         case jettonMint(JettonMint)
         case jettonBurn(JettonBurn)
         case smartContractExec(SmartContractExec)
+        case domainRenew(DomainRenew)
     }
     
     struct TonTransfer: Codable {
@@ -154,5 +155,11 @@ public struct Action: Codable {
         let tonAttached: Int64
         let operation: String
         let payload: String?
+    }
+    
+    struct DomainRenew: Codable {
+        let domain: String
+        let contractAddress: String
+        let renewer: WalletAccount
     }
 }

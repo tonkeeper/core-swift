@@ -146,6 +146,13 @@ private extension AccountEventMapper {
                                        preview: action.preview,
                                        rightTopDescription: rightTopDescription,
                                        status: action.status.rawValue)
+        case .domainRenew(let domainRenew):
+            return mapDomainRenewAction(
+                domainRenew,
+                activityEvent: activityEvent,
+                preview: action.preview,
+                rightTopDescription: rightTopDescription,
+                status: action.status.rawValue)
         case .subscribe(let subscribe):
             return nil
         case .unsubscribe(let unsubscribe):
@@ -318,7 +325,7 @@ private extension AccountEventMapper {
             amount: BigInt(integerLiteral: action.amount),
             fractionDigits: tonInfo.fractionDigits,
             maximumFractionDigits: 2,
-            type: .outcome,
+            type: .income,
             currency: .TON)
         
         return ActivityEventViewModel.ActionViewModel(
@@ -572,6 +579,26 @@ private extension AccountEventMapper {
             rightTopDescription: rightTopDescription,
             status: status,
             comment: nil,
+            collectible: nil
+        )
+    }
+    
+    func mapDomainRenewAction(_ action: Action.DomainRenew,
+                             activityEvent: AccountEvent,
+                             preview: Action.SimplePreview,
+                             rightTopDescription: String?,
+                             status: String?) -> ActivityEventViewModel.ActionViewModel {
+
+        return ActivityEventViewModel.ActionViewModel(
+            eventType: .domainRenew,
+            amount: action.domain,
+            subamount: nil,
+            leftTopDescription: action.renewer.value,
+            leftBottomDescription: nil,
+            rightTopDescription: rightTopDescription,
+            status: status,
+            comment: nil,
+            description: preview.description,
             collectible: nil
         )
     }

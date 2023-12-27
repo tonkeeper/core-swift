@@ -61,6 +61,8 @@ extension AccountEvent {
                     actionType = .jettonBurn(try .init(jettonBurn: jettonBurn))
                 } else if let smartContractExec = action.SmartContractExec {
                     actionType = .smartContractExec(try .init(smartContractExec: smartContractExec))
+                } else if let domainRenew = action.DomainRenew {
+                    actionType = .domainRenew(try .init(domainRenew: domainRenew))
                 } else {
                     return nil
                 }

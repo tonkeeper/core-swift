@@ -177,22 +177,19 @@ extension API {
         let response = try await tonAPIClient
             .getRates(query: .init(tokens: requestTokens, currencies: requestCurrencies))
         let entity = try response.ok.body.json
-        
-        
-        let rates = entity.rates.additionalProperties.value as [String: AnyObject]
-        return parseResponse(rates: rates, tonInfo: tonInfo, tokens: tokens)
+        return parseResponse(rates: entity.rates.additionalProperties, tonInfo: tonInfo, tokens: tokens)
     }
     
-    private func parseResponse(rates: [String: AnyObject],
+    private func parseResponse(rates: [String: Components.Schemas.TokenRates],
                                tonInfo: TonInfo,
                                tokens: [TokenInfo]) -> Rates {
         var tonRates = [Rates.Rate]()
         var tokensRates = [Rates.TokenRate]()
         for key in rates.keys {
-            guard let tokenRates = rates[key] as? [String: AnyObject] else { continue }
+            guard let tokenRates = rates[key] else { continue }
             if key.lowercased() == tonInfo.symbol.lowercased() {
-                guard let prices = tokenRates["prices"] as? [String: Double] else { continue }
-                let diff24h = tokenRates["diff_24h"] as? [String: String]
+                guard let prices = tokenRates.prices?.additionalProperties else { continue }
+                let diff24h = tokenRates.diff_24h?.additionalProperties
                 tonRates = prices.compactMap { price -> Rates.Rate? in
                     guard let currency = Currency(code: price.key) else { return nil }
                     let diff24h = diff24h?[price.key]
@@ -201,8 +198,8 @@ extension API {
                 continue
             }
             guard let tokenInfo = tokens.first(where: { $0.address.toRaw() == key.lowercased()}) else { continue }
-            guard let prices = tokenRates["prices"] as? [String: Double] else { continue }
-            let diff24h = tokenRates["diff_24h"] as? [String: String]
+            guard let prices =  tokenRates.prices?.additionalProperties else { continue }
+            let diff24h = tokenRates.diff_24h?.additionalProperties
             let rates: [Rates.Rate] = prices.compactMap { price -> Rates.Rate? in
                 guard let currency = Currency(code: price.key) else { return nil }
                 let diff24h = diff24h?[price.key]

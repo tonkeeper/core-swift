@@ -110,7 +110,7 @@ extension Action.Unsubscription {
 
 extension Action.AuctionBid {
     init(auctionBid: Components.Schemas.AuctionBidAction) throws {
-        self.auctionType = auctionBid.auction_type.rawValue
+        self.auctionType = auctionBid.auction_type
         self.bidder = try WalletAccount(accountAddress: auctionBid.bidder)
         self.auction = try WalletAccount(accountAddress: auctionBid.auction)
         
@@ -124,7 +124,7 @@ extension Action.AuctionBid {
 
 extension Action.NFTPurchase {
     init(nftPurchase: Components.Schemas.NftPurchaseAction) throws {
-        self.auctionType = nftPurchase.auction_type.rawValue
+        self.auctionType = nftPurchase.auction_type
         self.collectible = try Collectible(nftItem: nftPurchase.nft)
         self.seller = try WalletAccount(accountAddress: nftPurchase.seller)
         self.buyer = try WalletAccount(accountAddress: nftPurchase.buyer)
@@ -165,7 +165,7 @@ extension Action.RecoverStake {
 
 extension Action.JettonSwap {
     init(jettonSwap: Components.Schemas.JettonSwapAction) throws {
-        self.dex = jettonSwap.dex.rawValue
+        self.dex = jettonSwap.dex
         self.amountIn = BigInt(stringLiteral: jettonSwap.amount_in)
         self.amountOut = BigInt(stringLiteral: jettonSwap.amount_out)
         self.tonIn = jettonSwap.ton_in
@@ -210,5 +210,13 @@ extension Action.SmartContractExec {
         self.tonAttached = smartContractExec.ton_attached
         self.operation = smartContractExec.operation
         self.payload = smartContractExec.payload
+    }
+}
+
+extension Action.DomainRenew {
+    init(domainRenew: Components.Schemas.DomainRenewAction) throws {
+        self.domain = domainRenew.domain
+        self.contractAddress = domainRenew.contract_address
+        self.renewer = try WalletAccount(accountAddress: domainRenew.renewer)
     }
 }

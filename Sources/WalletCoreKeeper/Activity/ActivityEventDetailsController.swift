@@ -99,7 +99,6 @@ private extension ActivityEventDetailsController {
     func mapModel() -> Model {
         let eventAction = action.accountEvent.actions[action.actionIndex]
         let date = dateFormatter.string(from: Date(timeIntervalSince1970: action.accountEvent.timestamp))
-        
         let fee = amountMapper.mapAmount(
             amount: BigInt(integerLiteral: abs(action.accountEvent.fee)),
             fractionDigits: TonInfo().fractionDigits,
@@ -114,6 +113,14 @@ private extension ActivityEventDetailsController {
         
         let title: String?
         switch eventAction.type {
+        case let .domainRenew(domainRenew):
+            return mapDomainRenew(
+                activityEvent: action.accountEvent,
+                action: domainRenew,
+                date: date,
+                feeListItem: feeListItem,
+                status: eventAction.status,
+                description: eventAction.preview.description)
         case let .auctionBid:
             title = "none"
         case let .contractDeploy(contractDeploy):
@@ -186,8 +193,13 @@ private extension ActivityEventDetailsController {
                 date: date,
                 feeListItem: feeListItem,
                 status: eventAction.status)
-        case .withdrawStake:
-            title = "none"
+        case let .withdrawStake(withdrawStake):
+            return mapWithdrawStake(
+                activityEvent: action.accountEvent,
+                action: withdrawStake,
+                date: date,
+                feeListItem: feeListItem,
+                status: eventAction.status)
         case let .withdrawStakeRequest(withdrawStakeRequest):
             return mapWithdrawStakeRequest(
                 activityEvent: action.accountEvent,
@@ -565,6 +577,38 @@ private extension ActivityEventDetailsController {
         )
     }
     
+    func mapWithdrawStake(activityEvent: AccountEvent,
+                          action: Action.WithdrawStake,
+                          date: String,
+                          feeListItem: Model.ListItem,
+                          status: Status) -> Model {
+        let tonInfo = TonInfo()
+        let title = amountMapper.mapAmount(
+            amount: BigInt(integerLiteral: action.amount),
+            fractionDigits: tonInfo.fractionDigits,
+            maximumFractionDigits: 2,
+            type: .income,
+            currency: .TON)
+        let fiatPrice = tonFiatString(amount: BigInt(action.amount))
+        
+        let dateString = "Unstake on \(date)"
+
+        var listItems = [Model.ListItem]()
+        if let nameValue = action.pool.name {
+            listItems.append(Model.ListItem(title: .sender, topValue: nameValue))
+        }
+        listItems.append(Model.ListItem(title: .senderAddress, topValue: action.pool.address.toString(bounceable: !action.pool.isWallet)))
+        listItems.append(feeListItem)
+        
+        return Model(
+            title: title,
+            date: dateString,
+            fiatPrice: fiatPrice,
+            status: status.rawValue,
+            listItems: listItems
+        )
+    }
+    
     func mapDepositStake(activityEvent: AccountEvent,
                          action: Action.DepositStake,
                          date: String,
@@ -730,6 +774,28 @@ private extension ActivityEventDetailsController {
             aboveTitle: nil,
             date: dateString,
             fiatPrice: fiatPrice,
+            status: status.rawValue,
+            listItems: listItems
+        )
+    }
+    
+    func mapDomainRenew(activityEvent: AccountEvent,
+                        action: Action.DomainRenew,
+                        date: String,
+                        feeListItem: Model.ListItem,
+                        status: Status,
+                        description: String) -> Model {
+        let title = action.domain
+        let dateString = "Renewed on \(date)"
+        var listItems = [Model.ListItem]()
+        listItems.append(Model.ListItem(title: "Operation", topValue: "Domain Renew"))
+        if !description.isEmpty {
+            listItems.append(Model.ListItem(title: "Description", topValue: description, topNumberOfLines: 0))
+        }
+        listItems.append(feeListItem)
+        return Model(
+            title: title,
+            date: dateString,
             status: status.rawValue,
             listItems: listItems
         )
