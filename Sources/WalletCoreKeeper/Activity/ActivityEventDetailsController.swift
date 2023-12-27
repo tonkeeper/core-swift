@@ -651,7 +651,7 @@ private extension ActivityEventDetailsController {
             type: .income,
             symbol: action.tokenInfo.symbol)
         let dateString = "\(String.received) on \(date)"
-        let fiatPrice = tonFiatString(amount: action.amount)
+        let fiatPrice = tokenFiatString(amount: action.amount, tokenInfo: action.tokenInfo)
         var listItems = [Model.ListItem]()
         if let recipientName = action.recipient.name {
             listItems.append(Model.ListItem(title: .recipient, topValue: recipientName))
@@ -710,7 +710,7 @@ private extension ActivityEventDetailsController {
             addressValue = action.recipient?.address.toString(bounceable: !(action.recipient?.isWallet ?? false))
         }
         
-        let fiatPrice = tonFiatString(amount: action.amount)
+        let fiatPrice = tokenFiatString(amount: action.amount, tokenInfo: action.tokenInfo)
         
         let title = amountMapper.mapAmount(
             amount: action.amount,
@@ -760,7 +760,7 @@ private extension ActivityEventDetailsController {
             type: .outcome,
             symbol: action.tokenInfo.symbol)
         let dateString = "Burned on \(date)"
-        let fiatPrice = tonFiatString(amount: action.amount)
+        let fiatPrice = tokenFiatString(amount: action.amount, tokenInfo: action.tokenInfo)
         let listItems = [feeListItem]
         
         var headerImage: Model.HeaderImage?
@@ -812,6 +812,28 @@ private extension ActivityEventDetailsController {
             amount: amount, 
             amountFractionLength: TonInfo().fractionDigits,
             rate: tonRate
+        )
+        return amountMapper.mapAmount(
+            amount: fiat.amount,
+            fractionDigits: fiat.fractionLength,
+            maximumFractionDigits: 2,
+            type: .none,
+            currency: wallet.currency)
+    }
+    
+    func tokenFiatString(amount: BigInt, tokenInfo: TokenInfo) -> String? {
+        guard let wallet = try? walletProvider.activeWallet,
+              let tokenRate = ratesStore.rates.tokens
+            .first(where: { $0.tokenInfo == tokenInfo })?
+            .rates
+            .first(where: { $0.currency == wallet.currency }) else {
+            return nil
+        }
+        let amount = abs(amount)
+        let fiat = rateConverter.convert(
+            amount: amount,
+            amountFractionLength: tokenInfo.fractionDigits,
+            rate: tokenRate
         )
         return amountMapper.mapAmount(
             amount: fiat.amount,
