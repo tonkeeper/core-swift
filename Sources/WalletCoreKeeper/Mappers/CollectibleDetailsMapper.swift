@@ -65,6 +65,8 @@ struct CollectibleDetailsMapper {
             subtitle = "TON DNS"
         } else if let collection = collectible.collection, let collectionName = collection.name {
             subtitle = collectionName
+        } else {
+            subtitle = "Single NFT"
         }
         
         let imageURL = collectible.preview.size1500 ?? collectible.preview.size500 ?? collectible.imageURL
