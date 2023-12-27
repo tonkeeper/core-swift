@@ -29,7 +29,7 @@ public enum TonDeeplink {
         let ton = "ton://"
         switch self {
         case let .transfer(address):
-            return "\(ton)transfer/\(address.toRaw())"
+            return "\(ton)transfer/\(address.toString(bounceable: false))"
         }
     }
 }
