@@ -9,12 +9,18 @@ public final class ActivityEventDetailsController {
             public let title: String
             public let topValue: String
             public let topNumberOfLines: Int
+            public let isTopValueFullString: Bool
             public let bottomValue: String?
             
-            public init(title: String, topValue: String, topNumberOfLines: Int = 1, bottomValue: String? = nil) {
+            public init(title: String,
+                        topValue: String,
+                        topNumberOfLines: Int = 1,
+                        isTopValueFullString: Bool = false,
+                        bottomValue: String? = nil) {
                 self.title = title
                 self.topValue = topValue
                 self.topNumberOfLines = topNumberOfLines
+                self.isTopValueFullString = isTopValueFullString
                 self.bottomValue = bottomValue
             }
         }
@@ -121,8 +127,13 @@ private extension ActivityEventDetailsController {
                 feeListItem: feeListItem,
                 status: eventAction.status,
                 description: eventAction.preview.description)
-        case let .auctionBid:
-            title = "none"
+        case let .auctionBid(auctionBid):
+            return mapAuctionBid(
+                activityEvent: action.accountEvent,
+                action: auctionBid,
+                date: date,
+                feeListItem: feeListItem,
+                status: eventAction.status)
         case let .contractDeploy(contractDeploy):
             return mapContractDeploy(
                 activityEvent: action.accountEvent,
@@ -207,6 +218,11 @@ private extension ActivityEventDetailsController {
                 date: date,
                 feeListItem: feeListItem,
                 status: eventAction.status)
+        case .unknown:
+            return mapUnknownAction(
+                date: date,
+                feeListItem: feeListItem
+            )
         case .subscribe:
             title = "None"
         case .unsubscribe:
@@ -266,9 +282,9 @@ private extension ActivityEventDetailsController {
         var listItems = [Model.ListItem]()
         
         if let nameValue = nameValue {
-            listItems.append(Model.ListItem(title: nameTitle, topValue: nameValue))
+            listItems.append(Model.ListItem(title: nameTitle, topValue: nameValue, isTopValueFullString: true))
         }
-        listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue))
+        listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue, isTopValueFullString: true))
         listItems.append(feeListItem)
         if let comment = tonTransfer.comment {
             listItems.append(Model.ListItem(title: .comment, topValue: comment, topNumberOfLines: 0))
@@ -321,10 +337,10 @@ private extension ActivityEventDetailsController {
         var listItems = [Model.ListItem]()
         
         if let nameValue = nameValue {
-            listItems.append(Model.ListItem(title: nameTitle, topValue: nameValue))
+            listItems.append(Model.ListItem(title: nameTitle, topValue: nameValue, isTopValueFullString: true))
         }
         if let addressValue = addressValue {
-            listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue))
+            listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue, isTopValueFullString: true))
         }
         listItems.append(feeListItem)
         if let comment = nftTransfer.comment {
@@ -367,9 +383,12 @@ private extension ActivityEventDetailsController {
         var listItems = [Model.ListItem]()
         
         if let senderName = action.seller.name {
-            listItems.append(Model.ListItem(title: "Sender", topValue: senderName))
+            listItems.append(Model.ListItem(title: "Sender", topValue: senderName, isTopValueFullString: true))
         }
-        listItems.append(Model.ListItem(title: "Sender address", topValue: action.seller.address.toString(bounceable: !action.seller.isWallet)))
+        listItems.append(
+            Model.ListItem(title: "Sender address",
+                           topValue: action.seller.address.toString(bounceable: !action.seller.isWallet), isTopValueFullString: true)
+        )
         listItems.append(feeListItem)
         
         var headerImage: Model.HeaderImage?
@@ -407,6 +426,43 @@ private extension ActivityEventDetailsController {
         )
     }
     
+    func mapAuctionBid(activityEvent: AccountEvent,
+                       action: Action.AuctionBid,
+                       date: String,
+                       feeListItem: Model.ListItem,
+                       status: Status) -> Model {
+        var title: String?
+        var fiatPrice: String?
+        if action.price.tokenName == "TON" {
+            let tonInfo = TonInfo()
+            title = amountMapper.mapAmount(
+                amount: action.price.amount,
+                fractionDigits: tonInfo.fractionDigits,
+                maximumFractionDigits: 2,
+                type: .outcome,
+                currency: .TON)
+            fiatPrice = tonFiatString(amount: action.price.amount)
+        }
+        let dateString = "Bid on \(date)"
+        var listItems = [Model.ListItem]()
+        
+        if let name = action.collectible?.name {
+            listItems.append(Model.ListItem(title: "Name", topValue: name))
+        }
+        if let issuer = action.collectible?.collection?.name {
+            listItems.append(Model.ListItem(title: "Issuer", topValue: issuer))
+        }
+        listItems.append(feeListItem)
+
+        return Model(
+            title: title,
+            date: dateString,
+            fiatPrice: fiatPrice,
+            status: status.rawValue,
+            listItems: listItems
+        )
+    }
+    
     func mapSmartContractExec(activityEvent: AccountEvent,
                               smartContractExec: Action.SmartContractExec,
                               date: String,
@@ -424,7 +480,7 @@ private extension ActivityEventDetailsController {
         let dateString = "Called contract on \(date)"
         
         var listItems = [Model.ListItem]()
-        listItems.append(Model.ListItem(title: "Address", topValue: smartContractExec.contract.address.toString()))
+        listItems.append(Model.ListItem(title: "Address", topValue: smartContractExec.contract.address.toString(), isTopValueFullString: true))
         listItems.append(Model.ListItem(title: "Operation", topValue: smartContractExec.operation))
         listItems.append(feeListItem)
         if let payload = smartContractExec.payload {
@@ -506,7 +562,7 @@ private extension ActivityEventDetailsController {
         let dateString = "Swapped on \(date)"
         
         var listItems = [Model.ListItem]()
-        listItems.append(Model.ListItem(title: .recipient, topValue: action.user.address.toString(bounceable: !action.user.isWallet)))
+        listItems.append(Model.ListItem(title: .recipient, topValue: action.user.address.toString(bounceable: !action.user.isWallet), isTopValueFullString: true))
         listItems.append(feeListItem)
         
         let headerImage: Model.HeaderImage = {
@@ -597,7 +653,11 @@ private extension ActivityEventDetailsController {
         if let nameValue = action.pool.name {
             listItems.append(Model.ListItem(title: .sender, topValue: nameValue))
         }
-        listItems.append(Model.ListItem(title: .senderAddress, topValue: action.pool.address.toString(bounceable: !action.pool.isWallet)))
+        listItems.append(
+            Model.ListItem(title: .senderAddress,
+                           topValue: action.pool.address.toString(bounceable: !action.pool.isWallet),
+                           isTopValueFullString: true)
+        )
         listItems.append(feeListItem)
         
         return Model(
@@ -626,7 +686,11 @@ private extension ActivityEventDetailsController {
         if let senderName = action.pool.name {
             listItems.append(Model.ListItem(title: .recipient, topValue: senderName))
         }
-        listItems.append(Model.ListItem(title: .recipientAddress, topValue: action.pool.address.toString(bounceable: !action.pool.isWallet)))
+        listItems.append(
+            Model.ListItem(title: .recipientAddress,
+                           topValue: action.pool.address.toString(bounceable: !action.pool.isWallet),
+                           isTopValueFullString: true)
+        )
         listItems.append(feeListItem)
         
         return Model(
@@ -656,7 +720,11 @@ private extension ActivityEventDetailsController {
         if let recipientName = action.recipient.name {
             listItems.append(Model.ListItem(title: .recipient, topValue: recipientName))
         }
-        listItems.append(Model.ListItem(title: .recipientAddress, topValue: action.recipient.address.toString(bounceable: !action.recipient.isWallet)))
+        listItems.append(
+            Model.ListItem(title: .recipientAddress,
+                           topValue: action.recipient.address.toString(bounceable: !action.recipient.isWallet),
+                           isTopValueFullString: true)
+        )
         listItems.append(feeListItem)
         
         var headerImage: Model.HeaderImage?
@@ -723,10 +791,10 @@ private extension ActivityEventDetailsController {
         var listItems = [Model.ListItem]()
         
         if let nameValue = nameValue {
-            listItems.append(Model.ListItem(title: nameTitle, topValue: nameValue))
+            listItems.append(Model.ListItem(title: nameTitle, topValue: nameValue, isTopValueFullString: true))
         }
         if let addressValue = addressValue {
-            listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue))
+            listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue, isTopValueFullString: true))
         }
         listItems.append(feeListItem)
         if let comment = action.comment {
@@ -797,6 +865,24 @@ private extension ActivityEventDetailsController {
             title: title,
             date: dateString,
             status: status.rawValue,
+            listItems: listItems
+        )
+    }
+    
+    func mapUnknownAction(date: String, feeListItem: Model.ListItem) -> Model {
+        let title = "Unknown"
+        var listItems = [Model.ListItem]()
+        listItems.append(Model.ListItem(title: "Operation", topValue: "Unknown"))
+        listItems.append(Model.ListItem(
+            title: "Description",
+            topValue: "Something happened but we don't understand what.",
+            topNumberOfLines: 0,
+            isTopValueFullString: false))
+        listItems.append(feeListItem)
+        return Model(
+            title: title,
+            date: date,
+            status: nil,
             listItems: listItems
         )
     }

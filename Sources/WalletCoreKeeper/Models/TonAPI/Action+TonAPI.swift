@@ -111,6 +111,7 @@ extension Action.Unsubscription {
 extension Action.AuctionBid {
     init(auctionBid: Components.Schemas.AuctionBidAction) throws {
         self.auctionType = auctionBid.auction_type
+        self.price = Action.Price(price: auctionBid.amount)
         self.bidder = try WalletAccount(accountAddress: auctionBid.bidder)
         self.auction = try WalletAccount(accountAddress: auctionBid.auction)
         

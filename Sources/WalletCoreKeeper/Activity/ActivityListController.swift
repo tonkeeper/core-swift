@@ -152,6 +152,15 @@ public actor ActivityListController {
             return nftPurchase.collectible.address
         case .nftItemTransfer(let nftTransfer):
             return nftTransfer.nftAddress
+        case .auctionBid(let auctionBid):
+            guard let address = auctionBid.collectible?.address else {
+                throw Error.noCollectible(
+                    sectionIndex: sectionIndex,
+                    eventIndex: eventIndex,
+                    actionIndex: actionIndex
+                )
+            }
+            return address
         default:
             throw Error.noCollectible(
                 sectionIndex: sectionIndex,

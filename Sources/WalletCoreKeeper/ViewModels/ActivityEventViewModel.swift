@@ -34,6 +34,7 @@ public struct ActivityEventViewModel {
             case endOfAuction
             case putUpForSale
             case domainRenew
+            case unknown
         }
         
         public struct CollectibleViewModel {

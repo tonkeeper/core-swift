@@ -8,6 +8,7 @@
 import Foundation
 import TonSwift
 import BigInt
+import TonAPI
 
 public struct Action: Codable {
     let type: ActionType
@@ -40,6 +41,7 @@ public struct Action: Codable {
         case jettonBurn(JettonBurn)
         case smartContractExec(SmartContractExec)
         case domainRenew(DomainRenew)
+        case unknown
     }
     
     struct TonTransfer: Codable {
@@ -87,6 +89,7 @@ public struct Action: Codable {
 
     struct AuctionBid: Codable {
         let auctionType: String
+        let price: Price
         let collectible: Collectible?
         let bidder: WalletAccount
         let auction: WalletAccount
@@ -161,5 +164,17 @@ public struct Action: Codable {
         let domain: String
         let contractAddress: String
         let renewer: WalletAccount
+    }
+    
+    struct Price: Codable {
+        let amount: BigInt
+        let tokenName: String
+    }
+}
+
+extension Action.Price {
+    init(price: Components.Schemas.Price) {
+        amount = BigInt(stringLiteral: price.value)
+        tokenName = price.token_name
     }
 }

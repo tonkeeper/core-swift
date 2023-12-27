@@ -153,10 +153,9 @@ private extension AccountEventMapper {
                 preview: action.preview,
                 rightTopDescription: rightTopDescription,
                 status: action.status.rawValue)
-        case .subscribe(let subscribe):
-            return nil
-        case .unsubscribe(let unsubscribe):
-            return nil
+        case .unknown:
+            return mapUnknownAction(rightTopDescription: rightTopDescription)
+        default: return nil
         }
     }
     
@@ -575,7 +574,6 @@ private extension AccountEventMapper {
             subamount: inAmount,
             leftTopDescription: action.user.value,
             leftBottomDescription: nil,
-            
             rightTopDescription: rightTopDescription,
             status: status,
             comment: nil,
@@ -599,6 +597,20 @@ private extension AccountEventMapper {
             status: status,
             comment: nil,
             description: preview.description,
+            collectible: nil
+        )
+    }
+    
+    func mapUnknownAction(rightTopDescription: String?) -> ActivityEventViewModel.ActionViewModel {
+        return ActivityEventViewModel.ActionViewModel(
+            eventType: .unknown,
+            amount: String.Symbol.minus,
+            subamount: nil,
+            leftTopDescription: "Something happened but we couldn't recognize",
+            leftBottomDescription: nil,
+            rightTopDescription: rightTopDescription,
+            status: nil,
+            comment: nil,
             collectible: nil
         )
     }
