@@ -14,13 +14,15 @@ public struct TonTransferMessageBuilder {
     public static func sendTonTransfer(wallet: Wallet,
                                        seqno: UInt64,
                                        value: BigInt,
+                                       isMax: Bool,
                                        recipientAddress: Address,
                                        comment: String?,
                                        signClosure: (WalletTransfer) async throws -> Cell) async throws -> String {
         return try await ExternalMessageTransferBuilder.externalMessageTransfer(
             wallet: wallet,
             sender: try wallet.address,
-            seqno: seqno, 
+            sendMode: isMax ? .sendMaxTon() : .walletDefault(),
+            seqno: seqno,
             internalMessages: { _ in
                 let internalMessage: MessageRelaxed
                 if let comment = comment {
@@ -153,6 +155,7 @@ public struct ExternalMessageTransferBuilder {
     private init() {}
     public static func externalMessageTransfer(wallet: Wallet,
                                                sender: Address,
+                                               sendMode: SendMode = .walletDefault(),
                                                seqno: UInt64,
                                                internalMessages: (_ sender: Address) throws -> [MessageRelaxed],
                                                signClosure: (WalletTransfer) async throws -> Cell) async throws -> String {
@@ -160,7 +163,7 @@ public struct ExternalMessageTransferBuilder {
         let transferData = WalletTransferData(
             seqno: seqno,
             messages: internalMessages,
-            sendMode: .walletDefault(),
+            sendMode: sendMode,
             timeout: nil)
         let contract = try wallet.contract
         let transfer = try contract.createTransfer(args: transferData)

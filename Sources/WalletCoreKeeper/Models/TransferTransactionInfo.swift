@@ -54,7 +54,7 @@ struct TransferTransactionInfo {
             if let tonTransferAction = eventAction.TonTransfer {
                 type = .tonTransfer
                 let amount = BigInt(integerLiteral: tonTransferAction.amount)
-                transferModel = .token(TokenTransferModel(transferItem: .ton, amount: amount))
+                transferModel = .token(TokenTransferModel(transferItem: .ton(isMax: false), amount: amount))
                 recipient = Recipient(address: try? Address.parse(tonTransferAction.recipient.address),
                                       name: tonTransferAction.recipient.name)
                 name = eventAction.simple_preview.name

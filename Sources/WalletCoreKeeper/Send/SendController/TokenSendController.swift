@@ -101,15 +101,22 @@ private extension TokenSendController {
         return .token(model)
     }
     
-    func buildEmulationModel(fee: Int64?,
+    func buildEmulationModel(transferTransactionInfo: TransferTransactionInfo,
                              tonRates: Rates.Rate?,
                              tokenRates: Rates.Rate?) -> SendTransactionViewModel {
         let mapper = SendConfirmationMapper(amountFormatter: amountFormatter)
+        let transferModel: TokenTransferModel
+        switch transferTransactionInfo.actions.first?.transferModel {
+        case .token(let tokenTransferModel):
+            transferModel = tokenTransferModel
+        default:
+            transferModel = self.tokenTransferModel
+        }
         let model = mapper.mapTokenTransfer(
-            tokenTransferModel,
+            transferModel,
             recipientAddress: recipient.address.toShortString(bounceable: false),
             recipientName: recipient.domain,
-            fee: fee,
+            fee: transferTransactionInfo.fee,
             comment: comment,
             rate: tokenRates,
             tonRate: tonRates,
@@ -150,7 +157,7 @@ private extension TokenSendController {
             transaction: transactionInfo.trace.transaction)
 
         return buildEmulationModel(
-            fee: transferTransactionInfo.fee,
+            transferTransactionInfo: transferTransactionInfo,
             tonRates: rates.tonRates,
             tokenRates: rates.tokenRates)
     }
@@ -163,11 +170,12 @@ private extension TokenSendController {
         let seqno = try await sendService.loadSeqno(address: wallet.address)
         let boc: String
         switch tokenTransferModel.transferItem {
-        case .ton:
+        case .ton(let isMax):
             boc = try await WalletCoreCore.TonTransferMessageBuilder.sendTonTransfer(
                 wallet: try walletProvider.activeWallet,
                 seqno: seqno,
                 value: tokenTransferModel.amount,
+                isMax: isMax,
                 recipientAddress: recipientAddress,
                 comment: comment,
                 signClosure: signClosure)

@@ -149,7 +149,7 @@ public final class SendInputController {
         switch state.tokenState.token {
         case .ton:
             return TokenTransferModel(
-                transferItem: .ton,
+                transferItem: .ton(isMax: isMax),
                 amount: state.tokenState.amount
             )
         case .token(let tokenInfo):
@@ -221,6 +221,12 @@ public final class SendInputController {
             let token = walletBalance.balance.tokensBalance[index - 1]
             state.updateToken(token: .token(token.amount.tokenInfo))
         }
+        update()
+    }
+    
+    public func didSelectToken(tokenInfo: TokenInfo) throws {
+        isMax = false
+        state.updateToken(token: .token(tokenInfo))
         update()
     }
     

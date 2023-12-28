@@ -16,7 +16,7 @@ public enum TransferModel {
 
 public struct TokenTransferModel {
     public enum TransferItem {
-        case ton
+        case ton(isMax: Bool)
         case token(tokenWalletAddress: Address, tokenInfo: TokenInfo)
     }
     
