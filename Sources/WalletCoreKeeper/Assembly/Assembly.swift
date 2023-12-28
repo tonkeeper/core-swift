@@ -134,6 +134,17 @@ public extension Assembly {
         configurationAssembly.configurationController()
     }
     
+    var knownAccounts: KnownAccounts {
+        KnownAccounts(
+            session: .shared,
+            knownAccountsCache: KnownAccountsCache(
+                cacheUrl: dependencies.cacheURL,
+                fileManager: coreAssembly.fileManager,
+                bundle: .module
+            )
+        )
+    }
+    
     var walletsController: WalletsController {
         coreAssembly.walletsController
     }
