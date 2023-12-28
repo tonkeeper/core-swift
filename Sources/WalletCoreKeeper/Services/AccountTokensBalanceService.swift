@@ -23,6 +23,7 @@ final class AccountTokensBalanceServiceImplementation: AccountTokensBalanceServi
     }
     
     func loadTokensBalance(address: Address) async throws -> [TokenBalance] {
-        try await api.getAccountJettonsBalances(address: address)
+        let tokensBalance = try await api.getAccountJettonsBalances(address: address)
+        return tokensBalance.filter { !$0.amount.quantity.isZero }
     }
 }
