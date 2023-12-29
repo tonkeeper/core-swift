@@ -23,9 +23,12 @@ public struct Mnemonic: Equatable, Codable {
     }
     
     public init(from decoder: Decoder) throws {
-        if var arrayContainer = try? decoder.unkeyedContainer() {
-            let words = try arrayContainer.decode(String.self).components(separatedBy: ",")
-            self.mnemonicWords = words
+        if var container = try? decoder.unkeyedContainer() {
+            var array = [String]()
+            while !container.isAtEnd {
+                array.append(try container.decode(String.self))
+            }
+            self.mnemonicWords = array
             return
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
