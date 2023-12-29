@@ -69,19 +69,24 @@ public final class TokenSendController: SendController {
     
     public func sendTransaction() async throws {
         let wallet = try walletProvider.activeWallet
-        let transactionBoc = try await prepareSendTransaction(
-            tokenTransferModel: tokenTransferModel,
-            recipientAddress: recipient.address,
-            comment: comment) { transfer in
-                if wallet.isRegular {
-                    let privateKey = try walletProvider.getWalletPrivateKey(wallet)
-                    return try transfer.signMessage(signer: WalletTransferSecretKeySigner(secretKey: privateKey.data))
+        do {
+            let transactionBoc = try await prepareSendTransaction(
+                tokenTransferModel: tokenTransferModel,
+                recipientAddress: recipient.address,
+                comment: comment) { transfer in
+                    if wallet.isRegular {
+                        let privateKey = try walletProvider.getWalletPrivateKey(wallet)
+                        return try transfer.signMessage(signer: WalletTransferSecretKeySigner(secretKey: privateKey.data))
+                    }
+                    // TBD: External wallet sign
+                    return try transfer.signMessage(signer: WalletTransferEmptyKeySigner())
                 }
-                // TBD: External wallet sign
-                return try transfer.signMessage(signer: WalletTransferEmptyKeySigner())
-            }
-        
-        try await sendService.sendTransaction(boc: transactionBoc)
+            
+            try await sendService.sendTransaction(boc: transactionBoc)
+        } catch {
+            delegate?.sendControllerFailed(self, error: .failedToSendTransaction)
+            throw SendControllerError.failedToSendTransaction
+        }
     }
 }
 
@@ -135,7 +140,7 @@ private extension TokenSendController {
             comment: comment,
             rate: rates.tokenRates,
             tonRate: rates.tonRates,
-            isInitial: true)
+            isInitial: false)
         return .token(model)
     }
     
