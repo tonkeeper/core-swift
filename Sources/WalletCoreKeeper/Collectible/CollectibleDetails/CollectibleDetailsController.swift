@@ -96,7 +96,7 @@ private extension CollectibleDetailsController {
 
     func getDNSLinkedAddress(collectible: Collectible) async throws -> Address? {
         guard let dns = collectible.dns else { return nil }
-        let linkedAddress = try await dnsService.resolveDomainName(dns).address
+        let linkedAddress = try await dnsService.resolveDomainName(dns).address.address
         return linkedAddress
     }
     

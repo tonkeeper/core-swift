@@ -21,13 +21,14 @@ public final class SendRecipientController {
     }
     
     public func handleInput(_ input: String) async throws -> Recipient {
-        if let inputAddress = try? Address.parse(input) {
-            if let recipient = try? await loadAccountInfo(address: inputAddress) {
+        do {
+            let recipientAddress = try Recipient.RecipientAddress(string: input)
+            if let recipient = try? await loadAccountInfo(recipientAddress: recipientAddress) {
                 return recipient
             } else {
-                return Recipient(address: inputAddress, domain: nil)
+                return Recipient(address: recipientAddress, domain: nil)
             }
-        } else {
+        } catch {
             return try await resolveDomain(input)
         }
     }
@@ -38,8 +39,8 @@ private extension SendRecipientController {
         try await domainService.resolveDomainName(input)
     }
     
-    func loadAccountInfo(address: Address) async throws -> Recipient {
-        let accountInfo = try await accountInfoService.loadAccountInfo(address: address)
-        return Recipient(address: address, domain: accountInfo.name)
+    func loadAccountInfo(recipientAddress: Recipient.RecipientAddress) async throws -> Recipient {
+        let accountInfo = try await accountInfoService.loadAccountInfo(address: recipientAddress.toString())
+        return Recipient(address: recipientAddress, domain: accountInfo.name)
     }
 }

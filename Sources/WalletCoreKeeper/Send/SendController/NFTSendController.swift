@@ -107,7 +107,7 @@ public final class NFTSendController: SendController {
         do {
             let transactionBoc = try await prepareSendTransaction(
                 nft: nft,
-                recipientAddress: recipient.address,
+                recipientAddress: recipient.address.address,
                 comment: comment)
             try await sendService.sendTransaction(boc: transactionBoc)
         } catch {
@@ -123,7 +123,7 @@ private extension NFTSendController {
         
         let model = mapper.mapNFT(
             nft,
-            recipientAddress: recipient.address.toShortString(bounceable: false),
+            recipientAddress: recipient.shortAddress,
             recipientName: recipient.domain,
             fee: nil,
             comment: comment,
@@ -141,7 +141,7 @@ private extension NFTSendController {
         
         let model = mapper.mapNFT(
             nft,
-            recipientAddress: recipient.address.toShortString(bounceable: false),
+            recipientAddress: recipient.shortAddress,
             recipientName: recipient.domain,
             fee: fee,
             comment: comment,
@@ -156,7 +156,7 @@ private extension NFTSendController {
         async let ratesTask = getTonRates()
         async let transactionBocTask = prepareEmulateTransaction(
             nft: nft,
-            recipientAddress: recipient.address,
+            recipientAddress: recipient.address.address,
             comment: comment)
         
         let transactionBoc = try await transactionBocTask

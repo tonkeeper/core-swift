@@ -23,13 +23,13 @@ public enum Deeplink {
 }
 
 public enum TonDeeplink {
-    case transfer(address: Address)
+    case transfer(recipient: Recipient)
     
     public var string: String {
         let ton = "ton://"
         switch self {
-        case let .transfer(address):
-            return "\(ton)transfer/\(address.toString(bounceable: false))"
+        case let .transfer(recipient):
+            return "\(ton)transfer/\(recipient.address.toString())"
         }
     }
 }

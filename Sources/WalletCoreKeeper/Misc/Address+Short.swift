@@ -15,4 +15,20 @@ public extension Address {
         let rightPart = string.suffix(4)
         return "\(leftPart)...\(rightPart)"
     }
+    
+    func toShortRawString() -> String {
+        let string = self.toRaw()
+        let leftPart = string.prefix(4)
+        let rightPart = string.suffix(4)
+        return "\(leftPart)...\(rightPart)"
+    }
+}
+
+public extension FriendlyAddress {
+    func toShort() -> String {
+        let string = self.toString()
+        let leftPart = string.prefix(4)
+        let rightPart = string.suffix(4)
+        return "\(leftPart)...\(rightPart)"
+    }
 }

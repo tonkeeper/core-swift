@@ -10,7 +10,7 @@ import TonSwift
 import TonAPI
 
 protocol AccountInfoService {
-    func loadAccountInfo(address: Address) async throws -> Account
+    func loadAccountInfo(address: String) async throws -> Account
 }
 
 final class AccountInfoServiceImplementation: AccountInfoService {
@@ -21,7 +21,7 @@ final class AccountInfoServiceImplementation: AccountInfoService {
         self.api = api
     }
     
-    func loadAccountInfo(address: Address) async throws -> Account {
+    func loadAccountInfo(address: String) async throws -> Account {
         try await api.getAccountInfo(address: address)
     }
 }

@@ -10,7 +10,8 @@ import TonSwift
 
 public struct DeeplinkGenerator {
     public func generateTransferDeeplink(with string: String) throws -> TonDeeplink {
-        let address = try Address.parse(string)
-        return TonDeeplink.transfer(address: address)
+        let recipientAddress = try Recipient.RecipientAddress(string: string)
+        let recipient = Recipient(address: recipientAddress, domain: nil)
+        return TonDeeplink.transfer(recipient: recipient)
     }
 }

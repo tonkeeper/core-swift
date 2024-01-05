@@ -23,9 +23,9 @@ struct API {
 // MARK: - Account
 
 extension API {
-    func getAccountInfo(address: Address) async throws -> Account {
+    func getAccountInfo(address: String) async throws -> Account {
         let response = try await tonAPIClient
-            .getAccount(.init(path: .init(account_id: address.toRaw())))
+            .getAccount(.init(path: .init(account_id: address)))
         return try Account(account: try response.ok.body.json)
     }
     
@@ -225,8 +225,10 @@ extension API {
         guard let wallet = entity.wallet else {
             throw DNSError.noWalletData
         }
+        
         let address = try Address.parse(wallet.address)
-        return Recipient(address: address, domain: domainName)
+        let friendlyAddress = FriendlyAddress(address: address, bounceable: !wallet.is_wallet)
+        return Recipient(address: .friendly(friendlyAddress), domain: domainName)
     }
     
     func getDomainExpirationDate(_ domainName: String) async throws -> Date? {

@@ -16,6 +16,7 @@ public struct TonTransferMessageBuilder {
                                        value: BigInt,
                                        isMax: Bool,
                                        recipientAddress: Address,
+                                       isBounceable: Bool = true,
                                        comment: String?,
                                        signClosure: (WalletTransfer) async throws -> Cell) async throws -> String {
         return try await ExternalMessageTransferBuilder.externalMessageTransfer(
@@ -28,15 +29,15 @@ public struct TonTransferMessageBuilder {
                 if let comment = comment {
                     internalMessage = try MessageRelaxed.internal(to: recipientAddress,
                                                                   value: value.magnitude,
-                                                                  bounce: false,
+                                                                  bounce: isBounceable,
                                                                   textPayload: comment)
                 } else {
                     internalMessage = MessageRelaxed.internal(to: recipientAddress,
                                                               value: value.magnitude,
-                                                              bounce: false)
+                                                              bounce: isBounceable)
                 }
                 return [internalMessage]
-            }, 
+            },
             signClosure: signClosure)
     }
 }
@@ -100,10 +101,11 @@ public struct TonConnectTransferMessageBuilder {
 public struct TokenTransferMessageBuilder {
     private init() {}
     public static func sendTokenTransfer(wallet: Wallet,
-                                  seqno: UInt64,
-                                  tokenAddress: Address,
-                                  value: BigInt,
+                                         seqno: UInt64,
+                                         tokenAddress: Address,
+                                         value: BigInt,
                                          recipientAddress: Address,
+                                         isBounceable: Bool = true,
                                          comment: String?,
                                          signClosure: (WalletTransfer) async throws -> Cell) async throws -> String {
         return try await ExternalMessageTransferBuilder
@@ -114,7 +116,7 @@ public struct TokenTransferMessageBuilder {
                     let internalMessage = try JettonTransferMessage.internalMessage(
                         jettonAddress: tokenAddress,
                         amount: value,
-                        bounce: false,
+                        bounce: isBounceable,
                         to: recipientAddress,
                         from: sender,
                         comment: comment
@@ -128,10 +130,11 @@ public struct TokenTransferMessageBuilder {
 public struct NFTTransferMessageBuilder {
     private init() {}
     public static func sendNFTTransfer(wallet: Wallet,
-                                seqno: UInt64,
-                                nftAddress: Address,
-                                recipientAddress: Address,
-                                transferAmount: BigUInt,
+                                       seqno: UInt64,
+                                       nftAddress: Address,
+                                       recipientAddress: Address,
+                                       isBounceable: Bool = true,
+                                       transferAmount: BigUInt,
                                        signClosure: (WalletTransfer) async throws -> Cell) async throws -> String {
         return try await ExternalMessageTransferBuilder
             .externalMessageTransfer(
@@ -141,7 +144,7 @@ public struct NFTTransferMessageBuilder {
                     let internalMessage = try NFTTransferMessage.internalMessage(
                         nftAddress: nftAddress,
                         nftTransferAmount: transferAmount,
-                        bounce: false,
+                        bounce: isBounceable,
                         to: recipientAddress,
                         from: sender,
                         forwardPayload: nil)

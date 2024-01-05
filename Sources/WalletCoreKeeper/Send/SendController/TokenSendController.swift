@@ -72,7 +72,7 @@ public final class TokenSendController: SendController {
         do {
             let transactionBoc = try await prepareSendTransaction(
                 tokenTransferModel: tokenTransferModel,
-                recipientAddress: recipient.address,
+                recipient: recipient,
                 comment: comment) { transfer in
                     if wallet.isRegular {
                         let privateKey = try walletProvider.getWalletPrivateKey(wallet)
@@ -96,7 +96,7 @@ private extension TokenSendController {
         let rates = getCachedRates(for: tokenTransferModel)
         let model = mapper.mapTokenTransfer(
             tokenTransferModel,
-            recipientAddress: recipient.address.toShortString(bounceable: false),
+            recipientAddress: recipient.shortAddress,
             recipientName: recipient.domain,
             fee: nil,
             comment: comment,
@@ -119,7 +119,7 @@ private extension TokenSendController {
         }
         let model = mapper.mapTokenTransfer(
             transferModel,
-            recipientAddress: recipient.address.toShortString(bounceable: false),
+            recipientAddress: recipient.shortAddress,
             recipientName: recipient.domain,
             fee: transferTransactionInfo.fee,
             comment: comment,
@@ -134,7 +134,7 @@ private extension TokenSendController {
         let rates = getCachedRates(for: tokenTransferModel)
         let model = mapper.mapTokenTransfer(
             tokenTransferModel,
-            recipientAddress: recipient.address.toShortString(bounceable: false),
+            recipientAddress: recipient.shortAddress,
             recipientName: recipient.domain,
             fee: nil,
             comment: comment,
@@ -148,7 +148,7 @@ private extension TokenSendController {
         async let ratesTask = loadRates(for: tokenTransferModel)
         async let transactionBocTask = prepareSendTransaction(
             tokenTransferModel: tokenTransferModel,
-            recipientAddress: recipient.address,
+            recipient: recipient,
             comment: comment,
             signClosure: { try $0.signMessage(signer: WalletTransferEmptyKeySigner()) })
         
@@ -168,7 +168,7 @@ private extension TokenSendController {
     }
     
     func prepareSendTransaction(tokenTransferModel: TokenTransferModel,
-                                recipientAddress: Address,
+                                recipient: Recipient,
                                 comment: String?,
                                 signClosure: (WalletTransfer) async throws -> Cell) async throws -> String {
         let wallet = try walletProvider.activeWallet
@@ -181,7 +181,8 @@ private extension TokenSendController {
                 seqno: seqno,
                 value: tokenTransferModel.amount,
                 isMax: isMax,
-                recipientAddress: recipientAddress,
+                recipientAddress: recipient.address.address,
+                isBounceable: recipient.address.isBounceable,
                 comment: comment,
                 signClosure: signClosure)
         case .token(let tokenAddress, _):
@@ -190,7 +191,8 @@ private extension TokenSendController {
                 seqno: seqno,
                 tokenAddress: tokenAddress,
                 value: tokenTransferModel.amount,
-                recipientAddress: recipientAddress,
+                recipientAddress: recipient.address.address,
+                isBounceable: recipient.address.isBounceable,
                 comment: comment,
                 signClosure: signClosure)
         }

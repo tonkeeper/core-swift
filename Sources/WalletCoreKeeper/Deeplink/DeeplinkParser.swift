@@ -32,7 +32,8 @@ struct TonDeeplinkHandler: DeeplinkHandler {
             switch host {
             case "transfer":
                 let addressString = url.lastPathComponent
-                return .ton(.transfer(address: try Address.parse(addressString)))
+                let recipientAddress = try Recipient.RecipientAddress(string: addressString)
+                return .ton(.transfer(recipient: Recipient(address: recipientAddress, domain: nil)))
             default:
                 throw DeeplinkParser.Error.failedToParse(string: string)
             }
