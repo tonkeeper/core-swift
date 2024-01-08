@@ -71,7 +71,7 @@ struct KeychainVaultImplementations: KeychainVault {
                 throw KeychainVaultError.unhandledError(status: status)
             }
         } catch {
-            print("dsd")
+            throw error
         }
     }
     

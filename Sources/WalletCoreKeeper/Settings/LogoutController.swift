@@ -33,6 +33,19 @@ public final class LogoutController {
         }
         
         try? keeperInfoService.deleteKeeperInfo()
-//        try? keychainManager.deleteAll(group: sharedKeychainGroup)
+        try? keychainVault.deleteItem(DeleteAll(group: sharedKeychainGroup))
+        try? keychainVault.deleteItem(DeleteAll(group: nil))
+    }
+    
+    private struct DeleteAll: WalletCoreCore.KeychainQueryable {
+        let group: String?
+        var query: [String : AnyObject] {
+            var query = [String: AnyObject]()
+            query[kSecClass as String] = kSecClassGenericPassword
+            if let group = group {
+                query[kSecAttrAccessGroup as String] = group as AnyObject
+            }
+            return query
+        }
     }
 }

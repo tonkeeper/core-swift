@@ -58,8 +58,6 @@ private extension RatesServiceImplementation {
         }
         do {
             try localRepository.save(item: cachedRates)
-        } catch {
-            print(error)
-        }
+        } catch {}
     }
 }
