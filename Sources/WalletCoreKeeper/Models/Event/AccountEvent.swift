@@ -63,10 +63,8 @@ extension AccountEvent {
                     actionType = .smartContractExec(try .init(smartContractExec: smartContractExec))
                 } else if let domainRenew = action.DomainRenew {
                     actionType = .domainRenew(try .init(domainRenew: domainRenew))
-                } else if action._type == .Unknown {
-                    actionType = .unknown
                 } else {
-                    return nil
+                    actionType = .unknown
                 }
                 
                 let status = Status(rawValue: action.status.rawValue)
