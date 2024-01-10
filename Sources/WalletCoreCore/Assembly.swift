@@ -11,13 +11,19 @@ public struct Dependencies {
     public let cacheURL: URL
     public let sharedCacheURL: URL
     public let sharedKeychainGroup: String
+    public let oldSharedCacheURL: URL
+    public let oldSharedKeychainGroup: String
     
     public init(cacheURL: URL,
                 sharedCacheURL: URL,
-                sharedKeychainGroup: String) {
+                sharedKeychainGroup: String,
+                oldSharedCacheURL: URL,
+                oldSharedKeychainGroup: String) {
         self.cacheURL = cacheURL
         self.sharedCacheURL = sharedCacheURL
         self.sharedKeychainGroup = sharedKeychainGroup
+        self.oldSharedCacheURL = oldSharedCacheURL
+        self.oldSharedKeychainGroup = oldSharedKeychainGroup
     }
 }
 
@@ -72,6 +78,19 @@ public final class Assembly {
     func sharedFileSystemVault<T>() -> FileSystemVault<T> {
         FileSystemVault(fileManager: .default, directory: dependencies.sharedCacheURL)
     }
+    
+    func oldSharedFileSystemVault<T>() -> FileSystemVault<T> {
+        FileSystemVault(fileManager: .default, directory: dependencies.oldSharedCacheURL)
+    }
+    
+    public lazy var oldAppMigration: OldAppMigration =  {
+        OldAppMigration(
+            keeperInfoService: keeperInfoService, 
+            oldKeeperInfoService: KeeperInfoService(keeperInfoRepository: oldSharedFileSystemVault()),
+            mnemonicRepository: walletMnemonicRepository,
+            oldMnemonicRepository: MnemonicVault(keychainVault: keychainVault, accessGroup: dependencies.oldSharedKeychainGroup)
+        )
+    }()
 }
 
 private extension Assembly {

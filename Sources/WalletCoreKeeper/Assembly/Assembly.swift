@@ -13,13 +13,19 @@ public struct Dependencies {
     public let cacheURL: URL
     public let sharedCacheURL: URL
     public let sharedKeychainGroup: String
+    public let oldSharedCacheURL: URL
+    public let oldSharedKeychainGroup: String
     
     public init(cacheURL: URL,
                 sharedCacheURL: URL,
-                sharedKeychainGroup: String) {
+                sharedKeychainGroup: String,
+                oldSharedCacheURL: URL,
+                oldSharedKeychainGroup: String) {
         self.cacheURL = cacheURL
         self.sharedCacheURL = sharedCacheURL
         self.sharedKeychainGroup = sharedKeychainGroup
+        self.oldSharedCacheURL = oldSharedCacheURL
+        self.oldSharedKeychainGroup = oldSharedKeychainGroup
     }
 }
 
@@ -122,9 +128,11 @@ public final class Assembly {
         self.dependencies = dependencies
         self.coreAssembly = CoreAssembly(
             dependencies:
-                    .init(cacheURL: dependencies.cacheURL, sharedCacheURL: 
-                            dependencies.sharedCacheURL,
-                          sharedKeychainGroup: dependencies.sharedKeychainGroup)
+                    .init(cacheURL: dependencies.cacheURL, 
+                          sharedCacheURL: dependencies.sharedCacheURL,
+                          sharedKeychainGroup: dependencies.sharedKeychainGroup,
+                          oldSharedCacheURL: dependencies.oldSharedCacheURL,
+                          oldSharedKeychainGroup: dependencies.oldSharedKeychainGroup)
         )
     }
 }
@@ -310,5 +318,9 @@ public extension Assembly {
     
     func addressValidator() -> AddressValidator {
         validatorsAssembly.addressValidator
+    }
+    
+    var oldAppMigration: OldAppMigration {
+        coreAssembly.oldAppMigration
     }
 }
