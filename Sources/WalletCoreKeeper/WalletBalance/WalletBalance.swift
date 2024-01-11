@@ -103,6 +103,7 @@ public struct Collectible: Codable {
     let collection: Collection?
     let dns: String?
     let sale: Sale?
+    let isHidden: Bool
 
     struct Marketplace {
         let name: String

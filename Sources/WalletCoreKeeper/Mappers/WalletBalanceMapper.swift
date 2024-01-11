@@ -22,11 +22,11 @@ struct WalletBalanceMapper {
         self.amountFormatter = amountFormatter
         self.rateConverter = rateConverter
     }
-
+    
     func mapBalance(_ walletBalanceState: WalletBalanceState,
-                          rates: Rates,
-                          currency: Currency,
-                          isOutdated: Bool) -> WalletBalanceModel {
+                    rates: Rates,
+                    currency: Currency,
+                    isOutdated: Bool) -> WalletBalanceModel {
         let subtitle: WalletBalanceModel.Header.Subtitle
         if isOutdated {
             let formatter = DateFormatter()
@@ -195,7 +195,7 @@ private extension WalletBalanceMapper {
     }
     
     func mapCollectibles(_ collectibles: [Collectible]) -> [WalletCollectibleItemViewModel] {
-        return collectibles.map { collectible in
+        return collectibles.filter { !$0.isHidden }.map { collectible in
             walletItemMapper.mapCollectible(title: collectible.name ?? collectible.address.toShortString(bounceable: false),
                                             subtitle: collectible.collection?.name ?? .singleNFT,
                                             imageURL: collectible.preview.size500,

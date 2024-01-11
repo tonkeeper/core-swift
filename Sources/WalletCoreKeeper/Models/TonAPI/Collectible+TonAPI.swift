@@ -24,6 +24,7 @@ extension Collectible {
         var imageURL: URL?
         var description: String?
         var collection: Collection?
+        var isHidden = false
         
         if let ownerAccountAddress = nftItem.owner,
             let ownerWalletAccount = try? WalletAccount(accountAddress: ownerAccountAddress) {
@@ -34,6 +35,7 @@ extension Collectible {
         name = metadata["name"] as? String
         imageURL = (metadata["image"] as? String).flatMap { URL(string: $0) }
         description = metadata["description"] as? String
+        isHidden = (metadata["render_type"] as? String) == "hidden"
 
         var attributes = [Attribute]()
         if let attributesValue = (metadata["attributes"] as? [AnyObject]) {
@@ -92,6 +94,7 @@ extension Collectible {
         self.collection = collection
         self.dns = nftItem.dns
         self.sale = sale
+        self.isHidden = isHidden
     }
     
     static private func mapPreviews(_ previews: [Components.Schemas.ImagePreview]?) -> Preview {
