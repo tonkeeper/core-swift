@@ -5,17 +5,14 @@ public struct Wallet: Codable, Hashable {
   /// Unique internal ID for this wallet
   public let identity: WalletIdentity
   
-  /// Human-readable label. If empty, then it's rendered with a default title.
-  public let label: String
+  // Wallet's metadata as human-readable label, color, emoji etc
+  public let metaData: WalletMetaData
   
   /// Per-wallet notifications: maybe filters by assets, amounts, dapps etc.
   let notificationSettings: NotificationSettings
   
   /// Backup settings for this wallet.
   public let backupSettings: WalletBackupSettings
-  
-  /// Preferred currency for all asset prices : TON, USD, EUR etc.
-  public let currency: Currency
   
   /// List of remembered favorite addresses
   let addressBook: [AddressBookEntry]
@@ -35,17 +32,15 @@ public struct Wallet: Codable, Hashable {
   }
   
   init(identity: WalletIdentity,
-       label: String = "",
+       metaData: WalletMetaData,
        notificationSettings: NotificationSettings = .init(),
        backupSettings: WalletBackupSettings = .init(enabled: true, revision: 1, voucher: nil),
-       currency: Currency = .USD,
        addressBook: [AddressBookEntry] = [],
        contractVersion: WalletContractVersion = .NA) {
     self.identity = identity
-    self.label = label
+    self.metaData = metaData
     self.notificationSettings = notificationSettings
     self.backupSettings = backupSettings
-    self.currency = currency
     self.addressBook = addressBook
     self.contractVersion = contractVersion
   }
@@ -124,13 +119,22 @@ extension Wallet {
 }
 
 extension Wallet {
-  public func setCurrency(_ currency: Currency) -> Wallet {
-    return .init(identity: self.identity,
-                 label: self.label,
-                 notificationSettings: self.notificationSettings,
-                 backupSettings: self.backupSettings,
-                 currency: currency,
-                 addressBook: self.addressBook,
-                 contractVersion: self.contractVersion)
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: Wallet.CodingKeys.self)
+    
+    self.identity = try container.decode(WalletIdentity.self, forKey: .identity)
+    self.notificationSettings = try container.decode(NotificationSettings.self, forKey: .notificationSettings)
+    self.backupSettings = try container.decode(WalletBackupSettings.self, forKey: .backupSettings)
+    self.addressBook = try container.decode([AddressBookEntry].self, forKey: .addressBook)
+    self.contractVersion = try container.decode(WalletContractVersion.self, forKey: .contractVersion)
+    
+    if let metadata = try? container.decodeIfPresent(WalletMetaData.self, forKey: .metaData) {
+      self.metaData = metadata
+    } else {
+      self.metaData = WalletMetaData(
+        label: "Wallet",
+        colorIdentifier: "",
+        emoji: "")
+    }
   }
 }
