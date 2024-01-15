@@ -39,7 +39,8 @@ let package = Package(
     .target(name: "WalletCore",
             dependencies: [
               .target(name: "WalletCoreCore"),
-              .target(name: "WalletCoreKeeper")
+              .target(name: "WalletCoreKeeper"),
+              .target(name: "KeeperCore")
             ]),
     .target(name: "WalletCoreCore",
             dependencies: [.product(name: "TonSwift", package: "ton-swift")],
