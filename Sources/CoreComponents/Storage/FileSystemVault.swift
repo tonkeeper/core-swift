@@ -1,19 +1,19 @@
 import Foundation
 
-struct FileSystemVault<T: Codable, Key: CustomStringConvertible> {
-  enum LoadError: Swift.Error {
+public struct FileSystemVault<T: Codable, Key: CustomStringConvertible> {
+  public enum LoadError: Swift.Error {
     case noItem(key: Key)
     case corruptedData(key: Key, error: DecodingError)
     case other(Swift.Error)
   }
   
-  enum SaveError: Swift.Error {
+  public enum SaveError: Swift.Error {
     case failedCreateFolder(url: URL)
     case corruptedData(key: Key, error: EncodingError)
-    case failedSaveItem(key: Key, error: Swift.Error)
+    case other(key: Key, error: Swift.Error)
   }
   
-  enum DeleteError: Swift.Error {
+  public enum DeleteError: Swift.Error {
     case noItem(key: Key)
     case failedDeleteItem(key: Key, error: Swift.Error)
   }
@@ -23,25 +23,25 @@ struct FileSystemVault<T: Codable, Key: CustomStringConvertible> {
   
   private let decoder = JSONDecoder()
   
-  init(fileManager: FileManager,
-       directory: URL) {
+  public init(fileManager: FileManager,
+              directory: URL) {
     self.fileManager = fileManager
     self.directory = directory
   }
   
-  func loadItem(key: Key) -> Result<T, LoadError> {
+  public func loadItem(key: Key) throws -> T {
     do {
-      return .success(try load(filename: key.description))
+      return try load(filename: key.description)
     } catch CocoaError.fileReadNoSuchFile {
-      return .failure(.noItem(key: key))
+      throw LoadError.noItem(key: key)
     } catch let decodingError as DecodingError {
-      return .failure(.corruptedData(key: key, error: decodingError))
+      throw LoadError.corruptedData(key: key, error: decodingError)
     } catch {
-      return .failure(.other(error))
+      throw LoadError.other(error)
     }
   }
   
-  func loadAll() -> [T] {
+  public func loadAll() -> [T] {
     do {
       let content = try fileManager.contentsOfDirectory(atPath: folderPath.path)
       return content.compactMap { name -> T? in
@@ -52,11 +52,11 @@ struct FileSystemVault<T: Codable, Key: CustomStringConvertible> {
     }
   }
   
-  func saveItem(_ item: T, key: Key) -> Result<Void, SaveError> {
+  public func saveItem(_ item: T, key: Key) throws {
     do {
       try createFolderIfNeeded(url: folderPath)
     } catch {
-      return .failure(.failedCreateFolder(url: folderPath))
+      throw SaveError.failedCreateFolder(url: folderPath)
     }
     let url = folderPath.appendingPathComponent(key.description)
     do {
@@ -64,29 +64,27 @@ struct FileSystemVault<T: Codable, Key: CustomStringConvertible> {
           try fileManager.removeItem(at: url)
       }
     } catch {
-      return .failure(.failedSaveItem(key: key, error: error))
+      throw SaveError.other(key: key, error: error)
     }
     do {
       let data = try JSONEncoder().encode(item)
       try data.write(to: url, options: .atomic)
-      return .success(())
     } catch let encodingError as EncodingError {
-      return .failure(.corruptedData(key: key, error: encodingError))
+      throw SaveError.corruptedData(key: key, error: encodingError)
     } catch {
-      return .failure(.failedSaveItem(key: key, error: error))
+      throw SaveError.other(key: key, error: error)
     }
   }
   
-  func deleteItem(key: Key) -> Result<Void, DeleteError> {
+  public func deleteItem(key: Key) throws {
     let url = folderPath.appendingPathComponent(key.description)
     guard fileManager.fileExists(atPath: url.path) else {
-      return .failure(.noItem(key: key))
+      throw DeleteError.noItem(key: key)
     }
     do {
       try fileManager.removeItem(at: url)
-      return .success(())
     } catch {
-      return .failure(.failedDeleteItem(key: key, error: error))
+      throw DeleteError.failedDeleteItem(key: key, error: error)
     }
   }
 }

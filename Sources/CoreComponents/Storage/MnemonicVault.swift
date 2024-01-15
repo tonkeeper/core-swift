@@ -1,27 +1,27 @@
 import Foundation
 
-struct MnemonicVault: KeyValueVault {
-  typealias StoreValue = Mnemonic
-  typealias StoreKey = String
+public struct MnemonicVault: KeyValueVault {
+  public typealias StoreValue = Mnemonic
+  public typealias StoreKey = String
   
   private let keychainVault: KeychainVault
   private let accessGroup: String?
   
-  init(keychainVault: KeychainVault,
-       accessGroup: String?) {
+  public init(keychainVault: KeychainVault,
+              accessGroup: String?) {
     self.keychainVault = keychainVault
     self.accessGroup = accessGroup
   }
   
-  func saveValue(_ value: Mnemonic, for key: StoreKey) throws {
+  public func saveValue(_ value: Mnemonic, for key: StoreKey) throws {
     try keychainVault.saveValue(value, to: query(key: key, accessGroup: accessGroup))
   }
   
-  func deleteValue(for key: StoreKey) throws {
+  public func deleteValue(for key: StoreKey) throws {
     try keychainVault.deleteItem(query(key: key, accessGroup: accessGroup))
   }
   
-  func loadValue(key: StoreKey) throws -> Mnemonic {
+  public func loadValue(key: StoreKey) throws -> Mnemonic {
     try keychainVault.readValue(query(key: key, accessGroup: accessGroup))
   }
   

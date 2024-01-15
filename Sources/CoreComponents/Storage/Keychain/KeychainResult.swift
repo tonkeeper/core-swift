@@ -1,6 +1,6 @@
 import Foundation
 
-struct KeychainResult {
+public struct KeychainResult {
   let status: OSStatus
   let result: AnyObject?
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-enum KeychainVaultError: Swift.Error {
+public enum KeychainVaultError: Swift.Error {
   case noItemFound
   case unexpectedData
   case unhandledError(status: OSStatus)
@@ -12,15 +12,15 @@ public protocol KeychainVault {
   func deleteItem(_ item: KeychainQueryable) throws
 }
 
-struct KeychainVaultImplementations: KeychainVault {
+public struct KeychainVaultImplementation: KeychainVault {
   
   private let keychain: Keychain
   
-  init(keychain: Keychain) {
+  public init(keychain: Keychain) {
     self.keychain = keychain
   }
   
-  func readValue<T: Codable>(_ item: KeychainQueryable) throws -> T {
+  public func readValue<T: Codable>(_ item: KeychainQueryable) throws -> T {
     var query = try item.query
     query[kSecMatchLimit as String] = kSecMatchLimitOne
     query[kSecReturnData as String] = kCFBooleanTrue
@@ -43,7 +43,7 @@ struct KeychainVaultImplementations: KeychainVault {
     return value
   }
   
-  func saveValue<T: Codable>(_ value: T, to item: KeychainQueryable) throws {
+  public func saveValue<T: Codable>(_ value: T, to item: KeychainQueryable) throws {
     let data = try JSONEncoder().encode(value)
     
     do {
@@ -68,7 +68,7 @@ struct KeychainVaultImplementations: KeychainVault {
     }
   }
   
-  func deleteItem(_ item: KeychainQueryable) throws {
+  public func deleteItem(_ item: KeychainQueryable) throws {
     let status = keychain.delete(try item.query)
     guard status == noErr || status == errSecItemNotFound else {
       throw KeychainVaultError.unhandledError(status: status)

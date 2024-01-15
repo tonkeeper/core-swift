@@ -1,7 +1,7 @@
 import Foundation
 
-typealias KeychainQuery = [String: AnyObject]
-typealias KeychainAttributes = [String: AnyObject]
+public typealias KeychainQuery = [String: AnyObject]
+public typealias KeychainAttributes = [String: AnyObject]
 
 public enum KeychainAccessible {
   case whenUnlocked
@@ -10,7 +10,7 @@ public enum KeychainAccessible {
   case whenUnlockedThisDeviceOnly
   case afterFirstUnlockThisDeviceOnly
   
-  var keychainKey: CFString {
+  public var keychainKey: CFString {
     switch self {
     case .afterFirstUnlock:
       return kSecAttrAccessibleAfterFirstUnlock
@@ -26,19 +26,21 @@ public enum KeychainAccessible {
   }
 }
 
-protocol Keychain {
+public protocol Keychain {
   func add(_ query: KeychainQuery) -> OSStatus
   func fetch(_ query: KeychainQuery) -> KeychainResult
   func update(_ query: KeychainQuery, with attributes: KeychainAttributes) -> OSStatus
   func delete(_ query: KeychainQuery) -> OSStatus
 }
 
-struct KeychainImplementation: Keychain {
-  func add(_ query: KeychainQuery) -> OSStatus {
+public struct KeychainImplementation: Keychain {
+  public init() {}
+  
+  public func add(_ query: KeychainQuery) -> OSStatus {
     return SecItemAdd(query as CFDictionary, nil)
   }
   
-  func fetch(_ query: KeychainQuery) -> KeychainResult {
+  public func fetch(_ query: KeychainQuery) -> KeychainResult {
     var result: AnyObject?
     let status = withUnsafeMutablePointer(to: &result) {
       SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
@@ -47,11 +49,11 @@ struct KeychainImplementation: Keychain {
     return KeychainResult(status: status, result: result)
   }
   
-  func update(_ query: KeychainQuery, with attributes: KeychainAttributes) -> OSStatus {
+  public func update(_ query: KeychainQuery, with attributes: KeychainAttributes) -> OSStatus {
     return SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
   }
   
-  func delete(_ query: KeychainQuery) -> OSStatus {
+  public func delete(_ query: KeychainQuery) -> OSStatus {
     return SecItemDelete(query as CFDictionary)
   }
 }
