@@ -19,6 +19,7 @@ public final class Assembly {
     coreAssembly: coreAssembly
   )
   private lazy var rootAssembly = RootAssembly(
+    servicesAssembly: servicesAssembly,
     walletAssembly: walletAssembly
   )
   
@@ -38,7 +39,26 @@ public extension Assembly {
     rootAssembly.rootController()
   }
   
-  func walletAddController() -> WalletAddController {
-    walletAssembly.walletAddController()
+  func onboardingAssembly() -> OnboardingAssembly {
+    OnboardingAssembly(
+      servicesAssembly: servicesAssembly,
+      coreAssembly: coreAssembly,
+      walletAssembly: walletAssembly
+    )
+  }
+  
+  func mainAssembly(dependencies: MainAssembly.Dependencies) -> MainAssembly {
+    let notEmptyWalletAssembly = NotEmptyWalletAssembly(
+      servicesAssembly: servicesAssembly,
+      coreAssembly: coreAssembly,
+      walletAssembly: walletAssembly,
+      wallets: dependencies.wallets,
+      activeWallet: dependencies.activeWallet)
+    
+    return MainAssembly(
+      walletAssembly: walletAssembly,
+      notEmptyWalletAssembly: notEmptyWalletAssembly,
+      servicesAssembly: servicesAssembly,
+      coreAssembly: coreAssembly)
   }
 }

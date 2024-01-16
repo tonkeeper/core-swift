@@ -1,6 +1,6 @@
 import Foundation
 
-final class WalletAssembly {
+public final class WalletAssembly {
   
   private let servicesAssembly: ServicesAssembly
   private let coreAssembly: CoreAssembly
@@ -23,13 +23,7 @@ final class WalletAssembly {
       return walletListUpdater
     }
   }
-  
-  func walletListProvider() -> WalletListProvider {
-    let provider = WalletListProvider(keeperInfoService: servicesAssembly.keeperInfoService())
-    walletListUpdater().addObserver(provider)
-    return provider
-  }
-  
+
   func walletAddController() -> WalletAddController {
     WalletAddController(walletListUpdater: walletListUpdater())
   }

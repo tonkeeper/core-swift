@@ -4,7 +4,7 @@ public final class RootController {
   
   public enum State {
     case onboarding
-    case main
+    case main(wallets: [Wallet], activeWallet: Wallet)
   }
   
   public var state: State = .onboarding {
@@ -14,22 +14,32 @@ public final class RootController {
   }
   public var didUpdateState: ((State) -> Void)?
 
-  private let walletListProvider: WalletListProvider
+  private let keeperInfoService: KeeperInfoService
   
-  init(walletListProvider: WalletListProvider) {
-    self.walletListProvider = walletListProvider
+  init(keeperInfoService: KeeperInfoService) {
+    self.keeperInfoService = keeperInfoService
     setupState()
-    walletListProvider.addObserver(self)
   }
 }
 
-extension RootController: WalletListProviderObserver {
+private extension RootController {
   func setupState() {
-    let hasWallets = (try? !walletListProvider.wallets.isEmpty) ?? false
-    self.state = hasWallets ? .main : .onboarding
+    do {
+      let keeperInfo = try keeperInfoService.getKeeperInfo()
+      if !keeperInfo.wallets.isEmpty,
+      let activeWallet = keeperInfo.wallets.first(where: { $0.identity == keeperInfo.currentWallet }) {
+        self.state = .main(wallets: keeperInfo.wallets, activeWallet: activeWallet)
+      } else {
+        self.state = .onboarding
+      }
+    } catch {
+      self.state = .onboarding
+    }
   }
-  
-  func didGetWalletListProviderEvent(_ event: WalletListProviderEvent) {
+}
+
+extension RootController: WalletListUpdaterObserver {
+  func didGetWalletListUpdaterEvent(_ event: WalletListUpdaterEvent) {
     setupState()
   }
 }

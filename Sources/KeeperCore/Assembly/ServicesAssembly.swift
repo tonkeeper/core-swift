@@ -1,6 +1,6 @@
 import Foundation
 
-final class ServicesAssembly {
+public final class ServicesAssembly {
   
   private let coreAssembly: CoreAssembly
   

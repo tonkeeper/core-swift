@@ -3,6 +3,7 @@ import CoreComponents
 
 enum WalletListProviderEvent {
   case didAddWallet
+  case didChangeActiveWallet(wallet: Wallet)
 }
 
 enum WalletListProviderError: Swift.Error {
@@ -14,26 +15,12 @@ protocol WalletListProviderObserver: AnyObject {
 }
 
 final class WalletListProvider {
-  public var wallets: [Wallet] {
-    get throws {
-      try keeperInfoService.getKeeperInfo().wallets
-    }
-  }
+  public private(set) var wallets: [Wallet]
+  public private(set) var activeWallet: Wallet
   
-  public var activeWallet: Wallet {
-    get throws {
-      guard let keeperInfo = try? keeperInfoService.getKeeperInfo(),
-            !keeperInfo.wallets.isEmpty else {
-        throw WalletListProviderError.noWalletAdded
-      }
-      return keeperInfo.wallets.first(where: { $0.identity == keeperInfo.currentWallet }) ?? keeperInfo.wallets[0]
-    }
-  }
-  
-  private let keeperInfoService: KeeperInfoService
-  
-  init(keeperInfoService: KeeperInfoService) {
-    self.keeperInfoService = keeperInfoService
+  init(wallets: [Wallet], activeWallet: Wallet) {
+    self.wallets = wallets
+    self.activeWallet = activeWallet
   }
   
   private var observers = [WalletListProviderWrapper]()

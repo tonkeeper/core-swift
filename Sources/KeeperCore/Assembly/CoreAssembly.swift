@@ -1,7 +1,7 @@
 import Foundation
 import CoreComponents
 
-struct CoreAssembly {
+public struct CoreAssembly {
   private let cacheURL: URL
   private let sharedCacheURL: URL
   

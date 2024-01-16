@@ -2,9 +2,12 @@ import Foundation
 
 final class RootAssembly {
   
+  private let servicesAssembly: ServicesAssembly
   private let walletAssembly: WalletAssembly
   
-  init(walletAssembly: WalletAssembly) {
+  init(servicesAssembly: ServicesAssembly,
+       walletAssembly: WalletAssembly) {
+    self.servicesAssembly = servicesAssembly
     self.walletAssembly = walletAssembly
   }
   
@@ -13,7 +16,8 @@ final class RootAssembly {
     if let rootController = _rootController {
       return rootController
     } else {
-      let rootController = RootController(walletListProvider: walletAssembly.walletListProvider())
+      let rootController = RootController(keeperInfoService: servicesAssembly.keeperInfoService())
+      walletAssembly.walletListUpdater().addObserver(rootController)
       self._rootController = rootController
       return rootController
     }
