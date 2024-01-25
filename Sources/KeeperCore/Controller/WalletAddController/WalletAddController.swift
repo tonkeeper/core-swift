@@ -20,16 +20,50 @@ public final class WalletAddController {
     )
     let walletIdentity = WalletIdentity(
       network: .mainnet,
-      kind: .Regular(keyPair.publicKey)
+      kind: .Regular(keyPair.publicKey, .v4R2)
     )
     let wallet = Wallet(
       identity: walletIdentity,
-      metaData: metaData,
-      contractVersion: .v4R2)
+      metaData: metaData)
     
     try mnemonicRepositoty.saveMnemonic(mnemonic, forWallet: wallet)
     try walletsStoreUpdate.addWallets([wallet])
     
     try walletsStoreUpdate.makeWalletActive(wallet)
+  }
+  
+  public func importWallets(phrase: [String],
+                            revisions: [WalletContractVersion],
+                            metaData: WalletMetaData) throws {
+    let mnemonic = try Mnemonic(mnemonicWords: phrase)
+    let keyPair = try TonSwift.Mnemonic.mnemonicToPrivateKey(
+      mnemonicArray: mnemonic.mnemonicWords
+    )
+    
+    let addPostfix = revisions.count > 1
+
+    let wallets = revisions.map { revision in
+      let label = addPostfix ? "\(metaData.label) \(revision.rawValue)" : metaData.label
+      let revisionMetaData = WalletMetaData(
+        label: label,
+        colorIdentifier: metaData.colorIdentifier,
+        emoji: metaData.emoji
+      )
+      
+      let walletIdentity = WalletIdentity(
+        network: .mainnet,
+        kind: .Regular(keyPair.publicKey, revision)
+      )
+      
+      return Wallet(
+        identity: walletIdentity,
+        metaData: revisionMetaData)
+    }
+
+    try wallets.forEach { wallet in
+      try mnemonicRepositoty.saveMnemonic(mnemonic, forWallet: wallet)
+    }
+    try walletsStoreUpdate.addWallets(wallets)
+    try walletsStoreUpdate.makeWalletActive(wallets[0])
   }
 }
