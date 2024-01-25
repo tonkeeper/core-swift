@@ -17,10 +17,6 @@ public struct Wallet: Codable, Hashable {
   /// List of remembered favorite addresses
   let addressBook: [AddressBookEntry]
   
-  /// Preferred version out of `availableWalletVersions`.
-  /// `nil` if the standard versions do not apply (lockup and watchonly wallets)
-  public let contractVersion: WalletContractVersion
-  
   /// Store your app-specific configuration here. Such as theme settings and other preferences.
   /// TODO: make this codeable so it can be backed up and sycned.
   //    let userInfo: [String:AnyObject]
@@ -35,14 +31,12 @@ public struct Wallet: Codable, Hashable {
        metaData: WalletMetaData,
        notificationSettings: NotificationSettings = .init(),
        backupSettings: WalletBackupSettings = .init(enabled: true, revision: 1, voucher: nil),
-       addressBook: [AddressBookEntry] = [],
-       contractVersion: WalletContractVersion = .NA) {
+       addressBook: [AddressBookEntry] = []) {
     self.identity = identity
     self.metaData = metaData
     self.notificationSettings = notificationSettings
     self.backupSettings = backupSettings
     self.addressBook = addressBook
-    self.contractVersion = contractVersion
   }
   
   public static func == (lhs: Wallet, rhs: Wallet) -> Bool {
@@ -63,9 +57,9 @@ extension Wallet {
   public var publicKey: TonSwift.PublicKey {
     get throws {
       switch identity.kind {
-      case let .Regular(publicKey):
+      case let .Regular(publicKey, _):
         return publicKey
-      case let .External(publicKey):
+      case let .External(publicKey, _):
         return publicKey
       default:
         throw Error.notAvailableWalletKind
@@ -75,7 +69,19 @@ extension Wallet {
   
   public var contract: WalletContract {
     get throws {
-      let publicKey = try publicKey
+      let publicKey: TonSwift.PublicKey
+      let contractVersion: WalletContractVersion
+      switch identity.kind {
+      case .Regular(let pk, let cv):
+        publicKey = pk
+        contractVersion = cv
+      case .External(let pk, let cv):
+        publicKey = pk
+        contractVersion = cv
+      default: 
+        throw Error.notAvailableWalletKind
+      }
+      
       switch contractVersion {
       case .v4R2:
         return WalletV4R2(publicKey: publicKey.data)
@@ -85,8 +91,6 @@ extension Wallet {
         return try WalletV3(workchain: 0, publicKey: publicKey.data, revision: .r2)
       case .v3R1:
         return try WalletV3(workchain: 0, publicKey: publicKey.data, revision: .r1)
-      case .NA:
-        throw Error.notAvailableWalletRevision
       }
     }
   }
@@ -97,9 +101,16 @@ extension Wallet {
     }
   }
   
-  public var address: Address {
+  public var address: ResolvableAddress {
     get throws {
-      try contract.address()
+      switch identity.kind {
+      case .Regular, .External:
+        return ResolvableAddress.Resolved(try contract.address())
+      case .Watchonly(let address):
+        return address
+      case .Lockup:
+        throw Error.notAvailableWalletKind
+      }
     }
   }
   
@@ -140,7 +151,6 @@ extension Wallet {
     self.notificationSettings = try container.decode(NotificationSettings.self, forKey: .notificationSettings)
     self.backupSettings = try container.decode(WalletBackupSettings.self, forKey: .backupSettings)
     self.addressBook = try container.decode([AddressBookEntry].self, forKey: .addressBook)
-    self.contractVersion = try container.decode(WalletContractVersion.self, forKey: .contractVersion)
     
     if let metadata = try? container.decodeIfPresent(WalletMetaData.self, forKey: .metaData) {
       self.metaData = metadata
