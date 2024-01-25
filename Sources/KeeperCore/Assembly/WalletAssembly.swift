@@ -3,28 +3,21 @@ import Foundation
 public final class WalletAssembly {
   
   private let servicesAssembly: ServicesAssembly
-  private let coreAssembly: CoreAssembly
+  private let walletUpdateAssembly: WalletsUpdateAssembly
   
-  init(servicesAssembly: ServicesAssembly, coreAssembly: CoreAssembly) {
+  let walletStore: WalletsStore
+  
+  init(servicesAssembly: ServicesAssembly,
+       walletUpdateAssembly: WalletsUpdateAssembly,
+       wallets: [Wallet],
+       activeWallet: Wallet) {
     self.servicesAssembly = servicesAssembly
-    self.coreAssembly = coreAssembly
-  }
-  
-  private var _walletListUpdater: WalletListUpdater?
-  func walletListUpdater() -> WalletListUpdater {
-    if let walletListUpdater = _walletListUpdater {
-      return walletListUpdater
-    } else {
-      let walletListUpdater = WalletListUpdater(
-        keeperInfoService: servicesAssembly.keeperInfoService(),
-        mnemonicRepository: coreAssembly.mnemonicRepository()
-      )
-      _walletListUpdater = walletListUpdater
-      return walletListUpdater
-    }
-  }
-
-  func walletAddController() -> WalletAddController {
-    WalletAddController(walletListUpdater: walletListUpdater())
+    self.walletUpdateAssembly = walletUpdateAssembly
+    
+    self.walletStore = WalletsStore(
+      wallets: wallets,
+      activeWallet: activeWallet
+    )
+    walletUpdateAssembly.walletsStoreUpdate.addObserver(walletStore)
   }
 }

@@ -10,12 +10,8 @@ public struct CoreAssembly {
     self.sharedCacheURL = sharedCacheURL
   }
   
-  func mnemonicRepository() -> WalletMnemonicRepository {
-    mnemonicVault()
-  }
-  
-  func keeperInfoRepository() -> KeeperInfoRepository {
-    sharedFileSystemVault()
+  func mnemonicVault() -> MnemonicVault {
+    MnemonicVault(keychainVault: keychainVault, accessGroup: nil)
   }
 
   func fileSystemVault<T, K>() -> FileSystemVault<T, K> {
@@ -38,9 +34,5 @@ private extension CoreAssembly {
   
   var keychain: Keychain {
     KeychainImplementation()
-  }
-  
-  func mnemonicVault() -> MnemonicVault {
-    MnemonicVault(keychainVault: keychainVault, accessGroup: nil)
   }
 }

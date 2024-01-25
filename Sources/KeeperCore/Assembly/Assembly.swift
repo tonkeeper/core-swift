@@ -13,15 +13,14 @@ public final class Assembly {
   }
   
   private let coreAssembly: CoreAssembly
-  private lazy var servicesAssembly = ServicesAssembly(coreAssembly: coreAssembly)
-  private lazy var walletAssembly = WalletAssembly(
-    servicesAssembly: servicesAssembly,
-    coreAssembly: coreAssembly
-  )
-  private lazy var rootAssembly = RootAssembly(
-    servicesAssembly: servicesAssembly,
-    walletAssembly: walletAssembly
-  )
+  private lazy var repositoriesAssembly = RepositoriesAssembly(coreAssembly: coreAssembly)
+  private lazy var servicesAssembly = ServicesAssembly(repositoriesAssembly: repositoriesAssembly)
+  private var walletUpdateAssembly: WalletsUpdateAssembly {
+    WalletsUpdateAssembly(
+      servicesAssembly: servicesAssembly,
+      repositoriesAssembly: repositoriesAssembly
+    )
+  }
   
   private let dependencies: Dependencies
   
@@ -35,30 +34,9 @@ public final class Assembly {
 }
 
 public extension Assembly {
-  func rootController() -> RootController {
-    rootAssembly.rootController()
-  }
-  
-  func onboardingAssembly() -> OnboardingAssembly {
-    OnboardingAssembly(
-      servicesAssembly: servicesAssembly,
-      coreAssembly: coreAssembly,
-      walletAssembly: walletAssembly
-    )
-  }
-  
-  func mainAssembly(dependencies: MainAssembly.Dependencies) -> MainAssembly {
-    let notEmptyWalletAssembly = NotEmptyWalletAssembly(
-      servicesAssembly: servicesAssembly,
-      coreAssembly: coreAssembly,
-      walletAssembly: walletAssembly,
-      wallets: dependencies.wallets,
-      activeWallet: dependencies.activeWallet)
-    
-    return MainAssembly(
-      walletAssembly: walletAssembly,
-      notEmptyWalletAssembly: notEmptyWalletAssembly,
-      servicesAssembly: servicesAssembly,
-      coreAssembly: coreAssembly)
+  func rootAssembly() -> RootAssembly {
+    RootAssembly(coreAssembly: coreAssembly,
+                 servicesAssembly: servicesAssembly,
+                 walletsUpdateAssembly: walletUpdateAssembly)
   }
 }

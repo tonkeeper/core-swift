@@ -1,14 +1,14 @@
 import Foundation
 
 public final class ServicesAssembly {
+
+  private let repositoriesAssembly: RepositoriesAssembly
   
-  private let coreAssembly: CoreAssembly
-  
-  init(coreAssembly: CoreAssembly) {
-    self.coreAssembly = coreAssembly
+  init(repositoriesAssembly: RepositoriesAssembly) {
+    self.repositoriesAssembly = repositoriesAssembly
   }
   
-  func keeperInfoService() -> KeeperInfoService {
-    KeeperInfoServiceImplementation(keeperInfoRepository: coreAssembly.keeperInfoRepository())
+  func walletsService() -> WalletsService {
+    WalletsServiceImplementation(keeperInfoRepository: repositoriesAssembly.keeperInfoRepository())
   }
 }

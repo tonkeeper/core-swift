@@ -12,22 +12,26 @@ public final class MainAssembly {
     }
   }
   
-  let walletAssembly: WalletAssembly
-  let notEmptyWalletAssembly: NotEmptyWalletAssembly
-  let servicesAssembly: ServicesAssembly
-  let coreAssembly: CoreAssembly
+  public let walletAssembly: WalletAssembly
+  public let walletUpdateAssembly: WalletsUpdateAssembly
+  public let servicesAssembly: ServicesAssembly
   
   init(walletAssembly: WalletAssembly,
-       notEmptyWalletAssembly: NotEmptyWalletAssembly,
-       servicesAssembly: ServicesAssembly,
-       coreAssembly: CoreAssembly) {
+       walletUpdateAssembly: WalletsUpdateAssembly,
+       servicesAssembly: ServicesAssembly) {
     self.walletAssembly = walletAssembly
-    self.notEmptyWalletAssembly = notEmptyWalletAssembly
+    self.walletUpdateAssembly = walletUpdateAssembly
     self.servicesAssembly = servicesAssembly
-    self.coreAssembly = coreAssembly
   }
   
   public func walletMainController() -> WalletMainController {
-    notEmptyWalletAssembly.walletMainController()
+    WalletMainController(walletsStore: walletAssembly.walletStore)
+  }
+  
+  public func walletListController() -> WalletListController {
+    WalletListController(
+      walletsStore: walletAssembly.walletStore,
+      walletsStoreUpdate: walletUpdateAssembly.walletsStoreUpdate
+    )
   }
 }
