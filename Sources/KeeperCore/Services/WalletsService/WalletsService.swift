@@ -39,7 +39,8 @@ final class WalletsServiceImplementation: WalletsService {
     let keeperInfo: KeeperInfo
     do {
       let currentKeeperInfo = try keeperInfoRepository.getKeeperInfo()
-      let updatedWallets = currentKeeperInfo.wallets + wallets
+      let newWalletsIds = wallets.map { $0.identity }
+      let updatedWallets = currentKeeperInfo.wallets.filter { !newWalletsIds.contains($0.identity) } + wallets
       let updatedKeeperInfo = currentKeeperInfo.setWallets(updatedWallets)
       keeperInfo = updatedKeeperInfo
     } catch {
