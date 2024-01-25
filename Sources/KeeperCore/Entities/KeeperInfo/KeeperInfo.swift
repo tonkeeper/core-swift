@@ -6,7 +6,7 @@ public struct KeeperInfo {
   let wallets: [Wallet]
   
   /// Currently selected wallet
-  let currentWallet: WalletIdentity
+  let currentWallet: Wallet
   
   /// Common pin/faceid settings
   let securitySettings: SecuritySettings
@@ -32,11 +32,12 @@ extension KeeperInfo: Codable {
     assetsPolicy = try container.decode(AssetsPolicy.self, forKey: .assetsPolicy)
     appCollection = try container.decode(AppCollection.self, forKey: .appCollection)
     
-    if let currentWallet = try? container.decode(WalletIdentity.self, forKey: .currentWallet) {
+    if let currentWalletIdentity = try? container.decode(WalletIdentity.self, forKey: .currentWallet),
+       let currentWallet = wallets.first(where: { $0.identity == currentWalletIdentity }) {
       self.currentWallet = currentWallet
     } else {
       let currentWallet = try container.decode(Wallet.self, forKey: .currentWallet)
-      self.currentWallet = currentWallet.identity
+      self.currentWallet = currentWallet
     }
   }
 }

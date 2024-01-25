@@ -116,6 +116,20 @@ extension Wallet {
     }
     return true
   }
+  
+  public var isWatchonly: Bool {
+    guard case .Watchonly = identity.kind else {
+      return false
+    }
+    return true
+  }
+  
+  public var isTestnet: Bool {
+    guard case .testnet = identity.network else {
+      return false
+    }
+    return true
+  }
 }
 
 extension Wallet {
