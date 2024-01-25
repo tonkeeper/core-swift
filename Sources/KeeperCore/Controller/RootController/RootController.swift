@@ -1,45 +1,24 @@
 import Foundation
 
 public final class RootController {
-  
   public enum State {
     case onboarding
     case main(wallets: [Wallet], activeWallet: Wallet)
   }
-  
-  public var state: State = .onboarding {
-    didSet {
-      didUpdateState?(state)
-    }
-  }
-  public var didUpdateState: ((State) -> Void)?
 
-  private let keeperInfoService: KeeperInfoService
+  private let walletsService: WalletsService
   
-  init(keeperInfoService: KeeperInfoService) {
-    self.keeperInfoService = keeperInfoService
-    setupState()
+  init(walletsService: WalletsService) {
+    self.walletsService = walletsService
   }
-}
-
-private extension RootController {
-  func setupState() {
+  
+  public func getState() -> State {
     do {
-      let keeperInfo = try keeperInfoService.getKeeperInfo()
-      if !keeperInfo.wallets.isEmpty,
-      let activeWallet = keeperInfo.wallets.first(where: { $0.identity == keeperInfo.currentWallet }) {
-        self.state = .main(wallets: keeperInfo.wallets, activeWallet: activeWallet)
-      } else {
-        self.state = .onboarding
-      }
+      let wallets = try walletsService.getWallets()
+      let activeWallet = try walletsService.getActiveWallet()
+      return .main(wallets: wallets, activeWallet: activeWallet)
     } catch {
-      self.state = .onboarding
+      return .onboarding
     }
-  }
-}
-
-extension RootController: WalletListUpdaterObserver {
-  func didGetWalletListUpdaterEvent(_ event: WalletListUpdaterEvent) {
-    setupState()
   }
 }
