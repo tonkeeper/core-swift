@@ -1,9 +1,30 @@
 import Foundation
 import TonSwift
 
-public enum WalletContractVersion: String, Codable {
+public enum WalletContractVersion: String, Codable, CaseIterable, Comparable {
   /// Regular wallets
   case v3R1, v3R2, v4R1, v4R2
+  
+  public static var currentVersion: WalletContractVersion {
+    .v4R2
+  }
+  
+  private var intValue: Int {
+    switch self {
+    case .v3R1:
+      return 1
+    case .v3R2:
+      return 2
+    case .v4R1:
+      return 3
+    case .v4R2:
+      return 4
+    }
+  }
+  
+  public static func < (lhs: WalletContractVersion, rhs: WalletContractVersion) -> Bool {
+    lhs.intValue < rhs.intValue
+  }
 }
 
 extension WalletContractVersion: CellCodable {
