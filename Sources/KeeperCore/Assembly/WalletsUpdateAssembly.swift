@@ -21,4 +21,12 @@ public final class WalletsUpdateAssembly {
       mnemonicRepositoty: repositoriesAssembly.mnemonicRepository()
     )
   }
+  
+  public func walletImportController() -> WalletImportController {
+    WalletImportController(activeWalletService: servicesAssembly.activeWalletsService())
+  }
+  
+  public func chooseWalletController(activeWalletModels: [ActiveWalletModel]) -> ChooseWalletsController {
+    ChooseWalletsController(activeWalletModels: activeWalletModels)
+  }
 }

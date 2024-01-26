@@ -14,7 +14,11 @@ public final class Assembly {
   
   private let coreAssembly: CoreAssembly
   private lazy var repositoriesAssembly = RepositoriesAssembly(coreAssembly: coreAssembly)
-  private lazy var servicesAssembly = ServicesAssembly(repositoriesAssembly: repositoriesAssembly)
+  private lazy var apiAssembly = APIAssembly()
+  private lazy var servicesAssembly = ServicesAssembly(
+    repositoriesAssembly: repositoriesAssembly, 
+    apiAssembly: apiAssembly
+  )
   private var walletUpdateAssembly: WalletsUpdateAssembly {
     WalletsUpdateAssembly(
       servicesAssembly: servicesAssembly,

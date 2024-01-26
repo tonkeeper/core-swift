@@ -15,4 +15,8 @@ public final class RepositoriesAssembly {
   func keeperInfoRepository() -> KeeperInfoRepository {
     coreAssembly.sharedFileSystemVault()
   }
+  
+  func walletBalanceRepository() -> WalletBalanceRepository {
+    WalletBalanceRepositoryimplementation(fileSystemVault: coreAssembly.fileSystemVault())
+  }
 }
