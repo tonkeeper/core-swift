@@ -19,4 +19,8 @@ public final class RepositoriesAssembly {
   func walletBalanceRepository() -> WalletBalanceRepository {
     WalletBalanceRepositoryimplementation(fileSystemVault: coreAssembly.fileSystemVault())
   }
+  
+  func ratesRepository() -> RatesRepository {
+    RatesRepositoryImplementation(fileSystemVault: coreAssembly.fileSystemVault())
+  }
 }

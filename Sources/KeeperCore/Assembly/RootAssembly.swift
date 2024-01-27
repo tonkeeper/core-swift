@@ -2,14 +2,20 @@ import Foundation
 
 public final class RootAssembly {
   private let servicesAssembly: ServicesAssembly
+  private let storesAssembly: StoresAssembly
   private let coreAssembly: CoreAssembly
+  private let formattersAssembly: FormattersAssembly
   private let walletsUpdateAssembly: WalletsUpdateAssembly
 
   init(coreAssembly: CoreAssembly,
        servicesAssembly: ServicesAssembly,
+       storesAssembly: StoresAssembly,
+       formattersAssembly: FormattersAssembly,
        walletsUpdateAssembly: WalletsUpdateAssembly) {
     self.coreAssembly = coreAssembly
     self.servicesAssembly = servicesAssembly
+    self.storesAssembly = storesAssembly
+    self.formattersAssembly = formattersAssembly
     self.walletsUpdateAssembly = walletsUpdateAssembly
   }
   
@@ -37,6 +43,9 @@ public final class RootAssembly {
     return MainAssembly(
       walletAssembly: walletAssembly,
       walletUpdateAssembly: walletsUpdateAssembly,
-      servicesAssembly: servicesAssembly)
+      servicesAssembly: servicesAssembly,
+      storesAssembly: storesAssembly,
+      formattersAssembly: formattersAssembly
+    )
   }
 }

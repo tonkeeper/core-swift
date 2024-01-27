@@ -12,16 +12,22 @@ public final class MainAssembly {
     }
   }
   
-  public let walletAssembly: WalletAssembly
+  let walletAssembly: WalletAssembly
   public let walletUpdateAssembly: WalletsUpdateAssembly
-  public let servicesAssembly: ServicesAssembly
+  let servicesAssembly: ServicesAssembly
+  let storesAssembly: StoresAssembly
+  let formattersAssembly: FormattersAssembly
   
   init(walletAssembly: WalletAssembly,
        walletUpdateAssembly: WalletsUpdateAssembly,
-       servicesAssembly: ServicesAssembly) {
+       servicesAssembly: ServicesAssembly,
+       storesAssembly: StoresAssembly,
+       formattersAssembly: FormattersAssembly) {
     self.walletAssembly = walletAssembly
     self.walletUpdateAssembly = walletUpdateAssembly
     self.servicesAssembly = servicesAssembly
+    self.storesAssembly = storesAssembly
+    self.formattersAssembly = formattersAssembly
   }
   
   public func walletMainController() -> WalletMainController {
@@ -33,5 +39,23 @@ public final class MainAssembly {
       walletsStore: walletAssembly.walletStore,
       walletsStoreUpdate: walletUpdateAssembly.walletsStoreUpdate
     )
+  }
+  
+  public func walletBalanceController(wallet: Wallet) -> WalletBalanceController {
+    WalletBalanceController(
+      wallet: wallet,
+      balanceStore: storesAssembly.balanceStore,
+      ratesStore: storesAssembly.ratesStore,
+      walletBalanceMapper: walletBalanceMapper
+    )
+  }
+}
+
+private extension MainAssembly {
+  var walletBalanceMapper: WalletBalanceMapper {
+    WalletBalanceMapper(
+      amountFormatter: formattersAssembly.amountFormatter,
+      decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
+      rateConverter: RateConverter())
   }
 }

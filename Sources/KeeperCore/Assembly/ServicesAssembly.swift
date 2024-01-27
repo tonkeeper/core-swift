@@ -34,4 +34,11 @@ public final class ServicesAssembly {
     ActiveWalletsServiceImplementation(api: apiAssembly.api,
                                        jettonsBalanceService: jettonsBalanceService())
   }
+  
+  func ratesService() -> RatesService {
+    RatesServiceImplementation(
+      api: apiAssembly.api,
+      ratesRepository: repositoriesAssembly.ratesRepository()
+    )
+  }
 }

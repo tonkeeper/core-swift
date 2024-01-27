@@ -19,6 +19,10 @@ public final class Assembly {
     repositoriesAssembly: repositoriesAssembly, 
     apiAssembly: apiAssembly
   )
+  private lazy var storesAssembly = StoresAssembly(
+    servicesAssembly: servicesAssembly
+  )
+  private lazy var formattersAssembly = FormattersAssembly()
   private var walletUpdateAssembly: WalletsUpdateAssembly {
     WalletsUpdateAssembly(
       servicesAssembly: servicesAssembly,
@@ -41,6 +45,8 @@ public extension Assembly {
   func rootAssembly() -> RootAssembly {
     RootAssembly(coreAssembly: coreAssembly,
                  servicesAssembly: servicesAssembly,
+                 storesAssembly: storesAssembly,
+                 formattersAssembly: formattersAssembly,
                  walletsUpdateAssembly: walletUpdateAssembly)
   }
 }
