@@ -27,11 +27,11 @@ extension API {
     return try response.ok.body.json.balances
       .compactMap { jetton in
         do {
-          let quantity = BigInt(stringLiteral: jetton.balance)
+          let quantity = BigUInt(stringLiteral: jetton.balance)
           let walletAddress = try Address.parse(jetton.wallet_address.address)
           let jettonInfo = try JettonInfo(jettonPreview: jetton.jetton)
           let jettonAmount = JettonAmount(jettonInfo: jettonInfo,
-                                         quantity: quantity)
+                                          quantity: quantity)
           let jettonBalance = JettonBalance(walletAddress: walletAddress,
                                             amount: jettonAmount)
           return jettonBalance
@@ -157,54 +157,52 @@ extension API {
 //  }
 //}
 //
-//// MARK: - Rates
-//
-//extension API {
-//  func getRates(tonInfo: TonInfo,
-//                tokens: [TokenInfo],
-//                currencies: [Currency]) async throws -> Rates {
-//    let requestTokens = ([tonInfo.symbol.lowercased()] + tokens.map { $0.address.toRaw() })
-//      .joined(separator: ",")
-//    let requestCurrencies = currencies.map { $0.code }
-//      .joined(separator: ",")
-//    let response = try await tonAPIClient
-//      .getRates(query: .init(tokens: requestTokens, currencies: requestCurrencies))
-//    let entity = try response.ok.body.json
-//    return parseResponse(rates: entity.rates.additionalProperties, tonInfo: tonInfo, tokens: tokens)
-//  }
-//  
-//  private func parseResponse(rates: [String: Components.Schemas.TokenRates],
-//                             tonInfo: TonInfo,
-//                             tokens: [TokenInfo]) -> Rates {
-//    var tonRates = [Rates.Rate]()
-//    var tokensRates = [Rates.TokenRate]()
-//    for key in rates.keys {
-//      guard let tokenRates = rates[key] else { continue }
-//      if key.lowercased() == tonInfo.symbol.lowercased() {
-//        guard let prices = tokenRates.prices?.additionalProperties else { continue }
-//        let diff24h = tokenRates.diff_24h?.additionalProperties
-//        tonRates = prices.compactMap { price -> Rates.Rate? in
-//          guard let currency = Currency(code: price.key) else { return nil }
-//          let diff24h = diff24h?[price.key]
-//          return Rates.Rate(currency: currency, rate: Decimal(price.value), diff24h: diff24h)
-//        }
-//        continue
-//      }
-//      guard let tokenInfo = tokens.first(where: { $0.address.toRaw() == key.lowercased()}) else { continue }
-//      guard let prices =  tokenRates.prices?.additionalProperties else { continue }
-//      let diff24h = tokenRates.diff_24h?.additionalProperties
-//      let rates: [Rates.Rate] = prices.compactMap { price -> Rates.Rate? in
-//        guard let currency = Currency(code: price.key) else { return nil }
-//        let diff24h = diff24h?[price.key]
-//        return Rates.Rate(currency: currency, rate: Decimal(price.value), diff24h: diff24h)
-//      }
-//      tokensRates.append(.init(tokenInfo: tokenInfo, rates: rates))
-//      
-//    }
-//    return Rates(ton: tonRates, tokens: tokensRates)
-//  }
-//}
-//
+// MARK: - Rates
+
+extension API {
+  func getRates(jettons: [JettonInfo],
+                currencies: [Currency]) async throws -> Rates {
+    let requestTokens = ([TonInfo.symbol.lowercased()] + jettons.map { $0.address.toRaw() })
+      .joined(separator: ",")
+    let requestCurrencies = currencies.map { $0.code }
+      .joined(separator: ",")
+    let response = try await tonAPIClient
+      .getRates(query: .init(tokens: requestTokens, currencies: requestCurrencies))
+    let entity = try response.ok.body.json
+    return parseResponse(rates: entity.rates.additionalProperties, jettons: jettons)
+  }
+  
+  private func parseResponse(rates: [String: Components.Schemas.TokenRates],
+                             jettons: [JettonInfo]) -> Rates {
+    var tonRates = [Rates.Rate]()
+    var jettonsRates = [Rates.JettonRate]()
+    for key in rates.keys {
+      guard let jettonRates = rates[key] else { continue }
+      if key.lowercased() == TonInfo.symbol.lowercased() {
+        guard let prices = jettonRates.prices?.additionalProperties else { continue }
+        let diff24h = jettonRates.diff_24h?.additionalProperties
+        tonRates = prices.compactMap { price -> Rates.Rate? in
+          guard let currency = Currency(code: price.key) else { return nil }
+          let diff24h = diff24h?[price.key]
+          return Rates.Rate(currency: currency, rate: Decimal(price.value), diff24h: diff24h)
+        }
+        continue
+      }
+      guard let jettonInfo = jettons.first(where: { $0.address.toRaw() == key.lowercased()}) else { continue }
+      guard let prices = jettonRates.prices?.additionalProperties else { continue }
+      let diff24h = jettonRates.diff_24h?.additionalProperties
+      let rates: [Rates.Rate] = prices.compactMap { price -> Rates.Rate? in
+        guard let currency = Currency(code: price.key) else { return nil }
+        let diff24h = diff24h?[price.key]
+        return Rates.Rate(currency: currency, rate: Decimal(price.value), diff24h: diff24h)
+      }
+      jettonsRates.append(.init(jettonInfo: jettonInfo, rates: rates))
+      
+    }
+    return Rates(ton: tonRates, jettonsRates: jettonsRates)
+  }
+}
+
 //// MARK: - DNS
 //
 //extension API {
