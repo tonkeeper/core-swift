@@ -4,9 +4,9 @@ import TonSwift
 actor BalanceStore {
   typealias Stream = AsyncStream<Result<Event, Swift.Error>>
   
-  struct Event {
-    let address: Address
-    let balance: WalletBalance
+  public struct Event {
+    public let address: Address
+    public let balance: WalletBalance
   }
   
   private var continuations = [UUID: Stream.Continuation]()
@@ -38,6 +38,10 @@ actor BalanceStore {
       }
     }
     tasksInProgress[address] = task
+  }
+  
+  func getBalance(address: Address) throws -> WalletBalance {
+    return try balanceService.getBalance(address: address)
   }
   
   func updateStream() -> Stream {

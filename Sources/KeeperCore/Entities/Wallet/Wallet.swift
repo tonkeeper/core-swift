@@ -101,13 +101,13 @@ extension Wallet {
     }
   }
   
-  public var address: ResolvableAddress {
+  public var address: Address {
     get throws {
       switch identity.kind {
       case .Regular, .External:
-        return ResolvableAddress.Resolved(try contract.address())
+        return try contract.address()
       case .Watchonly(let address):
-        return address
+        throw Error.notAvailableWalletKind
       case .Lockup:
         throw Error.notAvailableWalletKind
       }

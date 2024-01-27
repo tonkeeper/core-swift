@@ -25,16 +25,17 @@ public struct JettonBalance: Codable {
 
 public struct JettonAmount: Codable {
   public let jettonInfo: JettonInfo
-  public let quantity: BigInt
+  public let quantity: BigUInt
 }
 
 public struct TonInfo {
   public static let name = "Toncoin"
   public static let symbol = "TON"
   public static let fractionDigits = 9
+  private init() {}
 }
 
-public struct JettonInfo: Codable, Equatable {
+public struct JettonInfo: Codable, Equatable, Hashable {
   public let address: Address
   public let fractionDigits: Int
   public let name: String
@@ -43,5 +44,9 @@ public struct JettonInfo: Codable, Equatable {
   
   public static func == (lhs: Self, rhs: Self) -> Bool {
     lhs.address == rhs.address
+  }
+  
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(address)
   }
 }
