@@ -3,7 +3,7 @@ import CoreComponents
 
 public final class WalletMainController {
   
-  public var didUpdateActiveWallet: ((WalletModel) -> Void)?
+  public var didUpdateActiveWallet: (() -> Void)?
   
   public struct WalletModel {
     public let name: String
@@ -17,11 +17,15 @@ public final class WalletMainController {
     self.walletsStore.addObserver(self)
   }
   
-  public func getActiveWallet() {
+  public func getActiveWalletModel() -> WalletModel {
     let activeWallet = walletsStore.activeWallet
     let model = WalletModel(name: activeWallet.metaData.emoji + " " + activeWallet.metaData.label,
                             colorIdentifier: activeWallet.metaData.colorIdentifier)
-    didUpdateActiveWallet?(model)
+    return model
+  }
+  
+  public func getActiveWallet() -> Wallet {
+    walletsStore.activeWallet
   }
 }
 
@@ -29,7 +33,7 @@ extension WalletMainController: WalletsStoreObserver {
   func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
     switch event {
     case .didUpdateActiveWallet:
-      getActiveWallet()
+      didUpdateActiveWallet?()
     default: break
     }
   }
