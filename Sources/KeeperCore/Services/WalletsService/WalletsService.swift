@@ -52,9 +52,6 @@ final class WalletsServiceImplementation: WalletsService {
   
   func setWalletActive(_ wallet: Wallet) throws {
     let currentKeeperInfo = try keeperInfoRepository.getKeeperInfo()
-    guard currentKeeperInfo.wallets.contains(where: { $0.identity == wallet.identity }) else {
-      throw WalletsServiceError.walletNotAdded
-    }
     let updatedKeeperInfo = currentKeeperInfo.setActiveWallet(wallet)
     try keeperInfoRepository.saveKeeperInfo(updatedKeeperInfo)
   }

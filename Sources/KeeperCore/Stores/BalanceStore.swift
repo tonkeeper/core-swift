@@ -1,6 +1,11 @@
 import Foundation
 import TonSwift
 
+ 
+protocol BalanceStoreObserver: AnyObject {
+  func didGetBalanceStoreEvent(_ event: Result<BalanceStore.Event, Swift.Error>)
+}
+
 actor BalanceStore {
   typealias Stream = AsyncStream<Result<Event, Swift.Error>>
   
@@ -9,7 +14,6 @@ actor BalanceStore {
     public let balance: WalletBalance
   }
   
-  private var continuations = [UUID: Stream.Continuation]()
   private var tasksInProgress = [Address: Task<(), Never>]()
   
   private let balanceService: BalanceService
@@ -29,11 +33,11 @@ actor BalanceStore {
         let walletBalance = try await balanceService.loadWalletBalance(address: address)
         let event = Event(address: address, balance: walletBalance)
         guard !Task.isCancelled else { return }
-        continuations.values.forEach { $0.yield(.success(event)) }
+        notifyObservers(event: .success(event))
         tasksInProgress[address] = nil
       } catch {
         guard !Task.isCancelled else { return }
-        continuations.values.forEach { $0.yield(.failure(error)) }
+        notifyObservers(event: .failure(error))
         tasksInProgress[address] = nil
       }
     }
@@ -43,27 +47,30 @@ actor BalanceStore {
   func getBalance(address: Address) throws -> WalletBalance {
     return try balanceService.getBalance(address: address)
   }
+    
+  struct BalanceStoreObserverWrapper {
+    weak var observer: BalanceStoreObserver?
+  }
   
-  func updateStream() -> Stream {
-    createUpdateStream()
+  private var observers = [BalanceStoreObserverWrapper]()
+  
+  func addObserver(_ observer: BalanceStoreObserver) {
+    removeNilObservers()
+    observers = observers + CollectionOfOne(BalanceStoreObserverWrapper(observer: observer))
+  }
+  
+  func removeObserver(_ observer: BalanceStoreObserver) {
+    removeNilObservers()
+    observers = observers.filter { $0.observer !== observer }
   }
 }
 
 private extension BalanceStore {
-  func createUpdateStream() -> Stream {
-    let uuid = UUID()
-    return Stream { continuation in
-      self.continuations[uuid] = continuation
-      continuation.onTermination = { [weak self] termination in
-        guard let self = self else { return }
-        Task {
-          await self.removeUpdateStreamContinuation(with: uuid)
-        }
-      }
-    }
+  func removeNilObservers() {
+    observers = observers.filter { $0.observer != nil }
   }
-  
-  func removeUpdateStreamContinuation(with uuid: UUID) {
-    self.continuations.removeValue(forKey: uuid)
+
+  func notifyObservers(event: Result<BalanceStore.Event, Swift.Error>) {
+    observers.forEach { $0.observer?.didGetBalanceStoreEvent(event) }
   }
 }

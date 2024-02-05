@@ -30,10 +30,6 @@ public final class WalletBalanceController {
     startStoresObservation()
   }
   
-  deinit {
-    stopStoresObservation()
-  }
-  
   public func setWallet(_ wallet: Wallet) {
     self.wallet = wallet
     loadBalance()
@@ -42,7 +38,7 @@ public final class WalletBalanceController {
   public func loadBalance() {
     updateBalance()
     Task {
-      try await balanceStore.loadBalance(address: wallet.address)
+      try await self.balanceStore.loadBalance(address: self.wallet.address)
     }
   }
   
@@ -90,24 +86,26 @@ private extension WalletBalanceController {
   }
   
   func startStoresObservation() {
-    storesObservationTask = Task {
-      Task {
-        let balanceStoreStream = await balanceStore.updateStream()
-        for await event in balanceStoreStream {
-          didReceiveBalanceUpdateEvent(event)
-        }
-      }
-      Task {
-        let ratesStoreStream = await ratesStore.updateStream()
-        for await _ in ratesStoreStream {
-          didReceiveRatesUpdateEvent()
-        }
-      }
+    Task {
+      await balanceStore.addObserver(self)
+    }
+    Task {
+      await ratesStore.addObserver(self)
     }
   }
-  
-  func stopStoresObservation() {
-    storesObservationTask?.cancel()
-    storesObservationTask = nil
+}
+
+extension WalletBalanceController: BalanceStoreObserver {
+  func didGetBalanceStoreEvent(_ event: Result<BalanceStore.Event, Error>) {
+    didReceiveBalanceUpdateEvent(event)
+  }
+}
+
+extension WalletBalanceController: RatesStoreObserver {
+  func didGetRatesStoreEvent(_ event: RatesStore.Event) {
+    switch event {
+    case .updateRates:
+      didReceiveRatesUpdateEvent()
+    }
   }
 }

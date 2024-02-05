@@ -1,9 +1,14 @@
 import Foundation
 
+protocol RatesStoreObserver: AnyObject {
+  func didGetRatesStoreEvent(_ event: RatesStore.Event)
+}
+
 actor RatesStore {
-  typealias Stream = AsyncStream<Void>
   
-  private var continuations = [UUID: Stream.Continuation]()
+  enum Event {
+    case updateRates
+  }
   
   private let ratesService: RatesService
   
@@ -17,7 +22,7 @@ actor RatesStore {
         jettons: jettons,
         currencies: Currency.allCases
       )
-      continuations.values.forEach { $0.yield() }
+      notifyObservers(event: .updateRates)
     }
   }
   
@@ -25,26 +30,29 @@ actor RatesStore {
     return ratesService.getRates(jettons: jettons)
   }
   
-  func updateStream() -> Stream {
-    createUpdateStream()
+  struct RatesStoreObserverWrapper {
+    weak var observer: RatesStoreObserver?
+  }
+  
+  private var observers = [RatesStoreObserverWrapper]()
+  
+  func addObserver(_ observer: RatesStoreObserver) {
+    removeNilObservers()
+    observers = observers + CollectionOfOne(RatesStoreObserverWrapper(observer: observer))
+  }
+  
+  func removeObserver(_ observer: RatesStoreObserver) {
+    removeNilObservers()
+    observers = observers.filter { $0.observer !== observer }
   }
 }
 
 private extension RatesStore {
-  func createUpdateStream() -> Stream {
-    let uuid = UUID()
-    return Stream { continuation in
-      self.continuations[uuid] = continuation
-      continuation.onTermination = { [weak self] termination in
-        guard let self = self else { return }
-        Task {
-          await self.removeUpdateStreamContinuation(with: uuid)
-        }
-      }
-    }
+  func removeNilObservers() {
+    observers = observers.filter { $0.observer != nil }
   }
-  
-  func removeUpdateStreamContinuation(with uuid: UUID) {
-    self.continuations.removeValue(forKey: uuid)
+
+  func notifyObservers(event: RatesStore.Event) {
+    observers.forEach { $0.observer?.didGetRatesStoreEvent(event) }
   }
 }

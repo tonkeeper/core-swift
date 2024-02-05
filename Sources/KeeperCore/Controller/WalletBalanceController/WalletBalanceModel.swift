@@ -18,5 +18,6 @@ public extension WalletBalanceModel {
     public let rateDiff: String?
     public let amount: String?
     public let convertedAmount: String?
+    public let verification: JettonInfo.Verification
   }
 }

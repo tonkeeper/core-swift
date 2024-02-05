@@ -153,7 +153,8 @@ struct WalletBalanceMapper {
       price: price,
       rateDiff: diff,
       amount: amount,
-      convertedAmount: convertedAmount)
+      convertedAmount: convertedAmount,
+      verification: .whitelist)
   }
   
   func mapJettons(jettonsBalance: [JettonBalance],
@@ -206,7 +207,9 @@ struct WalletBalanceMapper {
       price: price,
       rateDiff: diff,
       amount: amount,
-      convertedAmount: convertedAmount)
+      convertedAmount: convertedAmount,
+      verification: jettonAmount.jettonInfo.verification
+    )
   }
 }
 
