@@ -36,10 +36,17 @@ public struct TonInfo {
 }
 
 public struct JettonInfo: Codable, Equatable, Hashable {
+  public enum Verification: Codable {
+    case none
+    case whitelist
+    case blacklist
+  }
+  
   public let address: Address
   public let fractionDigits: Int
   public let name: String
   public let symbol: String?
+  public let verification: Verification
   public let imageURL: URL?
   
   public static func == (lhs: Self, rhs: Self) -> Bool {
