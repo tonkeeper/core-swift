@@ -12,14 +12,6 @@ final class APIHostUrlProvider: ClientMiddleware {
                  async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?))
   async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
     let url = URL(string: "https://keeper.tonapi.io") ?? baseURL
-    
-    var mutableRequest = request
-    mutableRequest
-        .headerFields
-        .append(
-            .init(name: .authorization,
-                  value: "Bearer AF77F5JNEUSNXPQAAAAMDXXG7RBQ3IRP6PC2HTHL4KYRWMZYOUQGDEKYFDKBETZ6FDVZJBI")
-        )
-    return try await next(mutableRequest, body, url)
+    return try await next(request, body, url)
   }
 }

@@ -8,7 +8,6 @@ let package = Package(
     .macOS(.v12), .iOS(.v14)
   ],
   products: [
-    .library(name: "KeeperCore", targets: ["KeeperCore"]),
     .library(name: "WalletCore", type: .dynamic, targets: ["WalletCore", "KeeperCore"]),
     .library(name: "WalletCoreCore", targets: ["WalletCoreCore"]),
     .library(name: "WalletCoreKeeper", targets: ["WalletCoreKeeper"])
@@ -30,8 +29,11 @@ let package = Package(
     .target(name: "KeeperCore",
             dependencies: [
               .product(name: "TonSwift", package: "ton-swift"),
+              .product(name: "TonAPI", package: "ton-api-swift"),
               .target(name: "CoreComponents")
-            ]),
+            ],
+            path: "Sources/KeeperCore",
+            resources: [.copy("PackageResources/DefaultRemoteConfiguration.json")]),
     .testTarget(name: "KeeperCoreTests",
                 dependencies: [
                   "KeeperCore"

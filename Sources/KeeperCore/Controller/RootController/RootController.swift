@@ -7,9 +7,12 @@ public final class RootController {
   }
 
   private let walletsService: WalletsService
+  private let remoteConfigurationStore: ConfigurationStore
   
-  init(walletsService: WalletsService) {
+  init(walletsService: WalletsService,
+       remoteConfigurationStore: ConfigurationStore) {
     self.walletsService = walletsService
+    self.remoteConfigurationStore = remoteConfigurationStore
   }
   
   public func getState() -> State {
@@ -19,6 +22,12 @@ public final class RootController {
       return .main(wallets: wallets, activeWallet: activeWallet)
     } catch {
       return .onboarding
+    }
+  }
+  
+  public func loadConfiguration() {
+    Task {
+      try await remoteConfigurationStore.load()
     }
   }
 }

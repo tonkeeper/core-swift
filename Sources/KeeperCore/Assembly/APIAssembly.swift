@@ -10,6 +10,12 @@ import OpenAPIRuntime
 
 final class APIAssembly {
   
+  let configurationAssembly: ConfigurationAssembly
+
+  init(configurationAssembly: ConfigurationAssembly) {
+    self.configurationAssembly = configurationAssembly
+  }
+  
   // MARK: - Internal
   
   var api: API {
@@ -24,7 +30,7 @@ final class APIAssembly {
     let tonAPIClient = TonAPI.Client(
       serverURL: tonAPIURL,
       transport: transport,
-      middlewares: [apiHostProvider])
+      middlewares: [apiHostProvider, authTokenProvider])
     _tonAPIClient = tonAPIClient
     return tonAPIClient
   }
@@ -37,7 +43,7 @@ final class APIAssembly {
     let streamingTonAPIClient = TonStreamingAPI.Client(
       serverURL: tonAPIURL,
       transport: streamingTransport,
-      middlewares: [apiHostProvider])
+      middlewares: [apiHostProvider, authTokenProvider])
     _streamingTonAPIClient = streamingTonAPIClient
     return streamingTonAPIClient
   }
@@ -79,10 +85,12 @@ final class APIAssembly {
     return configuration
   }
   
-//  private var authTokenProvider: AuthTokenProvider {
-//    AuthTokenProvider(configurationController: configurationAssembly.configurationController())
-//  }
-//  
+  private var authTokenProvider: AuthTokenProvider {
+    AuthTokenProvider(
+      remoteConfigurationStore: configurationAssembly.remoteConfigurationStore
+    )
+  }
+  
   private var apiHostProvider: APIHostUrlProvider {
     APIHostUrlProvider()
   }

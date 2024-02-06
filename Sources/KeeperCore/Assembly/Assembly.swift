@@ -14,7 +14,12 @@ public final class Assembly {
   
   private let coreAssembly: CoreAssembly
   private lazy var repositoriesAssembly = RepositoriesAssembly(coreAssembly: coreAssembly)
-  private lazy var apiAssembly = APIAssembly()
+  private lazy var configurationAssembly = ConfigurationAssembly(
+    tonkeeperApiAssembly: tonkeeperApiAssembly,
+    coreAssembly: coreAssembly
+  )
+  private lazy var apiAssembly = APIAssembly(configurationAssembly: configurationAssembly)
+  private lazy var tonkeeperApiAssembly = TonkeeperAPIAssembly()
   private lazy var servicesAssembly = ServicesAssembly(
     repositoriesAssembly: repositoriesAssembly, 
     apiAssembly: apiAssembly
@@ -47,6 +52,7 @@ public extension Assembly {
                  servicesAssembly: servicesAssembly,
                  storesAssembly: storesAssembly,
                  formattersAssembly: formattersAssembly,
-                 walletsUpdateAssembly: walletUpdateAssembly)
+                 walletsUpdateAssembly: walletUpdateAssembly,
+                 configurationAssembly: configurationAssembly)
   }
 }

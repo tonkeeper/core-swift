@@ -7,7 +7,7 @@ protocol WalletBalanceRepository {
   func saveWalletBalance(_ walletBalance: WalletBalance, for address: Address) throws
 }
 
-struct WalletBalanceRepositoryimplementation: WalletBalanceRepository {
+struct WalletBalanceRepositoryImplementation: WalletBalanceRepository {
   let fileSystemVault: FileSystemVault<WalletBalance, Address>
   
   init(fileSystemVault: FileSystemVault<WalletBalance, Address>) {
