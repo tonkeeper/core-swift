@@ -31,13 +31,20 @@ public final class MainAssembly {
   }
   
   public func walletMainController() -> WalletMainController {
-    WalletMainController(walletsStore: walletAssembly.walletStore)
+    WalletMainController(
+      walletsStore: walletAssembly.walletStore,
+      balanceStore: storesAssembly.balanceStore,
+      ratesStore: storesAssembly.ratesStore
+    )
   }
   
   public func walletListController() -> WalletListController {
     WalletListController(
       walletsStore: walletAssembly.walletStore,
-      walletsStoreUpdate: walletUpdateAssembly.walletsStoreUpdate
+      walletsStoreUpdate: walletUpdateAssembly.walletsStoreUpdate,
+      balanceStore: storesAssembly.balanceStore,
+      ratesStore: storesAssembly.ratesStore,
+      walletListMapper: walletListMapper
     )
   }
   
@@ -57,5 +64,13 @@ private extension MainAssembly {
       amountFormatter: formattersAssembly.amountFormatter,
       decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
       rateConverter: RateConverter())
+  }
+  
+  var walletListMapper: WalletListMapper {
+    WalletListMapper(
+      amountFormatter: formattersAssembly.amountFormatter,
+      decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
+      rateConverter: RateConverter()
+    )
   }
 }

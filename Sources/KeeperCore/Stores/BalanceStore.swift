@@ -3,7 +3,7 @@ import TonSwift
 
  
 protocol BalanceStoreObserver: AnyObject {
-  func didGetBalanceStoreEvent(_ event: Result<BalanceStore.Event, Swift.Error>)
+  func didGetBalanceStoreEvent(_ event: BalanceStore.Event)
 }
 
 actor BalanceStore {
@@ -11,7 +11,7 @@ actor BalanceStore {
   
   public struct Event {
     public let address: Address
-    public let balance: WalletBalance
+    public let result: Result<WalletBalance, Swift.Error>
   }
   
   private var tasksInProgress = [Address: Task<(), Never>]()
@@ -29,19 +29,24 @@ actor BalanceStore {
     }
     
     let task = Task {
+      let event: Event
       do {
         let walletBalance = try await balanceService.loadWalletBalance(address: address)
-        let event = Event(address: address, balance: walletBalance)
-        guard !Task.isCancelled else { return }
-        notifyObservers(event: .success(event))
-        tasksInProgress[address] = nil
+        event = Event(address: address, result: .success(walletBalance))
       } catch {
-        guard !Task.isCancelled else { return }
-        notifyObservers(event: .failure(error))
-        tasksInProgress[address] = nil
+        event = Event(address: address, result: .failure(error))
       }
+      guard !Task.isCancelled else { return }
+      notifyObservers(event: event)
+      tasksInProgress[address] = nil
     }
     tasksInProgress[address] = task
+  }
+  
+  func loadBalances(addresses: [Address]) {
+    addresses.forEach { address in
+      loadBalance(address: address)
+    }
   }
   
   func getBalance(address: Address) throws -> WalletBalance {
@@ -70,7 +75,7 @@ private extension BalanceStore {
     observers = observers.filter { $0.observer != nil }
   }
 
-  func notifyObservers(event: Result<BalanceStore.Event, Swift.Error>) {
+  func notifyObservers(event: BalanceStore.Event) {
     observers.forEach { $0.observer?.didGetBalanceStoreEvent(event) }
   }
 }

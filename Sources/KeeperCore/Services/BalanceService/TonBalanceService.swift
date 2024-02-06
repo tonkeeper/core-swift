@@ -16,8 +16,7 @@ final class TonBalanceServiceImplementation: TonBalanceService {
   
   func loadBalance(address: Address) async throws -> TonBalance {
     let account = try await api.getAccountInfo(address: address.toRaw())
-    let tonBalance = TonBalance(walletAddress: account.address,
-                                amount: account.balance)
+    let tonBalance = TonBalance(amount: account.balance)
     return tonBalance
   }
 }

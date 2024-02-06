@@ -52,7 +52,7 @@ struct WalletBalanceMapper {
         rate: tonRate
       )
       items.append(Item(amount: converted.amount, fractionDigits: converted.fractionLength))
-      maximumFractionDigits = TonInfo.fractionDigits
+      maximumFractionDigits = converted.fractionLength
     }
     
     // Jettons
@@ -147,7 +147,7 @@ struct WalletBalanceMapper {
     }
     
     return WalletBalanceModel.Item(
-      identifier: tonBalance.walletAddress.toRaw(),
+      identifier: .tonIdentifier,
       image: .ton,
       title: TonInfo.name,
       price: price,

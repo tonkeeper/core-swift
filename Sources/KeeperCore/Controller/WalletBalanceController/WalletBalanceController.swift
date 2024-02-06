@@ -29,34 +29,21 @@ public final class WalletBalanceController {
     self.walletBalanceMapper = walletBalanceMapper
     startStoresObservation()
   }
-  
-  public func setWallet(_ wallet: Wallet) {
-    self.wallet = wallet
-    loadBalance()
-  }
-  
+
   public func loadBalance() {
     updateBalance()
     Task {
       try await self.balanceStore.loadBalance(address: self.wallet.address)
     }
   }
-  
-  public func reloadBalance() {
-    Task {
-      try await balanceStore.loadBalance(address: wallet.address)
-    }
-  }
 }
 
 private extension WalletBalanceController {
-  func didReceiveBalanceUpdateEvent(_ event: Result<BalanceStore.Event, Swift.Error>) {
-    switch event {
-    case .success(let event):
+  func didReceiveBalanceUpdateEvent(_ event: BalanceStore.Event) {
+    guard let address = try? wallet.address, event.address == address else { return }
+    switch event.result {
+    case .success:
       updateBalance()
-      Task {
-        await ratesStore.loadRates(jettons: event.balance.balance.jettonsBalance.map { $0.amount.jettonInfo })
-      }
     case .failure(let error):
       // show error
       print(error)
@@ -96,7 +83,7 @@ private extension WalletBalanceController {
 }
 
 extension WalletBalanceController: BalanceStoreObserver {
-  func didGetBalanceStoreEvent(_ event: Result<BalanceStore.Event, Error>) {
+  func didGetBalanceStoreEvent(_ event: BalanceStore.Event) {
     didReceiveBalanceUpdateEvent(event)
   }
 }

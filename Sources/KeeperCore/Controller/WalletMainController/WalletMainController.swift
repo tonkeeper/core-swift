@@ -11,10 +11,20 @@ public final class WalletMainController {
   }
   
   private let walletsStore: WalletsStore
+  private let balanceStore: BalanceStore
+  private let ratesStore: RatesStore
   
-  init(walletsStore: WalletsStore) {
+  init(walletsStore: WalletsStore,
+       balanceStore: BalanceStore,
+       ratesStore: RatesStore) {
     self.walletsStore = walletsStore
+    self.balanceStore = balanceStore
+    self.ratesStore = ratesStore
+    
     self.walletsStore.addObserver(self)
+    Task {
+      await balanceStore.addObserver(self)
+    }
   }
   
   public func getActiveWalletModel() -> WalletModel {
@@ -27,6 +37,22 @@ public final class WalletMainController {
   public func getActiveWallet() -> Wallet {
     walletsStore.activeWallet
   }
+  
+  public func loadBalances() {
+    Task {
+      let addresses = self.walletsStore.wallets.compactMap { try? $0.address }
+      await self.balanceStore.loadBalances(addresses: addresses)
+    }
+  }
+}
+
+private extension WalletMainController {
+  func didReceiveBalanceUpdateEvent(_ event: BalanceStore.Event) {
+    guard let balance = try? event.result.get() else { return }
+    Task {
+      await ratesStore.loadRates(jettons: balance.balance.jettonsBalance.map { $0.amount.jettonInfo })
+    }
+  }
 }
 
 extension WalletMainController: WalletsStoreObserver {
@@ -36,5 +62,11 @@ extension WalletMainController: WalletsStoreObserver {
       didUpdateActiveWallet?()
     default: break
     }
+  }
+}
+
+extension WalletMainController: BalanceStoreObserver {
+  func didGetBalanceStoreEvent(_ event: BalanceStore.Event) {
+    didReceiveBalanceUpdateEvent(event)
   }
 }

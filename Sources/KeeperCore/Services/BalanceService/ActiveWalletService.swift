@@ -44,13 +44,13 @@ final class ActiveWalletsServiceImplementation: ActiveWalletsService {
           do {
             let account = try await accountTask
             let jettonsBalance = try await jettonsBalanceTask
-            let tonBalance = TonBalance(walletAddress: address, amount: account.balance)
+            let tonBalance = TonBalance(amount: account.balance)
             balance = Balance(tonBalance: tonBalance, jettonsBalance: jettonsBalance)
             isActive = account.status == "active" || !balance.isEmpty
           } catch {
             isActive = revision == .currentVersion
             balance = Balance(
-              tonBalance: TonBalance(walletAddress: address, amount: 0),
+              tonBalance: TonBalance(amount: 0),
               jettonsBalance: []
             )
           }

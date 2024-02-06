@@ -14,7 +14,6 @@ public extension Balance {
 }
 
 public struct TonBalance: Codable {
-  public let walletAddress: Address
   public let amount: Int64
 }
 

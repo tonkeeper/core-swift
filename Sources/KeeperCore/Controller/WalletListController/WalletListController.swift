@@ -30,15 +30,32 @@ public final class WalletListController {
 
   private let walletsStore: WalletsStore
   private let walletsStoreUpdate: WalletsStoreUpdate
+  private let balanceStore: BalanceStore
+  private let ratesStore: RatesStore
+  private let walletListMapper: WalletListMapper
   
   init(walletsStore: WalletsStore,
-       walletsStoreUpdate: WalletsStoreUpdate) {
+       walletsStoreUpdate: WalletsStoreUpdate,
+       balanceStore: BalanceStore,
+       ratesStore: RatesStore,
+       walletListMapper: WalletListMapper) {
     self.walletsStore = walletsStore
     self.walletsStoreUpdate = walletsStoreUpdate
+    self.balanceStore = balanceStore
+    self.ratesStore = ratesStore
+    self.walletListMapper = walletListMapper
       
-    walletsModels = getWalletsModels()
+    Task {
+      walletsModels = await getWalletsModels()
+    }
     
     walletsStore.addObserver(self)
+    Task {
+      await balanceStore.addObserver(self)
+    }
+    Task {
+      await ratesStore.addObserver(self)
+    }
   }
   
   public func setWalletActive(with identifier: String) {
@@ -63,49 +80,38 @@ public final class WalletListController {
 }
 
 private extension WalletListController {
-  func getWalletsModels() -> [WalletModel] {
-    walletsStore.wallets.map { mapWalletModel(wallet: $0) }
+  func getWalletsModels() async -> [WalletModel] {
+    var models = [WalletModel]()
+    for wallet in walletsStore.wallets {
+      await models.append(mapWalletModel(wallet: wallet))
+    }
+    return models
   }
   
   func getActiveWalletIndex() -> Int {
     walletsStore.wallets.firstIndex(where: { $0.identity == walletsStore.activeWallet.identity }) ?? 0
   }
   
-  func mapWalletModel(wallet: Wallet) -> WalletModel {
-    let identifier = (try? wallet.identity.id().string) ?? UUID().uuidString
-    let name = {
-      wallet.metaData.label.isEmpty ? "Wallet" : wallet.metaData.label
-    }()
-    let tag: String? = {
-      if wallet.isRegular {
-        switch wallet.isTestnet {
-        case true: return "TESTNET"
-        case false: return nil
-        }
-      }
-      if wallet.isWatchonly {
-       return "WATCH ONLY"
-      }
-      if wallet.isExternal {
-        return "EXTERNAL"
-      }
-      return nil
-    }()
-    let emoji: String = {
-      wallet.metaData.emoji.isEmpty ? "😀" : wallet.metaData.emoji
-    }()
-    let colorIdentifier: String = {
-      wallet.metaData.colorIdentifier.isEmpty ? "Color1" : wallet.metaData.colorIdentifier
-    }()
+  func mapWalletModel(wallet: Wallet) async -> WalletModel {
+    let balanceString: String
     
-    return WalletModel(
-      identifier: identifier,
-      name: name,
-      tag: tag,
-      emoji: emoji,
-      colorIdentifier: colorIdentifier,
-      balance: "0 TON"
+    let rates: Rates
+    do {
+      let balance = try await balanceStore.getBalance(address: wallet.address).balance
+      rates = await ratesStore.getRates(jettons: balance.jettonsBalance.map { $0.amount.jettonInfo })
+      balanceString = walletListMapper.mapTotalBalance(balance: balance, rates: rates, currency: .USD)
+    } catch {
+      rates = Rates(ton: [], jettonsRates: [])
+      balanceString = "-"
+    }
+    
+    let model = walletListMapper.mapWalletModel(
+      wallet: wallet,
+      balance: balanceString,
+      rates: rates,
+      currency: .USD
     )
+    return model
   }
 }
 
@@ -113,9 +119,31 @@ extension WalletListController: WalletsStoreObserver {
   func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
     switch event {
     case .didUpdateWallets:
-      walletsModels = getWalletsModels()
+      Task {
+        walletsModels = await getWalletsModels()
+      }
     case .didUpdateActiveWallet:
       didUpdateActiveWallet?()
     }
   }
 }
+
+extension WalletListController: BalanceStoreObserver {
+  func didGetBalanceStoreEvent(_ event: BalanceStore.Event) {
+    Task {
+      walletsModels = await getWalletsModels()
+    }
+  }
+}
+
+extension WalletListController: RatesStoreObserver {
+  func didGetRatesStoreEvent(_ event: RatesStore.Event) {
+    switch event {
+    case .updateRates:
+      Task {
+        walletsModels = await getWalletsModels()
+      }
+    }
+  }
+}
+
