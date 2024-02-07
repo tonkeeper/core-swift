@@ -26,6 +26,10 @@ public final class WalletsUpdateAssembly {
     WalletImportController(activeWalletService: servicesAssembly.activeWalletsService())
   }
   
+  public func walletUpdateController() -> WalletEditController {
+    WalletEditController(walletsStoreUpdate: walletsStoreUpdate)
+  }
+  
   public func chooseWalletController(activeWalletModels: [ActiveWalletModel]) -> ChooseWalletsController {
     ChooseWalletsController(activeWalletModels: activeWalletModels)
   }

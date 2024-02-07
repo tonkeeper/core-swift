@@ -3,6 +3,7 @@ extension KeeperInfo {
     KeeperInfo(
       wallets: wallets,
       currentWallet: self.currentWallet,
+      currency: self.currency,
       securitySettings: self.securitySettings,
       assetsPolicy: self.assetsPolicy,
       appCollection: self.appCollection
@@ -13,6 +14,7 @@ extension KeeperInfo {
     KeeperInfo(
       wallets: self.wallets,
       currentWallet: wallet,
+      currency: self.currency,
       securitySettings: self.securitySettings,
       assetsPolicy: self.assetsPolicy,
       appCollection: self.appCollection
@@ -24,6 +26,7 @@ extension KeeperInfo {
     KeeperInfo(
       wallets: wallets,
       currentWallet: activeWallet,
+      currency: self.currency,
       securitySettings: self.securitySettings,
       assetsPolicy: self.assetsPolicy,
       appCollection: self.appCollection

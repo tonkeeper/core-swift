@@ -29,4 +29,15 @@ public final class StoresAssembly {
       return ratesStore
     }
   }
+  
+  private weak var _currencyStore: CurrencyStore?
+  var currencyStore: CurrencyStore {
+    if let currencyStore = _currencyStore {
+      return currencyStore
+    } else {
+      let currencyStore = CurrencyStore(currencyService: servicesAssembly.currencyService())
+      _currencyStore = currencyStore
+      return currencyStore
+    }
+  }
 }

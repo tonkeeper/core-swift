@@ -15,6 +15,7 @@ public protocol WalletsService {
   func addWallets(_ wallets: [Wallet]) throws
   func setWalletActive(_ wallet: Wallet) throws
   func moveWallet(fromIndex: Int, toIndex: Int) throws
+  func updateWallet(wallet: Wallet, metaData: WalletMetaData) throws
 }
 
 final class WalletsServiceImplementation: WalletsService {
@@ -66,6 +67,29 @@ final class WalletsServiceImplementation: WalletsService {
     let updatedKeeperInfo = currentKeeperInfo.setWallets(wallets)
     try keeperInfoRepository.saveKeeperInfo(updatedKeeperInfo)
   }
+  
+  func updateWallet(wallet: Wallet, metaData: WalletMetaData) throws {
+    let updatedWallet = Wallet(
+      identity: wallet.identity,
+      metaData: metaData,
+      notificationSettings: wallet.notificationSettings,
+      backupSettings: wallet.backupSettings,
+      addressBook: wallet.addressBook
+    )
+    let currentKeeperInfo = try keeperInfoRepository.getKeeperInfo()
+    var wallets = currentKeeperInfo.wallets
+    guard let index = wallets.firstIndex(of: wallet) else { return }
+    wallets.remove(at: index)
+    wallets.insert(updatedWallet, at: index)
+    let updatedKeeperInfo: KeeperInfo
+    if currentKeeperInfo.currentWallet == wallet {
+      updatedKeeperInfo = currentKeeperInfo.setWallets(wallets, activeWallet: updatedWallet)
+    } else {
+      updatedKeeperInfo = currentKeeperInfo.setWallets(wallets)
+    }
+    
+    try keeperInfoRepository.saveKeeperInfo(updatedKeeperInfo)
+  }
 }
 
 private extension WalletsServiceImplementation {
@@ -73,6 +97,7 @@ private extension WalletsServiceImplementation {
     let keeperInfo = KeeperInfo(
       wallets: wallets,
       currentWallet: wallets[0],
+      currency: .USD,
       securitySettings: SecuritySettings(isBiometryEnabled: false),
       assetsPolicy: AssetsPolicy(policies: [:], ordered: []),
       appCollection: AppCollection(connected: [:], recent: [], pinned: [])

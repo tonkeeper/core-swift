@@ -4,6 +4,7 @@ import CoreComponents
 enum WalletsStoreUpdateEvent {
   case didMakeWalletActive(Wallet)
   case didUpdateWallets([Wallet])
+  case didUpdateWalletMetaData(Wallet, index: Int)
 }
 
 protocol WalletsStoreUpdateObserver: AnyObject {
@@ -30,6 +31,11 @@ final class WalletsStoreUpdate {
   func moveWallet(fromIndex: Int, toIndex: Int) throws {
     try walletsService.moveWallet(fromIndex: fromIndex, toIndex: toIndex)
     notifyObserversDidUpdateWallets()
+  }
+  
+  func updateWallet(_ wallet: Wallet, metaData: WalletMetaData) throws {
+    try walletsService.updateWallet(wallet: wallet, metaData: metaData)
+    notifyObserversDidUpdateWalletMetaData(wallet: wallet)
   }
 
   private var observers = [WalletsStoreUpdateObserverWrapper]()
@@ -58,6 +64,12 @@ private extension WalletsStoreUpdate {
   func notifyObserversDidUpdateActiveWallet() {
     guard let activeWallet = try? walletsService.getActiveWallet() else { return }
     notifyObservers(event: .didMakeWalletActive(activeWallet))
+  }
+  
+  func notifyObserversDidUpdateWalletMetaData(wallet: Wallet) {
+    guard let wallets = try? walletsService.getWallets(),
+    let index = wallets.firstIndex(of: wallet)  else { return }
+    notifyObservers(event: .didUpdateWalletMetaData(wallets[index], index: index))
   }
   
   func removeNilObservers() {

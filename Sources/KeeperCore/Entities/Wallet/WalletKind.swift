@@ -1,11 +1,31 @@
 import Foundation
 import TonSwift
 
-public enum WalletKind {
+public enum WalletKind: Codable, Equatable {
   case Regular(TonSwift.PublicKey, WalletContractVersion)
   case Lockup(TonSwift.PublicKey, LockupConfig)
   case Watchonly(ResolvableAddress)
   case External(TonSwift.PublicKey, WalletContractVersion)
+  
+  public static func == (lhs: WalletKind, rhs: WalletKind) -> Bool {
+    switch (lhs, rhs) {
+    case (.Regular(let lpk, let lv), .Regular(let rpk, let rv)):
+      return lpk == rpk && lv == rv
+    case (.Lockup(let lpk, let lc), .Lockup(let rpk, let rc)):
+      return lpk == rpk && lc == rc
+    case (.Watchonly(let laddress), .Watchonly(let raddress)):
+      return laddress == raddress
+    case (.External(let lpk, let lv), .External(let rpk, let rv)):
+      return lpk == rpk && lv == rv
+    default: return false
+    }
+  }
+}
+
+extension TonSwift.PublicKey: Equatable {
+  public static func == (lhs: TonSwift.PublicKey, rhs: TonSwift.PublicKey) -> Bool {
+    lhs.data == rhs.data
+  }
 }
 
 extension WalletKind: CellCodable {

@@ -15,6 +15,7 @@ public final class WalletBalanceController {
   private var wallet: Wallet
   private let balanceStore: BalanceStore
   private let ratesStore: RatesStore
+  private let currencyStore: CurrencyStore
   private let walletBalanceMapper: WalletBalanceMapper
   
   private var storesObservationTask: Task<Void, Never>?
@@ -22,10 +23,12 @@ public final class WalletBalanceController {
   init(wallet: Wallet,
        balanceStore: BalanceStore,
        ratesStore: RatesStore,
+       currencyStore: CurrencyStore,
        walletBalanceMapper: WalletBalanceMapper) {
     self.wallet = wallet
     self.balanceStore = balanceStore
     self.ratesStore = ratesStore
+    self.currencyStore = currencyStore
     self.walletBalanceMapper = walletBalanceMapper
     startStoresObservation()
   }
@@ -55,6 +58,7 @@ private extension WalletBalanceController {
   }
   
   func updateBalance() {
+    let currency = currencyStore.getActiveCurrency()
     Task {
       let balanceModel: WalletBalanceModel
       do {
@@ -63,7 +67,7 @@ private extension WalletBalanceController {
         balanceModel = walletBalanceMapper.mapBalance(
           walletBalance: walletBalance,
           rates: rates,
-          currency: .USD
+          currency: currency
         )
       } catch {
         balanceModel = WalletBalanceModel(total: "-", items: [])
@@ -73,6 +77,7 @@ private extension WalletBalanceController {
   }
   
   func startStoresObservation() {
+    currencyStore.addObserver(self)
     Task {
       await balanceStore.addObserver(self)
     }
@@ -94,5 +99,11 @@ extension WalletBalanceController: RatesStoreObserver {
     case .updateRates:
       didReceiveRatesUpdateEvent()
     }
+  }
+}
+
+extension WalletBalanceController: CurrencyStoreObserver {
+  func didGetCurrencyStoreEvent(_ event: CurrencyStoreEvent) {
+    updateBalance()
   }
 }

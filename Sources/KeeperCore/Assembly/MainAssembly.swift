@@ -17,17 +17,20 @@ public final class MainAssembly {
   let servicesAssembly: ServicesAssembly
   let storesAssembly: StoresAssembly
   let formattersAssembly: FormattersAssembly
+  let configurationAssembly: ConfigurationAssembly
   
   init(walletAssembly: WalletAssembly,
        walletUpdateAssembly: WalletsUpdateAssembly,
        servicesAssembly: ServicesAssembly,
        storesAssembly: StoresAssembly,
-       formattersAssembly: FormattersAssembly) {
+       formattersAssembly: FormattersAssembly,
+       configurationAssembly: ConfigurationAssembly) {
     self.walletAssembly = walletAssembly
     self.walletUpdateAssembly = walletUpdateAssembly
     self.servicesAssembly = servicesAssembly
     self.storesAssembly = storesAssembly
     self.formattersAssembly = formattersAssembly
+    self.configurationAssembly = configurationAssembly
   }
   
   public func walletMainController() -> WalletMainController {
@@ -44,6 +47,7 @@ public final class MainAssembly {
       walletsStoreUpdate: walletUpdateAssembly.walletsStoreUpdate,
       balanceStore: storesAssembly.balanceStore,
       ratesStore: storesAssembly.ratesStore,
+      currencyStore: storesAssembly.currencyStore,
       walletListMapper: walletListMapper
     )
   }
@@ -53,7 +57,16 @@ public final class MainAssembly {
       wallet: wallet,
       balanceStore: storesAssembly.balanceStore,
       ratesStore: storesAssembly.ratesStore,
+      currencyStore: storesAssembly.currencyStore,
       walletBalanceMapper: walletBalanceMapper
+    )
+  }
+  
+  public var settingsController: SettingsController {
+    SettingsController(
+      walletsStore: walletAssembly.walletStore,
+      currencyStore: storesAssembly.currencyStore,
+      configurationStore: configurationAssembly.remoteConfigurationStore
     )
   }
 }

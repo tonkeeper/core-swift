@@ -4,6 +4,7 @@ import CoreComponents
 public final class WalletMainController {
   
   public var didUpdateActiveWallet: (() -> Void)?
+  public var didUpdateActiveWalletMetaData: (() -> Void)?
   
   public struct WalletModel {
     public let name: String
@@ -60,6 +61,8 @@ extension WalletMainController: WalletsStoreObserver {
     switch event {
     case .didUpdateActiveWallet:
       didUpdateActiveWallet?()
+    case .didUpdateActiveWalletMetaData:
+      didUpdateActiveWalletMetaData?()
     default: break
     }
   }

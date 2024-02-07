@@ -10,10 +10,6 @@ public struct WalletIdentity: Equatable {
     try builder.store(self)
     return WalletID(hash: try builder.endCell().representationHash())
   }
-  
-  public static func == (lhs: WalletIdentity, rhs: WalletIdentity) -> Bool {
-    (try? lhs.id() == rhs.id()) ?? false
-  }
 }
 
 extension WalletIdentity: Codable {

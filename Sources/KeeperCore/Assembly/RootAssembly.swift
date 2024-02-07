@@ -51,7 +51,8 @@ public final class RootAssembly {
       walletUpdateAssembly: walletsUpdateAssembly,
       servicesAssembly: servicesAssembly,
       storesAssembly: storesAssembly,
-      formattersAssembly: formattersAssembly
+      formattersAssembly: formattersAssembly,
+      configurationAssembly: configurationAssembly
     )
   }
 }

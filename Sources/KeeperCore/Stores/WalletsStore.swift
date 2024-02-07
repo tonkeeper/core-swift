@@ -4,6 +4,7 @@ import CoreComponents
 enum WalletsStoreEvent {
   case didUpdateWallets
   case didUpdateActiveWallet
+  case didUpdateActiveWalletMetaData
 }
 
 protocol WalletsStoreObserver: AnyObject {
@@ -56,6 +57,13 @@ extension WalletsStore: WalletsStoreUpdateObserver {
     case .didUpdateWallets(let wallets):
       self.wallets = wallets
       notifyObservers(event: .didUpdateWallets)
+    case .didUpdateWalletMetaData(let wallet, let index):
+      wallets[index] = wallet
+      notifyObservers(event: .didUpdateWallets)
+      if wallet == activeWallet {
+        self.activeWallet = wallet
+        notifyObservers(event: .didUpdateActiveWalletMetaData)
+      }
     }
   }
 }

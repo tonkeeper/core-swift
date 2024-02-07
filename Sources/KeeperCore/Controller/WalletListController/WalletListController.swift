@@ -32,17 +32,20 @@ public final class WalletListController {
   private let walletsStoreUpdate: WalletsStoreUpdate
   private let balanceStore: BalanceStore
   private let ratesStore: RatesStore
+  private let currencyStore: CurrencyStore
   private let walletListMapper: WalletListMapper
   
   init(walletsStore: WalletsStore,
        walletsStoreUpdate: WalletsStoreUpdate,
        balanceStore: BalanceStore,
        ratesStore: RatesStore,
+       currencyStore: CurrencyStore,
        walletListMapper: WalletListMapper) {
     self.walletsStore = walletsStore
     self.walletsStoreUpdate = walletsStoreUpdate
     self.balanceStore = balanceStore
     self.ratesStore = ratesStore
+    self.currencyStore = currencyStore
     self.walletListMapper = walletListMapper
       
     Task {
@@ -99,7 +102,7 @@ private extension WalletListController {
     do {
       let balance = try await balanceStore.getBalance(address: wallet.address).balance
       rates = await ratesStore.getRates(jettons: balance.jettonsBalance.map { $0.amount.jettonInfo })
-      balanceString = walletListMapper.mapTotalBalance(balance: balance, rates: rates, currency: .USD)
+      balanceString = walletListMapper.mapTotalBalance(balance: balance, rates: rates, currency: currencyStore.getActiveCurrency())
     } catch {
       rates = Rates(ton: [], jettonsRates: [])
       balanceString = "-"
@@ -108,8 +111,7 @@ private extension WalletListController {
     let model = walletListMapper.mapWalletModel(
       wallet: wallet,
       balance: balanceString,
-      rates: rates,
-      currency: .USD
+      rates: rates
     )
     return model
   }
@@ -124,6 +126,8 @@ extension WalletListController: WalletsStoreObserver {
       }
     case .didUpdateActiveWallet:
       didUpdateActiveWallet?()
+    case .didUpdateActiveWalletMetaData:
+      break
     }
   }
 }

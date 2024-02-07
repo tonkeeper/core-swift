@@ -17,8 +17,7 @@ struct WalletListMapper {
   
   func mapWalletModel(wallet: Wallet,
                       balance: String,
-                      rates: Rates,
-                      currency: Currency) -> WalletListController.WalletModel {
+                      rates: Rates) -> WalletListController.WalletModel {
     let identifier = (try? wallet.identity.id().string) ?? UUID().uuidString
     let name = {
       wallet.metaData.label.isEmpty ? "Wallet" : wallet.metaData.label

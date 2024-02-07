@@ -41,4 +41,10 @@ public final class ServicesAssembly {
       ratesRepository: repositoriesAssembly.ratesRepository()
     )
   }
+  
+  func currencyService() -> CurrencyService {
+    CurrencyServiceImplementation(
+      keeperInfoRepository: repositoriesAssembly.keeperInfoRepository()
+    )
+  }
 }
