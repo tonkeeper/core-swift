@@ -20,6 +20,12 @@ final class FormattersAssembly {
   }
   
   var decimalAmountFormatter: DecimalAmountFormatter {
-      DecimalAmountFormatter(numberFormatter: shortNumberFormatter)
+    DecimalAmountFormatter(numberFormatter: shortNumberFormatter)
+  }
+  
+  var dateFormatter: DateFormatter {
+    let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale.init(identifier: "EN")
+    return dateFormatter
   }
 }

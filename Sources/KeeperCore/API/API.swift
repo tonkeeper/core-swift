@@ -41,63 +41,63 @@ extension API {
       }
   }
 }
-//
+
 //// MARK: - Events
-//
-//extension API {
-//  func getAccountEvents(address: Address,
-//                        beforeLt: Int64?,
-//                        limit: Int) async throws -> ActivityEvents {
-//    let response = try await tonAPIClient.getAccountEvents(
-//      path: .init(account_id: address.toRaw()),
-//      query: .init(before_lt: beforeLt,
-//                   limit: limit,
-//                   start_date: nil,
-//                   end_date: nil)
-//    )
-//    let entity = try response.ok.body.json
-//    let events: [AccountEvent] = entity.events.compactMap {
-//      guard let activityEvent = try? AccountEvent(accountEvent: $0) else { return nil }
-//      return activityEvent
-//    }
-//    return ActivityEvents(address: address,
-//                          events: events,
-//                          startFrom: beforeLt ?? 0,
-//                          nextFrom: entity.next_from)
-//  }
-//  
-//  func getAccountJettonEvents(address: Address,
-//                              tokenInfo: TokenInfo,
-//                              beforeLt: Int64?,
-//                              limit: Int) async throws -> ActivityEvents {
-//    let response = try await tonAPIClient.getAccountJettonHistoryByID(
-//      path: .init(account_id: address.toRaw(),
-//                  jetton_id: tokenInfo.address.toRaw()),
-//      query: .init(before_lt: beforeLt,
-//                   limit: limit,
-//                   start_date: nil,
-//                   end_date: nil)
-//    )
-//    let entity = try response.ok.body.json
-//    let events: [AccountEvent] = entity.events.compactMap {
-//      guard let activityEvent = try? AccountEvent(accountEvent: $0) else { return nil }
-//      return activityEvent
-//    }
-//    return ActivityEvents(address: address,
-//                          events: events,
-//                          startFrom: beforeLt ?? 0,
-//                          nextFrom: entity.next_from)
-//  }
-//  
-//  func getEvent(address: Address,
-//                eventId: String) async throws -> AccountEvent {
-//    let response = try await tonAPIClient
-//      .getAccountEvent(path: .init(account_id: address.toRaw(),
-//                                   event_id: eventId))
-//    return try AccountEvent(accountEvent: try response.ok.body.json)
-//  }
-//}
-//
+
+extension API {
+  func getAccountEvents(address: Address,
+                        beforeLt: Int64?,
+                        limit: Int) async throws -> AccountEvents {
+    let response = try await tonAPIClient.getAccountEvents(
+      path: .init(account_id: address.toRaw()),
+      query: .init(before_lt: beforeLt,
+                   limit: limit,
+                   start_date: nil,
+                   end_date: nil)
+    )
+    let entity = try response.ok.body.json
+    let events: [AccountEvent] = entity.events.compactMap {
+      guard let activityEvent = try? AccountEvent(accountEvent: $0) else { return nil }
+      return activityEvent
+    }
+    return AccountEvents(address: address,
+                          events: events,
+                          startFrom: beforeLt ?? 0,
+                          nextFrom: entity.next_from)
+  }
+  
+  func getAccountJettonEvents(address: Address,
+                              jettonInfo: JettonInfo,
+                              beforeLt: Int64?,
+                              limit: Int) async throws -> AccountEvents {
+    let response = try await tonAPIClient.getAccountJettonHistoryByID(
+      path: .init(account_id: address.toRaw(),
+                  jetton_id: jettonInfo.address.toRaw()),
+      query: .init(before_lt: beforeLt,
+                   limit: limit,
+                   start_date: nil,
+                   end_date: nil)
+    )
+    let entity = try response.ok.body.json
+    let events: [AccountEvent] = entity.events.compactMap {
+      guard let activityEvent = try? AccountEvent(accountEvent: $0) else { return nil }
+      return activityEvent
+    }
+    return AccountEvents(address: address,
+                          events: events,
+                          startFrom: beforeLt ?? 0,
+                          nextFrom: entity.next_from)
+  }
+  
+  func getEvent(address: Address,
+                eventId: String) async throws -> AccountEvent {
+    let response = try await tonAPIClient
+      .getAccountEvent(path: .init(account_id: address.toRaw(),
+                                   event_id: eventId))
+    return try AccountEvent(accountEvent: try response.ok.body.json)
+  }
+}
+
 //// MARK: - Wallet
 //
 //extension API {

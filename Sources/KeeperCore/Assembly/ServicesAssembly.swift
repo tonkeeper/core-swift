@@ -47,4 +47,11 @@ public final class ServicesAssembly {
       keeperInfoRepository: repositoriesAssembly.keeperInfoRepository()
     )
   }
+  
+  func historyService() -> HistoryService {
+    HistoryServiceImplementation(
+      api: apiAssembly.api,
+      repository: repositoriesAssembly.historyRepository()
+    )
+  }
 }

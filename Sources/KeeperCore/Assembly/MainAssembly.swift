@@ -1,4 +1,5 @@
 import Foundation
+import TonSwift
 
 public final class MainAssembly {
   
@@ -69,6 +70,55 @@ public final class MainAssembly {
       configurationStore: configurationAssembly.remoteConfigurationStore
     )
   }
+  
+  public func historyController() -> HistoryController {
+    HistoryController(walletsStore: walletAssembly.walletStore)
+  }
+  
+  public func historyListController() -> HistoryListController {
+    HistoryListController(
+      paginatorProvider: { [servicesAssembly]
+        address, didSendEvent in
+        let loader = HistoryListAllEventsLoader(
+          historyService: servicesAssembly.historyService()
+        )
+        return HistoryListPaginator(loader: loader, address: address, didSendEvent: didSendEvent)
+      },
+      walletsStore: walletAssembly.walletStore,
+      historyListMapper: historyListMapper,
+      dateFormatter: formattersAssembly.dateFormatter
+    )
+  }
+  
+  public func tonEventsHistoryListController() -> HistoryListController {
+    HistoryListController(
+      paginatorProvider: { [servicesAssembly]
+        address, didSendEvent in
+        let loader = HistoryListTonEventsLoader(
+          historyService: servicesAssembly.historyService()
+        )
+        return HistoryListPaginator(loader: loader, address: address, didSendEvent: didSendEvent)
+      },
+      walletsStore: walletAssembly.walletStore,
+      historyListMapper: historyListMapper,
+      dateFormatter: formattersAssembly.dateFormatter
+    )
+  }
+  
+  public func jettonEventsHistoryListController(jettonInfo: JettonInfo) -> HistoryListController {
+    HistoryListController(
+      paginatorProvider: { [servicesAssembly]
+        address, didSendEvent in
+        let loader = HistoryListJettonEventsLoader(jettonInfo: jettonInfo,
+          historyService: servicesAssembly.historyService()
+        )
+        return HistoryListPaginator(loader: loader, address: address, didSendEvent: didSendEvent)
+      },
+      walletsStore: walletAssembly.walletStore,
+      historyListMapper: historyListMapper,
+      dateFormatter: formattersAssembly.dateFormatter
+    )
+  }
 }
 
 private extension MainAssembly {
@@ -84,6 +134,18 @@ private extension MainAssembly {
       amountFormatter: formattersAssembly.amountFormatter,
       decimalAmountFormatter: formattersAssembly.decimalAmountFormatter,
       rateConverter: RateConverter()
+    )
+  }
+  
+  var historyListMapper: HistoryListMapper {
+    HistoryListMapper(
+      dateFormatter: formattersAssembly.dateFormatter,
+      amountFormatter: formattersAssembly.amountFormatter,
+      amountMapper: SignedAmountHistoryListEventAmountMapper(
+        amountAccountHistoryListEventAmountMapper: AmountHistoryListEventAmountMapper(
+          amountFormatter: formattersAssembly.amountFormatter
+        )
+      )
     )
   }
 }

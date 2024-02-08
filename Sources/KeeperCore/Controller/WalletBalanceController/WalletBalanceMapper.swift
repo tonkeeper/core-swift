@@ -148,6 +148,7 @@ struct WalletBalanceMapper {
     
     return WalletBalanceModel.Item(
       identifier: .tonIdentifier,
+      token: .ton,
       image: .ton,
       title: TonInfo.name,
       price: price,
@@ -202,6 +203,7 @@ struct WalletBalanceMapper {
     }
     return WalletBalanceModel.Item(
       identifier: jettonAmount.jettonInfo.address.toRaw(),
+      token: .jetton(jettonAmount.jettonInfo),
       image: .url(jettonAmount.jettonInfo.imageURL),
       title: jettonAmount.jettonInfo.symbol ?? jettonAmount.jettonInfo.name,
       price: price,

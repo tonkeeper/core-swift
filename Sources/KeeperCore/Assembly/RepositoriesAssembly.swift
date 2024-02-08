@@ -23,4 +23,8 @@ public final class RepositoriesAssembly {
   func ratesRepository() -> RatesRepository {
     RatesRepositoryImplementation(fileSystemVault: coreAssembly.fileSystemVault())
   }
+  
+  func historyRepository() -> HistoryRepository {
+    HistoryRepositoryImplementation(fileSystemVault: coreAssembly.fileSystemVault())
+  }
 }
