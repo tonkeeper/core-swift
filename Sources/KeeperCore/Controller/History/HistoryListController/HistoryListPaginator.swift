@@ -4,10 +4,11 @@ import TonSwift
 actor HistoryListPaginator {
   
   enum Event {
+    case didGetCachedEvents(AccountEvents)
     case startLoading
+    case noEvents
     case didLoadEvents(AccountEvents)
     case startPageLoading
-    case stopLoading
     case pageLoadingFailed
   }
   
@@ -42,22 +43,23 @@ actor HistoryListPaginator {
   // MARK: - Logic
   
   func startLoading() async throws {
-    didSendEvent?(.startLoading)
+    do {
+      let cachedEvents = try loader.cachedEvents(address: address)
+      didSendEvent?(.didGetCachedEvents(cachedEvents))
+    } catch {
+      didSendEvent?(.startLoading)
+    }
+  
     do {
       let nextEvents = try await loadNextEvents()
       state = .idle
-      didSendEvent?(.didLoadEvents(nextEvents))
+      if nextEvents.events.isEmpty {
+        didSendEvent?(.noEvents)
+      } else {
+        didSendEvent?(.didLoadEvents(nextEvents))
+      }
     } catch {
-      didSendEvent?(
-        .didLoadEvents(
-          AccountEvents(
-            address: address,
-            events: [],
-            startFrom: 0,
-            nextFrom: 0
-          )
-        )
-      )
+      didSendEvent?(.noEvents)
     }
   }
   
@@ -69,11 +71,11 @@ actor HistoryListPaginator {
       didSendEvent?(.startPageLoading)
       do {
         let nextEvents = try await loadNextEvents()
-        state = .idle
         didSendEvent?(.didLoadEvents(nextEvents))
       } catch {
         didSendEvent?(.pageLoadingFailed)
       }
+      state = .idle
     }
   }
   

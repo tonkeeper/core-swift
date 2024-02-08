@@ -4,8 +4,12 @@ import TonSwift
 public final class HistoryListController {
   
   public enum Event {
-    case didReset
-    case didLoadEvents(sections: [HistoryListSection])
+    case reset
+    case loadingStart
+    case noEvents
+    case events(sections: [HistoryListSection])
+    case paginationStart
+    case paginationFailed
   }
   
   public var didSendEvent: ((Event) -> Void)?
@@ -32,7 +36,7 @@ public final class HistoryListController {
   }
   
   public func start() {
-    didSendEvent?(.didReset)
+    didSendEvent?(.reset)
     sections = []
     sectionsMap = [:]
     Task {
@@ -53,24 +57,25 @@ public final class HistoryListController {
 private extension HistoryListController {
   func handlePaginatorEvent(_ event: HistoryListPaginator.Event) {
     switch event {
+    case .didGetCachedEvents(let events):
+      handleLoadedEvents(events)
+      sections = []
+      sectionsMap = [:]
     case .startLoading:
-      break
+      didSendEvent?(.loadingStart)
+    case .noEvents:
+      didSendEvent?(.noEvents)
     case .didLoadEvents(let historyEvents):
       handleLoadedEvents(historyEvents)
     case .startPageLoading:
-      break
-    case .stopLoading:
-      break
+      didSendEvent?(.paginationStart)
     case .pageLoadingFailed:
-      break
+      didSendEvent?(.paginationFailed)
     }
   }
   
   func handleLoadedEvents(_ events: AccountEvents) {
     let calendar = Calendar.current
-    
-//    var sections = [Date: HistoryListSection]()
-//    var sectionsDates = [Date]()
     
     for event in events.events {
       let eventDate = Date(timeIntervalSince1970: event.timestamp)
@@ -119,7 +124,7 @@ private extension HistoryListController {
         sectionsMap[sectionDate] = sections.count - 1
       }
     }
-    didSendEvent?(.didLoadEvents(sections: sections))
+    didSendEvent?(.events(sections: sections))
   }
 }
 
