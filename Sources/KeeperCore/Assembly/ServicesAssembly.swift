@@ -54,4 +54,11 @@ public final class ServicesAssembly {
       repository: repositoriesAssembly.historyRepository()
     )
   }
+  
+  func nftService() -> NFTService {
+    NFTServiceImplementation(
+      api: apiAssembly.api,
+      nftRepository: repositoriesAssembly.nftRepository()
+    )
+  }
 }

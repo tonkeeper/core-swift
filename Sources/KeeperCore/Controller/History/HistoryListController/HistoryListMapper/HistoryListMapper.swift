@@ -358,6 +358,7 @@ private extension HistoryListMapper {
     var nft: HistoryListEvent.Action.NFTModel?
     if let actionNft = action.nft {
       nft = HistoryListEvent.Action.NFTModel(
+        nft: actionNft,
         name: actionNft.name,
         collectionName: actionNft.collection?.name,
         image: actionNft.preview.size500)
@@ -381,6 +382,7 @@ private extension HistoryListMapper {
                             status: String?) -> HistoryListEvent.Action {
     
     let collectibleViewModel = HistoryListEvent.Action.NFTModel(
+      nft: action.nft,
       name: action.nft.name,
       collectionName: action.nft.collection?.name,
       image: action.nft.preview.size500
@@ -472,7 +474,8 @@ private extension HistoryListMapper {
     
     var nft: HistoryListEvent.Action.NFTModel?
     if let actionNft = nftsCollection.nfts[action.nftAddress] {
-      nft = .init(name: actionNft.name,
+      nft = .init(nft: actionNft,
+                  name: actionNft.name,
                   collectionName: actionNft.collection?.name,
                   image: actionNft.preview.size500)
     }

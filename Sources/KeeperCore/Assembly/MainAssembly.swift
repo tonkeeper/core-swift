@@ -85,6 +85,7 @@ public final class MainAssembly {
         return HistoryListPaginator(loader: loader, address: address, didSendEvent: didSendEvent)
       },
       walletsStore: walletAssembly.walletStore,
+      nftService: servicesAssembly.nftService(),
       historyListMapper: historyListMapper,
       dateFormatter: formattersAssembly.dateFormatter
     )
@@ -100,6 +101,7 @@ public final class MainAssembly {
         return HistoryListPaginator(loader: loader, address: address, didSendEvent: didSendEvent)
       },
       walletsStore: walletAssembly.walletStore,
+      nftService: servicesAssembly.nftService(),
       historyListMapper: historyListMapper,
       dateFormatter: formattersAssembly.dateFormatter
     )
@@ -115,6 +117,7 @@ public final class MainAssembly {
         return HistoryListPaginator(loader: loader, address: address, didSendEvent: didSendEvent)
       },
       walletsStore: walletAssembly.walletStore,
+      nftService: servicesAssembly.nftService(),
       historyListMapper: historyListMapper,
       dateFormatter: formattersAssembly.dateFormatter
     )

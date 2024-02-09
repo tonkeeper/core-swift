@@ -120,43 +120,43 @@ extension API {
 //  }
 //}
 //
-//// MARK: - NFTs
-//
-//extension API {
-//  func getAccountNftItems(address: Address,
-//                          collectionAddress: Address?,
-//                          limit: Int,
-//                          offset: Int,
-//                          isIndirectOwnership: Bool) async throws -> [Collectible] {
-//    let response = try await tonAPIClient.getAccountNftItems(
-//      path: .init(account_id: address.toRaw()),
-//      query: .init(collection: collectionAddress?.toRaw(),
-//                   limit: limit,
-//                   offset: offset,
-//                   indirect_ownership: isIndirectOwnership)
-//    )
-//    let entity = try response.ok.body.json
-//    let collectibles = entity.nft_items.compactMap {
-//      try? Collectible(nftItem: $0)
-//    }
-//    
-//    return collectibles
-//  }
-//  
-//  func getNftItemsByAddresses(_ addresses: [Address]) async throws -> [Collectible] {
-//    let response = try await tonAPIClient
-//      .getNftItemsByAddresses(
-//        .init(
-//          body: .json(.init(account_ids: addresses.map { $0.toRaw() })))
-//      )
-//    let entity = try response.ok.body.json
-//    let nfts = entity.nft_items.compactMap {
-//      try? Collectible(nftItem: $0)
-//    }
-//    return nfts
-//  }
-//}
-//
+// MARK: - NFTs
+
+extension API {
+  func getAccountNftItems(address: Address,
+                          collectionAddress: Address?,
+                          limit: Int,
+                          offset: Int,
+                          isIndirectOwnership: Bool) async throws -> [NFT] {
+    let response = try await tonAPIClient.getAccountNftItems(
+      path: .init(account_id: address.toRaw()),
+      query: .init(collection: collectionAddress?.toRaw(),
+                   limit: limit,
+                   offset: offset,
+                   indirect_ownership: isIndirectOwnership)
+    )
+    let entity = try response.ok.body.json
+    let collectibles = entity.nft_items.compactMap {
+      try? NFT(nftItem: $0)
+    }
+    
+    return collectibles
+  }
+  
+  func getNftItemsByAddresses(_ addresses: [Address]) async throws -> [NFT] {
+    let response = try await tonAPIClient
+      .getNftItemsByAddresses(
+        .init(
+          body: .json(.init(account_ids: addresses.map { $0.toRaw() })))
+      )
+    let entity = try response.ok.body.json
+    let nfts = entity.nft_items.compactMap {
+      try? NFT(nftItem: $0)
+    }
+    return nfts
+  }
+}
+
 // MARK: - Rates
 
 extension API {

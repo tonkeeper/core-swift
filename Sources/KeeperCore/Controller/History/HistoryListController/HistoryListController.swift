@@ -21,15 +21,18 @@ public final class HistoryListController {
   
   private let paginatorProvider: (Address, ((HistoryListPaginator.Event) -> Void)?) -> HistoryListPaginator
   private let walletsStore: WalletsStore
+  private let nftService: NFTService
   private let historyListMapper: HistoryListMapper
   private let dateFormatter: DateFormatter
   
   init(paginatorProvider: @escaping (Address, ((HistoryListPaginator.Event) -> Void)?) -> HistoryListPaginator,
        walletsStore: WalletsStore,
+       nftService: NFTService,
        historyListMapper: HistoryListMapper,
        dateFormatter: DateFormatter) {
     self.paginatorProvider = paginatorProvider
     self.walletsStore = walletsStore
+    self.nftService = nftService
     self.historyListMapper = historyListMapper
     self.dateFormatter = dateFormatter
     walletsStore.addObserver(self)
@@ -58,15 +61,19 @@ private extension HistoryListController {
   func handlePaginatorEvent(_ event: HistoryListPaginator.Event) {
     switch event {
     case .didGetCachedEvents(let events):
-      handleLoadedEvents(events)
-      sections = []
-      sectionsMap = [:]
+      Task {
+        await handleLoadedEvents(events)
+        sections = []
+        sectionsMap = [:]
+      }
     case .startLoading:
       didSendEvent?(.loadingStart)
     case .noEvents:
       didSendEvent?(.noEvents)
     case .didLoadEvents(let historyEvents):
-      handleLoadedEvents(historyEvents)
+      Task {
+        await handleLoadedEvents(historyEvents)
+      }
     case .startPageLoading:
       didSendEvent?(.paginationStart)
     case .pageLoadingFailed:
@@ -74,7 +81,35 @@ private extension HistoryListController {
     }
   }
   
-  func handleLoadedEvents(_ events: AccountEvents) {
+  func handleLoadedEvents(_ events: AccountEvents) async {
+    let nfts = await handleEventsWithNFTs(events: events.events)
+    handleEvents(events, andNFTs: nfts)
+  }
+  
+  func handleEventsWithNFTs(events: [AccountEvent]) async -> NFTsCollection {
+    let actions = events.flatMap { $0.actions }
+    var nftAddressesToLoad = Set<Address>()
+    var nfts = [Address: NFT]()
+    for action in actions {
+        switch action.type {
+        case .nftItemTransfer(let nftItemTransfer):
+            nftAddressesToLoad.insert(nftItemTransfer.nftAddress)
+        case .nftPurchase(let nftPurchase):
+            nfts[nftPurchase.nft.address] = nftPurchase.nft
+            try? nftService.saveNFT(nft: nftPurchase.nft)
+        default: continue
+        }
+    }
+    
+    if let loadedNFTs = try? await nftService.loadNFTs(addresses: Array(nftAddressesToLoad)) {
+        nfts = loadedNFTs
+    }
+    
+    return NFTsCollection(nfts: nfts)
+  }
+  
+  func handleEvents(_ events: AccountEvents, 
+                    andNFTs nfts: NFTsCollection) {
     let calendar = Calendar.current
     
     for event in events.events {
@@ -84,11 +119,11 @@ private extension HistoryListController {
       if calendar.isDateInToday(eventDate)
           || calendar.isDateInYesterday(eventDate)
           || calendar.isDate(eventDate, equalTo: Date(), toGranularity: .month) {
-          dateComponents = calendar.dateComponents([.year, .month, .day], from: eventDate)
-          dateFormat = "HH:mm"
+        dateComponents = calendar.dateComponents([.year, .month, .day], from: eventDate)
+        dateFormat = "HH:mm"
       } else {
-          dateComponents = calendar.dateComponents([.year, .month], from: eventDate)
-          dateFormat = "MMM d 'at' HH:mm"
+        dateComponents = calendar.dateComponents([.year, .month], from: eventDate)
+        dateFormat = "MMM d 'at' HH:mm"
       }
       
       guard let sectionDate = calendar.date(from: dateComponents) else { continue }
@@ -96,7 +131,7 @@ private extension HistoryListController {
       let eventModel = historyListMapper.mapHistoryEvent(
         event,
         eventDate: eventDate,
-        nftsCollection: NFTsCollection(nfts: [:]),
+        nftsCollection: nfts,
         accountEventRightTopDescriptionProvider: HistoryAccountEventRightTopDescriptionProvider(
           dateFormatter: dateFormatter,
           dateFormat: dateFormat

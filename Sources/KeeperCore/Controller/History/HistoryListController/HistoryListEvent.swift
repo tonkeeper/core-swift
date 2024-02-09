@@ -31,6 +31,7 @@ public struct HistoryListEvent {
     }
     
     public struct NFTModel {
+      public let nft: NFT
       public let name: String?
       public let collectionName: String?
       public let image: URL?

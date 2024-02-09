@@ -27,4 +27,8 @@ public final class RepositoriesAssembly {
   func historyRepository() -> HistoryRepository {
     HistoryRepositoryImplementation(fileSystemVault: coreAssembly.fileSystemVault())
   }
+  
+  func nftRepository() -> NFTRepository {
+    NFTRepositoryImplementation(fileSystemVault: coreAssembly.fileSystemVault())
+  }
 }
