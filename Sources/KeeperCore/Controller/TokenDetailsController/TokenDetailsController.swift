@@ -14,6 +14,7 @@ public final class TokenDetailsController {
     public let image: Image
     public let tokenAmount: String
     public let convertedAmount: String?
+    public let buttons: [IconButton]
   }
   
   private let configurator: TokenDetailsControllerConfigurator

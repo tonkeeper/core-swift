@@ -91,24 +91,25 @@ private extension HistoryListController {
     var nftAddressesToLoad = Set<Address>()
     var nfts = [Address: NFT]()
     for action in actions {
-        switch action.type {
-        case .nftItemTransfer(let nftItemTransfer):
-            nftAddressesToLoad.insert(nftItemTransfer.nftAddress)
-        case .nftPurchase(let nftPurchase):
-            nfts[nftPurchase.nft.address] = nftPurchase.nft
-            try? nftService.saveNFT(nft: nftPurchase.nft)
-        default: continue
-        }
+      switch action.type {
+      case .nftItemTransfer(let nftItemTransfer):
+        nftAddressesToLoad.insert(nftItemTransfer.nftAddress)
+      case .nftPurchase(let nftPurchase):
+        nfts[nftPurchase.nft.address] = nftPurchase.nft
+        try? nftService.saveNFT(nft: nftPurchase.nft)
+      default: continue
+      }
     }
+    guard !nftAddressesToLoad.isEmpty else { return NFTsCollection(nfts: nfts) }
     
     if let loadedNFTs = try? await nftService.loadNFTs(addresses: Array(nftAddressesToLoad)) {
-        nfts = loadedNFTs
+      nfts = loadedNFTs
     }
     
     return NFTsCollection(nfts: nfts)
   }
   
-  func handleEvents(_ events: AccountEvents, 
+  func handleEvents(_ events: AccountEvents,
                     andNFTs nfts: NFTsCollection) {
     let calendar = Calendar.current
     

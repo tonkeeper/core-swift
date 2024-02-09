@@ -24,7 +24,8 @@ struct TonTokenDetailsControllerConfigurator: TokenDetailsControllerConfigurator
       tokenSubtitle: nil,
       image: .ton,
       tokenAmount: amount.tokenAmount,
-      convertedAmount: amount.convertedAmount
+      convertedAmount: amount.convertedAmount,
+      buttons: [.send(.ton), .receive(.ton), .buySell]
     )
   }
 }
@@ -70,7 +71,8 @@ struct JettonTokenDetailsControllerConfigurator: TokenDetailsControllerConfigura
       tokenSubtitle: subtitle,
       image: .url(jettonInfo.imageURL),
       tokenAmount: amount.tokenAmount,
-      convertedAmount: amount.convertedAmount
+      convertedAmount: amount.convertedAmount,
+      buttons: [.send(.jetton(jettonInfo)), .receive(.jetton(jettonInfo))]
     )
   }
 }
