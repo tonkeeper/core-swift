@@ -4,11 +4,14 @@ public final class ServicesAssembly {
 
   private let repositoriesAssembly: RepositoriesAssembly
   private let apiAssembly: APIAssembly
+  private let tonkeeperAPIAssembly: TonkeeperAPIAssembly
   
   init(repositoriesAssembly: RepositoriesAssembly,
-       apiAssembly: APIAssembly) {
+       apiAssembly: APIAssembly,
+       tonkeeperAPIAssembly: TonkeeperAPIAssembly) {
     self.repositoriesAssembly = repositoriesAssembly
     self.apiAssembly = apiAssembly
+    self.tonkeeperAPIAssembly = tonkeeperAPIAssembly
   }
   
   func walletsService() -> WalletsService {
@@ -60,5 +63,9 @@ public final class ServicesAssembly {
       api: apiAssembly.api,
       nftRepository: repositoriesAssembly.nftRepository()
     )
+  }
+  
+  func chartService() -> ChartService {
+    ChartServiceImplementation(api: tonkeeperAPIAssembly.api)
   }
 }

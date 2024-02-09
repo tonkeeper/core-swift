@@ -122,6 +122,42 @@ public final class MainAssembly {
       dateFormatter: formattersAssembly.dateFormatter
     )
   }
+  
+  public func tonTokenDetailsController() -> TokenDetailsController {
+    let configurator = TonTokenDetailsControllerConfigurator(
+      mapper: tokenDetailsMapper
+    )
+    return TokenDetailsController(
+      configurator: configurator,
+      walletsStore: walletAssembly.walletStore,
+      balanceStore: storesAssembly.balanceStore,
+      ratesStore: storesAssembly.ratesStore,
+      currencyStore: storesAssembly.currencyStore
+    )
+  }
+  
+  public func jettonTokenDetailsController(jettonInfo: JettonInfo) -> TokenDetailsController {
+    let configurator = JettonTokenDetailsControllerConfigurator(
+      jettonInfo: jettonInfo,
+      mapper: tokenDetailsMapper
+    )
+    return TokenDetailsController(
+      configurator: configurator,
+      walletsStore: walletAssembly.walletStore,
+      balanceStore: storesAssembly.balanceStore,
+      ratesStore: storesAssembly.ratesStore,
+      currencyStore: storesAssembly.currencyStore
+    )
+  }
+  
+  public func chartController() -> ChartController {
+    ChartController(
+      chartService: servicesAssembly.chartService(),
+      ratesStore: storesAssembly.ratesStore,
+      currencyStore: storesAssembly.currencyStore,
+      decimalAmountFormatter: formattersAssembly.decimalAmountFormatter
+    )
+  }
 }
 
 private extension MainAssembly {
@@ -149,6 +185,13 @@ private extension MainAssembly {
           amountFormatter: formattersAssembly.amountFormatter
         )
       )
+    )
+  }
+  
+  var tokenDetailsMapper: TokenDetailsMapper {
+    TokenDetailsMapper(
+      amountFormatter: formattersAssembly.amountFormatter,
+      rateConverter: RateConverter()
     )
   }
 }

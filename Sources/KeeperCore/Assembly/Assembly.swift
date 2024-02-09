@@ -22,7 +22,8 @@ public final class Assembly {
   private lazy var tonkeeperApiAssembly = TonkeeperAPIAssembly()
   private lazy var servicesAssembly = ServicesAssembly(
     repositoriesAssembly: repositoriesAssembly, 
-    apiAssembly: apiAssembly
+    apiAssembly: apiAssembly,
+    tonkeeperAPIAssembly: tonkeeperApiAssembly
   )
   private lazy var storesAssembly = StoresAssembly(
     servicesAssembly: servicesAssembly
