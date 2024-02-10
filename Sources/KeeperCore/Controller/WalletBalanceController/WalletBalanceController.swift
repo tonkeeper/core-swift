@@ -11,6 +11,10 @@ public final class WalletBalanceController {
       return " "
     }
   }
+  
+  public var fullAddress: String? {
+    try? wallet.address.toString(bounceable: false)
+  }
 
   private var wallet: Wallet
   private let balanceStore: BalanceStore
