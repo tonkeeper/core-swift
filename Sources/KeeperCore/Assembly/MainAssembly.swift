@@ -158,6 +158,13 @@ public final class MainAssembly {
       decimalAmountFormatter: formattersAssembly.decimalAmountFormatter
     )
   }
+  
+  public func receiveController(token: Token) -> ReceiveController {
+    ReceiveController(
+      token: token,
+      walletsStore: walletAssembly.walletStore
+    )
+  }
 }
 
 private extension MainAssembly {
