@@ -30,7 +30,7 @@ struct HistoryListMapper {
         rightTopDescription: rightTopDescription,
         nftsCollection: nftsCollection)
     }
-    return HistoryListEvent(eventId: event.eventId, actions: actions, date: eventDate)
+    return HistoryListEvent(eventId: event.eventId, actions: actions, accountEvent: event, date: eventDate)
   }
   
   func mapEventsSectionDate(_ date: Date) -> String? {

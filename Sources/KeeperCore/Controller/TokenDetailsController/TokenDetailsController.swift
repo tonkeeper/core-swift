@@ -5,13 +5,9 @@ public final class TokenDetailsController {
   public var didUpdateTokenModel: ((TokenModel) -> Void)?
   
   public struct TokenModel {
-    public enum Image {
-      case ton
-      case url(URL?)
-    }
     public let tokenTitle: String
     public let tokenSubtitle: String?
-    public let image: Image
+    public let image: TokenImage
     public let tokenAmount: String
     public let convertedAmount: String?
     public let buttons: [IconButton]

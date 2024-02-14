@@ -73,5 +73,6 @@ public struct HistoryListEvent {
   
   public let eventId: String
   public let actions: [Action]
+  public let accountEvent: AccountEvent
   public let date: Date
 }

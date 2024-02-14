@@ -1,18 +1,12 @@
 import Foundation
 import TonSwift
-import UIKit.UIImage
 
 public final class ReceiveController {
   public struct Model {
-    public enum Image {
-      case ton
-      case url(URL?)
-    }
-    
     public let tokenName: String
     public let descriptionTokenName: String
     public let address: String?
-    public let image: Image
+    public let image: TokenImage
   }
   
   public var didUpdateModel: ((Model) -> Void)?
@@ -29,7 +23,7 @@ public final class ReceiveController {
   public func createModel() {
     let tokenName: String
     let descriptionTokenName: String
-    let image: Model.Image
+    let image: TokenImage
     
     switch token {
     case .ton:

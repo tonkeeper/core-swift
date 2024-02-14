@@ -165,6 +165,17 @@ public final class MainAssembly {
       walletsStore: walletAssembly.walletStore
     )
   }
+  
+  public func historyEventDetailsController(event: AccountEventDetailsEvent) -> HistoryEventDetailsController {
+    HistoryEventDetailsController(
+      event: event,
+      amountMapper: AmountHistoryListEventAmountMapper(amountFormatter: formattersAssembly.amountFormatter),
+      ratesStore: storesAssembly.ratesStore,
+      walletsStore: walletAssembly.walletStore,
+      currencyStore: storesAssembly.currencyStore,
+      nftService: servicesAssembly.nftService()
+    )
+  }
 }
 
 private extension MainAssembly {
