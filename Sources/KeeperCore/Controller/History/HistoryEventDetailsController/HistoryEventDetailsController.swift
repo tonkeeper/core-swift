@@ -289,7 +289,7 @@ private extension HistoryEventDetailsController {
     }
     listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue, isTopValueFullString: true))
     listItems.append(feeListItem)
-    if let comment = tonTransfer.comment {
+    if let comment = tonTransfer.comment, !comment.isEmpty {
       listItems.append(Model.ListItem(title: .comment, topValue: comment, topNumberOfLines: 0))
     }
     
@@ -346,7 +346,7 @@ private extension HistoryEventDetailsController {
       listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue, isTopValueFullString: true))
     }
     listItems.append(feeListItem)
-    if let comment = nftTransfer.comment {
+    if let comment = nftTransfer.comment, !comment.isEmpty {
       listItems.append(Model.ListItem(title: .comment, topValue: comment, topNumberOfLines: 0))
     }
     
@@ -796,7 +796,7 @@ private extension HistoryEventDetailsController {
       listItems.append(Model.ListItem(title: addressTitle, topValue: addressValue, isTopValueFullString: true))
     }
     listItems.append(feeListItem)
-    if let comment = action.comment {
+    if let comment = action.comment, !comment.isEmpty {
       listItems.append(Model.ListItem(title: .comment, topValue: comment, topNumberOfLines: 0))
     }
     
