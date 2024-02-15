@@ -7,8 +7,6 @@ protocol BalanceStoreObserver: AnyObject {
 }
 
 actor BalanceStore {
-  typealias Stream = AsyncStream<Result<Event, Swift.Error>>
-  
   public struct Event {
     public let address: Address
     public let result: Result<WalletBalance, Swift.Error>

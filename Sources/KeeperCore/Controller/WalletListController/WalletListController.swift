@@ -51,16 +51,16 @@ public final class WalletListController {
     Task {
       walletsModels = await getWalletsModels()
     }
-    
-    walletsStore.addObserver(self)
-    Task {
-      await balanceStore.addObserver(self)
-    }
-    Task {
-      await ratesStore.addObserver(self)
-    }
+//    
+//    walletsStore.addObserver(self)
+//    Task {
+//      await balanceStore.addObserver(self)
+//    }
+//    Task {
+//      await ratesStore.addObserver(self)
+//    }
   }
-  
+
   public func setWalletActive(with identifier: String) {
     guard let index = _walletsModels.firstIndex(where: { $0.identifier == identifier }) else { return }
     do {

@@ -31,4 +31,8 @@ public final class RepositoriesAssembly {
   func nftRepository() -> NFTRepository {
     NFTRepositoryImplementation(fileSystemVault: coreAssembly.fileSystemVault())
   }
+  
+  func accountsNftRepository() -> AccountNFTRepository {
+    AccountNFTRepositoryImplementation(fileSystemVault: coreAssembly.fileSystemVault())
+  }
 }

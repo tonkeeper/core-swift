@@ -2,22 +2,28 @@ import Foundation
 import TonSwift
 import CoreComponents
 
-protocol HistoryRepository {
-  func saveEvents(events: AccountEvents, forKey key: String) throws
-  func getEvents(forKey key: String) throws -> AccountEvents
+protocol NFTRepository {
+  func saveNFT(_ nft: NFT, key: String) throws
+  func getNFT(_ key: String) throws -> NFT
+  func getNFTs() -> [NFT]
 }
 
-struct HistoryRepositoryImplementation: HistoryRepository {
-  let fileSystemVault: FileSystemVault<AccountEvents, String>
+struct NFTRepositoryImplementation: NFTRepository {
+  let fileSystemVault: FileSystemVault<NFT, String>
   
-  init(fileSystemVault: FileSystemVault<AccountEvents, String>) {
+  init(fileSystemVault: FileSystemVault<NFT, String>) {
     self.fileSystemVault = fileSystemVault
   }
   
-  func saveEvents(events: AccountEvents, forKey key: String) throws {
-    try fileSystemVault.saveItem(events, key: key)
+  func saveNFT(_ nft: NFT, key: String) throws {
+    try fileSystemVault.saveItem(nft, key: key)
   }
-  func getEvents(forKey key: String) throws -> AccountEvents {
-    try fileSystemVault.loadItem(key: key)
+  
+  func getNFT(_ key: String) throws -> NFT {
+    return try fileSystemVault.loadItem(key: key)
+  }
+  
+  func getNFTs() -> [NFT] {
+    return fileSystemVault.loadAll()
   }
 }

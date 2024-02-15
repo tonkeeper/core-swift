@@ -2,7 +2,6 @@ import Foundation
 import CoreComponents
 
 public final class WalletMainController {
-  
   public var didUpdateActiveWallet: (() -> Void)?
   public var didUpdateActiveWalletMetaData: (() -> Void)?
   
@@ -54,16 +53,21 @@ private extension WalletMainController {
       await ratesStore.loadRates(jettons: balance.balance.jettonsBalance.map { $0.amount.jettonInfo })
     }
   }
+  
+  func handleActiveWalletUpdate() {
+    didUpdateActiveWallet?()
+  }
 }
 
 extension WalletMainController: WalletsStoreObserver {
   func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
     switch event {
     case .didUpdateActiveWallet:
-      didUpdateActiveWallet?()
+      handleActiveWalletUpdate()
     case .didUpdateActiveWalletMetaData:
       didUpdateActiveWalletMetaData?()
-    default: break
+    default:
+      break
     }
   }
 }

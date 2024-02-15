@@ -65,6 +65,13 @@ public final class ServicesAssembly {
     )
   }
   
+  func accountNftService() -> AccountNFTService {
+    AccountNFTServiceImplementation(
+      api: apiAssembly.api,
+      accountNFTRepository: repositoriesAssembly.accountsNftRepository()
+    )
+  }
+  
   func chartService() -> ChartService {
     ChartServiceImplementation(api: tonkeeperAPIAssembly.api)
   }

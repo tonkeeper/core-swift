@@ -34,6 +34,13 @@ public final class MainAssembly {
     self.configurationAssembly = configurationAssembly
   }
   
+  public func mainController() -> MainController {
+    MainController(
+      walletsStore: walletAssembly.walletStore,
+      nftsStoreProvider: { [storesAssembly] wallet in storesAssembly.nftsStore(wallet: wallet) }
+    )
+  }
+  
   public func walletMainController() -> WalletMainController {
     WalletMainController(
       walletsStore: walletAssembly.walletStore,
@@ -175,6 +182,14 @@ public final class MainAssembly {
       currencyStore: storesAssembly.currencyStore,
       nftService: servicesAssembly.nftService()
     )
+  }
+  
+  public func collectiblesController() -> CollectiblesController {
+    CollectiblesController(walletsStore: walletAssembly.walletStore)
+  }
+  
+  public func collectiblesListController(wallet: Wallet) -> CollectiblesListController {
+    CollectiblesListController(nftsStore: storesAssembly.nftsStore(wallet: wallet))
   }
 }
 
