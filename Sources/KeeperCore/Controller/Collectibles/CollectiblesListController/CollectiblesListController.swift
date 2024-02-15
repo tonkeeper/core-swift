@@ -8,6 +8,7 @@ public actor CollectiblesListController {
     public let name: String?
     public let collectionName: String?
     public let imageUrl: URL?
+    public let isOnSale: Bool
   }
   
   public enum Event {
@@ -74,7 +75,8 @@ private extension CollectiblesListController {
     return NFTModel(address: nft.address,
                     name: name,
                     collectionName: collectionName,
-                    imageUrl: nft.preview.size500)
+                    imageUrl: nft.preview.size500,
+                    isOnSale: nft.sale != nil)
   }
   
   func handleUpdatedNfts(_ nfts: [NFT]) {
