@@ -8,15 +8,15 @@ public struct PasscodeVault {
   
   private let keychainVault: KeychainVault
   
-  init(keychainVault: KeychainVault) {
+  public init(keychainVault: KeychainVault) {
     self.keychainVault = keychainVault
   }
   
-  func load() throws -> Passcode {
+  public func load() throws -> Passcode {
     try keychainVault.readValue(Passcode.query())
   }
   
-  func save(_ passcode: Passcode) throws {
+  public func save(_ passcode: Passcode) throws {
     try keychainVault.saveValue(passcode, to: Passcode.query())
   }
 }
