@@ -24,7 +24,9 @@ public final class WalletAddController {
     )
     let wallet = Wallet(
       identity: walletIdentity,
-      metaData: metaData)
+      metaData: metaData,
+      setupSettings: WalletSetupSettings(backupDate: nil)
+    )
     
     try mnemonicRepositoty.saveMnemonic(mnemonic, forWallet: wallet)
     try walletsStoreUpdate.addWallets([wallet])
@@ -57,7 +59,8 @@ public final class WalletAddController {
       
       return Wallet(
         identity: walletIdentity,
-        metaData: revisionMetaData)
+        metaData: revisionMetaData,
+        setupSettings: WalletSetupSettings(backupDate: Date()))
     }
 
     try wallets.forEach { wallet in

@@ -3,6 +3,7 @@ import Foundation
 public final class WalletBalanceController {
   
   public var didUpdateBalance: ((WalletBalanceModel) -> Void)?
+  public var didUpdateFinishSetup: ((WalletBalanceSetupModel) -> Void)?
   
   public var address: String {
     do {
@@ -17,19 +18,20 @@ public final class WalletBalanceController {
   }
 
   private var wallet: Wallet
+  private let walletsStore: WalletsStore
   private let balanceStore: BalanceStore
   private let ratesStore: RatesStore
   private let currencyStore: CurrencyStore
   private let walletBalanceMapper: WalletBalanceMapper
-  
-  private var storesObservationTask: Task<Void, Never>?
-  
+    
   init(wallet: Wallet,
+       walletsStore: WalletsStore,
        balanceStore: BalanceStore,
        ratesStore: RatesStore,
        currencyStore: CurrencyStore,
        walletBalanceMapper: WalletBalanceMapper) {
     self.wallet = wallet
+    self.walletsStore = walletsStore
     self.balanceStore = balanceStore
     self.ratesStore = ratesStore
     self.currencyStore = currencyStore
@@ -38,6 +40,7 @@ public final class WalletBalanceController {
   }
 
   public func loadBalance() {
+    updateFinishSetup()
     updateBalance()
     Task {
       try await self.balanceStore.loadBalance(address: self.wallet.address)
@@ -82,12 +85,21 @@ private extension WalletBalanceController {
   
   func startStoresObservation() {
     currencyStore.addObserver(self)
+    walletsStore.addObserver(self)
     Task {
       await balanceStore.addObserver(self)
     }
     Task {
       await ratesStore.addObserver(self)
     }
+  }
+  
+  func updateFinishSetup() {
+    let didBackup = wallet.setupSettings.backupDate != nil
+    let model = WalletBalanceSetupModel(
+      didBackup: didBackup
+    )
+    didUpdateFinishSetup?(model)
   }
 }
 
@@ -109,5 +121,18 @@ extension WalletBalanceController: RatesStoreObserver {
 extension WalletBalanceController: CurrencyStoreObserver {
   func didGetCurrencyStoreEvent(_ event: CurrencyStoreEvent) {
     updateBalance()
+  }
+}
+
+extension WalletBalanceController: WalletsStoreObserver {
+  func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
+    switch event {
+    case .didUpdateWalletBackupState(let walletId):
+      guard walletId == self.wallet.identity,
+            let wallet = walletsStore.wallets.first(where: { $0.identity == walletId }) else { return }
+      self.wallet = wallet
+      updateFinishSetup()
+    default: break
+    }
   }
 }

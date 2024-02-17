@@ -16,6 +16,7 @@ public protocol WalletsService {
   func setWalletActive(_ wallet: Wallet) throws
   func moveWallet(fromIndex: Int, toIndex: Int) throws
   func updateWallet(wallet: Wallet, metaData: WalletMetaData) throws
+  func updateWallet(wallet: Wallet, setupSettings: WalletSetupSettings) throws 
 }
 
 final class WalletsServiceImplementation: WalletsService {
@@ -72,6 +73,31 @@ final class WalletsServiceImplementation: WalletsService {
     let updatedWallet = Wallet(
       identity: wallet.identity,
       metaData: metaData,
+      setupSettings: wallet.setupSettings,
+      notificationSettings: wallet.notificationSettings,
+      backupSettings: wallet.backupSettings,
+      addressBook: wallet.addressBook
+    )
+    let currentKeeperInfo = try keeperInfoRepository.getKeeperInfo()
+    var wallets = currentKeeperInfo.wallets
+    guard let index = wallets.firstIndex(of: wallet) else { return }
+    wallets.remove(at: index)
+    wallets.insert(updatedWallet, at: index)
+    let updatedKeeperInfo: KeeperInfo
+    if currentKeeperInfo.currentWallet == wallet {
+      updatedKeeperInfo = currentKeeperInfo.setWallets(wallets, activeWallet: updatedWallet)
+    } else {
+      updatedKeeperInfo = currentKeeperInfo.setWallets(wallets)
+    }
+    
+    try keeperInfoRepository.saveKeeperInfo(updatedKeeperInfo)
+  }
+  
+  func updateWallet(wallet: Wallet, setupSettings: WalletSetupSettings) throws {
+    let updatedWallet = Wallet(
+      identity: wallet.identity,
+      metaData: wallet.metaData,
+      setupSettings: setupSettings,
       notificationSettings: wallet.notificationSettings,
       backupSettings: wallet.backupSettings,
       addressBook: wallet.addressBook

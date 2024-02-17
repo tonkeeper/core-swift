@@ -13,25 +13,31 @@ public final class MainAssembly {
     }
   }
   
+  let repositoriesAssembly: RepositoriesAssembly
   let walletAssembly: WalletAssembly
   public let walletUpdateAssembly: WalletsUpdateAssembly
   let servicesAssembly: ServicesAssembly
   let storesAssembly: StoresAssembly
   let formattersAssembly: FormattersAssembly
   let configurationAssembly: ConfigurationAssembly
+  public let passcodeAssembly: PasscodeAssembly
   
-  init(walletAssembly: WalletAssembly,
+  init(repositoriesAssembly: RepositoriesAssembly,
+       walletAssembly: WalletAssembly,
        walletUpdateAssembly: WalletsUpdateAssembly,
        servicesAssembly: ServicesAssembly,
        storesAssembly: StoresAssembly,
        formattersAssembly: FormattersAssembly,
-       configurationAssembly: ConfigurationAssembly) {
+       configurationAssembly: ConfigurationAssembly,
+       passcodeAssembly: PasscodeAssembly) {
+    self.repositoriesAssembly = repositoriesAssembly
     self.walletAssembly = walletAssembly
     self.walletUpdateAssembly = walletUpdateAssembly
     self.servicesAssembly = servicesAssembly
     self.storesAssembly = storesAssembly
     self.formattersAssembly = formattersAssembly
     self.configurationAssembly = configurationAssembly
+    self.passcodeAssembly = passcodeAssembly
   }
   
   public func mainController() -> MainController {
@@ -63,6 +69,7 @@ public final class MainAssembly {
   public func walletBalanceController(wallet: Wallet) -> WalletBalanceController {
     WalletBalanceController(
       wallet: wallet,
+      walletsStore: walletAssembly.walletStore,
       balanceStore: storesAssembly.balanceStore,
       ratesStore: storesAssembly.ratesStore,
       currencyStore: storesAssembly.currencyStore,
@@ -190,6 +197,22 @@ public final class MainAssembly {
   
   public func collectiblesListController(wallet: Wallet) -> CollectiblesListController {
     CollectiblesListController(nftsStore: storesAssembly.nftsStore(wallet: wallet))
+  }
+  
+  public func recoveryPhraseController(wallet: Wallet) -> RecoveryPhraseController {
+    RecoveryPhraseController(
+      wallet: wallet,
+      mnemonicRepository: repositoriesAssembly.mnemonicRepository()
+    )
+  }
+  
+  public func backupController(wallet: Wallet) -> BackupController {
+    BackupController(
+      wallet: wallet,
+      backupStore: storesAssembly.backupStore,
+      walletsStore: walletAssembly.walletStore,
+      dateFormatter: formattersAssembly.dateFormatter
+    )
   }
 }
 

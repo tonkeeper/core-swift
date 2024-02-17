@@ -1,4 +1,5 @@
 import Foundation
+import CoreComponents
 
 public final class RepositoriesAssembly {
   
@@ -34,5 +35,9 @@ public final class RepositoriesAssembly {
   
   func accountsNftRepository() -> AccountNFTRepository {
     AccountNFTRepositoryImplementation(fileSystemVault: coreAssembly.fileSystemVault())
+  }
+  
+  func passcodeRepository() -> PasscodeRepository {
+    PasscodeRepositoryImplementation(passcodeVault: coreAssembly.passcodeVault())
   }
 }

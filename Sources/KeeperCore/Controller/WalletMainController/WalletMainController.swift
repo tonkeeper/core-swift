@@ -64,8 +64,10 @@ extension WalletMainController: WalletsStoreObserver {
     switch event {
     case .didUpdateActiveWallet:
       handleActiveWalletUpdate()
-    case .didUpdateActiveWalletMetaData:
-      didUpdateActiveWalletMetaData?()
+    case .didUpdateWalletMetaData(let walletId):
+      if walletsStore.activeWallet.identity == walletId {
+        didUpdateActiveWalletMetaData?()
+      }
     default:
       break
     }

@@ -13,6 +13,10 @@ public struct CoreAssembly {
   func mnemonicVault() -> MnemonicVault {
     MnemonicVault(keychainVault: keychainVault, accessGroup: nil)
   }
+  
+  func passcodeVault() -> PasscodeVault {
+    PasscodeVault(keychainVault: keychainVault)
+  }
 
   func fileSystemVault<T, K>() -> FileSystemVault<T, K> {
     return FileSystemVault(fileManager: fileManager, directory: cacheURL)

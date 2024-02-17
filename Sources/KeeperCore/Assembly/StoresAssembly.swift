@@ -42,6 +42,18 @@ public final class StoresAssembly {
     }
   }
   
+  private weak var _backupStore: BackupStore?
+  var backupStore: BackupStore {
+    if let backupStore = _backupStore {
+      return backupStore
+    } else {
+      let backupStore = BackupStore(
+        walletService: servicesAssembly.walletsService()
+      )
+      _backupStore = backupStore
+      return backupStore
+    }
+  }
   
   private struct NftsStoreWeakWrapper {
     weak var nftsStore: NftsStore?
@@ -63,4 +75,6 @@ public final class StoresAssembly {
       return store
     }
   }
+  
+  
 }

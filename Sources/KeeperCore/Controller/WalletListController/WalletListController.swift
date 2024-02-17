@@ -126,7 +126,7 @@ extension WalletListController: WalletsStoreObserver {
       }
     case .didUpdateActiveWallet:
       didUpdateActiveWallet?()
-    case .didUpdateActiveWalletMetaData:
+    default:
       break
     }
   }

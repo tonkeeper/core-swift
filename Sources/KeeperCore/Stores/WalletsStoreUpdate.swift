@@ -2,9 +2,9 @@ import Foundation
 import CoreComponents
 
 enum WalletsStoreUpdateEvent {
-  case didMakeWalletActive(Wallet)
-  case didUpdateWallets([Wallet])
-  case didUpdateWalletMetaData(Wallet, index: Int)
+  case didMakeWalletActive(walletId: WalletIdentity)
+  case didUpdateWallets
+  case didUpdateWallet(walletId: WalletIdentity)
 }
 
 protocol WalletsStoreUpdateObserver: AnyObject {
@@ -20,22 +20,22 @@ final class WalletsStoreUpdate {
   
   func addWallets(_ wallets: [Wallet]) throws {
     try walletsService.addWallets(wallets)
-    notifyObserversDidUpdateWallets()
+    notifyObservers(event: .didUpdateWallets)
   }
 
   func makeWalletActive(_ wallet: Wallet) throws {
     try walletsService.setWalletActive(wallet)
-    notifyObserversDidUpdateActiveWallet()
+    notifyObservers(event: .didMakeWalletActive(walletId: wallet.identity))
   }
 
   func moveWallet(fromIndex: Int, toIndex: Int) throws {
     try walletsService.moveWallet(fromIndex: fromIndex, toIndex: toIndex)
-    notifyObserversDidUpdateWallets()
+    notifyObservers(event: .didUpdateWallets)
   }
   
   func updateWallet(_ wallet: Wallet, metaData: WalletMetaData) throws {
     try walletsService.updateWallet(wallet: wallet, metaData: metaData)
-    notifyObserversDidUpdateWalletMetaData(wallet: wallet)
+    notifyObservers(event: .didUpdateWallet(walletId: wallet.identity))
   }
 
   private var observers = [WalletsStoreUpdateObserverWrapper]()
@@ -56,22 +56,6 @@ final class WalletsStoreUpdate {
 }
 
 private extension WalletsStoreUpdate {
-  func notifyObserversDidUpdateWallets() {
-    guard let wallets = try? walletsService.getWallets() else { return }
-    notifyObservers(event: .didUpdateWallets(wallets))
-  }
-  
-  func notifyObserversDidUpdateActiveWallet() {
-    guard let activeWallet = try? walletsService.getActiveWallet() else { return }
-    notifyObservers(event: .didMakeWalletActive(activeWallet))
-  }
-  
-  func notifyObserversDidUpdateWalletMetaData(wallet: Wallet) {
-    guard let wallets = try? walletsService.getWallets(),
-    let index = wallets.firstIndex(of: wallet)  else { return }
-    notifyObservers(event: .didUpdateWalletMetaData(wallets[index], index: index))
-  }
-  
   func removeNilObservers() {
     observers = observers.filter { $0.observer != nil }
   }

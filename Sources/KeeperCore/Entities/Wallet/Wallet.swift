@@ -8,6 +8,8 @@ public struct Wallet: Codable, Hashable {
   // Wallet's metadata as human-readable label, color, emoji etc
   public let metaData: WalletMetaData
   
+  public let setupSettings: WalletSetupSettings
+  
   /// Per-wallet notifications: maybe filters by assets, amounts, dapps etc.
   let notificationSettings: NotificationSettings
   
@@ -29,11 +31,13 @@ public struct Wallet: Codable, Hashable {
   
   init(identity: WalletIdentity,
        metaData: WalletMetaData,
+       setupSettings: WalletSetupSettings,
        notificationSettings: NotificationSettings = .init(),
        backupSettings: WalletBackupSettings = .init(enabled: true, revision: 1, voucher: nil),
        addressBook: [AddressBookEntry] = []) {
     self.identity = identity
     self.metaData = metaData
+    self.setupSettings = setupSettings
     self.notificationSettings = notificationSettings
     self.backupSettings = backupSettings
     self.addressBook = addressBook
@@ -142,23 +146,24 @@ extension Wallet {
     return true
   }
 }
-
-extension Wallet {
-  public init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: Wallet.CodingKeys.self)
-    
-    self.identity = try container.decode(WalletIdentity.self, forKey: .identity)
-    self.notificationSettings = try container.decode(NotificationSettings.self, forKey: .notificationSettings)
-    self.backupSettings = try container.decode(WalletBackupSettings.self, forKey: .backupSettings)
-    self.addressBook = try container.decode([AddressBookEntry].self, forKey: .addressBook)
-    
-    if let metadata = try? container.decodeIfPresent(WalletMetaData.self, forKey: .metaData) {
-      self.metaData = metadata
-    } else {
-      self.metaData = WalletMetaData(
-        label: "Wallet",
-        colorIdentifier: "",
-        emoji: "")
-    }
-  }
-}
+//
+//extension Wallet {
+//  public init(from decoder: Decoder) throws {
+//    let container = try decoder.container(keyedBy: Wallet.CodingKeys.self)
+//    
+//    self.identity = try container.decode(WalletIdentity.self, forKey: .identity)
+//    self.setupSettings = try container.decode(WalletSetupSettings.self, forKey: .setupSettings)
+//    self.notificationSettings = try container.decode(NotificationSettings.self, forKey: .notificationSettings)
+//    self.backupSettings = try container.decode(WalletBackupSettings.self, forKey: .backupSettings)
+//    self.addressBook = try container.decode([AddressBookEntry].self, forKey: .addressBook)
+//    
+//    if let metadata = try? container.decodeIfPresent(WalletMetaData.self, forKey: .metaData) {
+//      self.metaData = metadata
+//    } else {
+//      self.metaData = WalletMetaData(
+//        label: "Wallet",
+//        colorIdentifier: "",
+//        emoji: "")
+//    }
+//  }
+//}

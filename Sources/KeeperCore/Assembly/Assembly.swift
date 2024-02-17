@@ -35,6 +35,7 @@ public final class Assembly {
       repositoriesAssembly: repositoriesAssembly
     )
   }
+  private lazy var passcodeAssembly = PasscodeAssembly(repositoriesAssembly: repositoriesAssembly)
   
   private let dependencies: Dependencies
   
@@ -49,11 +50,13 @@ public final class Assembly {
 
 public extension Assembly {
   func rootAssembly() -> RootAssembly {
-    RootAssembly(coreAssembly: coreAssembly,
+    RootAssembly(repositoriesAssembly: repositoriesAssembly,
+                 coreAssembly: coreAssembly,
                  servicesAssembly: servicesAssembly,
                  storesAssembly: storesAssembly,
                  formattersAssembly: formattersAssembly,
                  walletsUpdateAssembly: walletUpdateAssembly,
-                 configurationAssembly: configurationAssembly)
+                 configurationAssembly: configurationAssembly,
+                 passcodeAssembly: passcodeAssembly)
   }
 }
