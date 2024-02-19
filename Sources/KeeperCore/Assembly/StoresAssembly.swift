@@ -76,5 +76,25 @@ public final class StoresAssembly {
     }
   }
   
+  private weak var _securityStore: SecurityStore?
+  var securityStore: SecurityStore {
+    if let securityStore = _securityStore {
+      return securityStore
+    } else {
+      let securityStore = SecurityStore(securityService: servicesAssembly.securityService())
+      _securityStore = securityStore
+      return securityStore
+    }
+  }
   
+  private weak var _setupStore: SetupStore?
+  var setupStore: SetupStore {
+    if let setupStore = _setupStore {
+      return setupStore
+    } else {
+      let setupStore = SetupStore(setupService: servicesAssembly.setupService())
+      _setupStore = setupStore
+      return setupStore
+    }
+  }
 }

@@ -3,9 +3,12 @@ import Foundation
 public final class PasscodeAssembly {
   
   let repositoriesAssembly: RepositoriesAssembly
+  let storesAssembly: StoresAssembly
   
-  init(repositoriesAssembly: RepositoriesAssembly) {
+  init(repositoriesAssembly: RepositoriesAssembly,
+       storesAssembly: StoresAssembly) {
     self.repositoriesAssembly = repositoriesAssembly
+    self.storesAssembly = storesAssembly
   }
   
   public func passcodeCreateController() -> PasscodeCreateController {
@@ -13,6 +16,9 @@ public final class PasscodeAssembly {
   }
   
   public func passcodeConfirmationController() -> PasscodeConfirmationController {
-    PasscodeConfirmationController(passcodeRepository: repositoriesAssembly.passcodeRepository())
+    PasscodeConfirmationController(
+      passcodeRepository: repositoriesAssembly.passcodeRepository(),
+      securityStore: storesAssembly.securityStore
+    )
   }
 }

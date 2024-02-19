@@ -73,6 +73,8 @@ public final class MainAssembly {
       balanceStore: storesAssembly.balanceStore,
       ratesStore: storesAssembly.ratesStore,
       currencyStore: storesAssembly.currencyStore,
+      securityStore: storesAssembly.securityStore,
+      setupStore: storesAssembly.setupStore,
       walletBalanceMapper: walletBalanceMapper
     )
   }
@@ -212,6 +214,12 @@ public final class MainAssembly {
       backupStore: storesAssembly.backupStore,
       walletsStore: walletAssembly.walletStore,
       dateFormatter: formattersAssembly.dateFormatter
+    )
+  }
+  
+  public func settingsSecurityController() -> SettingsSecurityController {
+    SettingsSecurityController(
+      securityStore: storesAssembly.securityStore
     )
   }
 }

@@ -14,6 +14,8 @@ public struct KeeperInfo: Codable {
   /// Common pin/faceid settings
   let securitySettings: SecuritySettings
   
+  let isSetupFinished: Bool
+  
   ///
   let assetsPolicy: AssetsPolicy
   let appCollection: AppCollection

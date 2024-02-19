@@ -22,6 +22,8 @@ public final class WalletBalanceController {
   private let balanceStore: BalanceStore
   private let ratesStore: RatesStore
   private let currencyStore: CurrencyStore
+  private let securityStore: SecurityStore
+  private let setupStore: SetupStore
   private let walletBalanceMapper: WalletBalanceMapper
     
   init(wallet: Wallet,
@@ -29,12 +31,16 @@ public final class WalletBalanceController {
        balanceStore: BalanceStore,
        ratesStore: RatesStore,
        currencyStore: CurrencyStore,
+       securityStore: SecurityStore,
+       setupStore: SetupStore,
        walletBalanceMapper: WalletBalanceMapper) {
     self.wallet = wallet
     self.walletsStore = walletsStore
     self.balanceStore = balanceStore
     self.ratesStore = ratesStore
     self.currencyStore = currencyStore
+    self.securityStore = securityStore
+    self.setupStore = setupStore
     self.walletBalanceMapper = walletBalanceMapper
     startStoresObservation()
   }
@@ -44,6 +50,19 @@ public final class WalletBalanceController {
     updateBalance()
     Task {
       try await self.balanceStore.loadBalance(address: self.wallet.address)
+    }
+  }
+  
+  public func finishSetup() {
+    try? setupStore.setSetupIsFinished()
+  }
+  
+  public func setIsBiometryEnabled(_ isBiometryEnabled: Bool) -> Bool {
+    do {
+      try securityStore.setIsBiometryEnabled(isBiometryEnabled)
+      return isBiometryEnabled
+    } catch {
+      return !isBiometryEnabled
     }
   }
 }
@@ -86,6 +105,8 @@ private extension WalletBalanceController {
   func startStoresObservation() {
     currencyStore.addObserver(self)
     walletsStore.addObserver(self)
+    setupStore.addObserver(self)
+    securityStore.addObserver(self)
     Task {
       await balanceStore.addObserver(self)
     }
@@ -96,9 +117,19 @@ private extension WalletBalanceController {
   
   func updateFinishSetup() {
     let didBackup = wallet.setupSettings.backupDate != nil
+    let didFinishSetup = setupStore.isSetupFinished
+    let isBiometryEnabled = securityStore.isBiometryEnabled
+    let isFinishSetupAvailable = didBackup
+    
     let model = WalletBalanceSetupModel(
-      didBackup: didBackup
+      didBackup: didBackup,
+      biometry: WalletBalanceSetupModel.Biometry(
+        isBiometryEnabled: isBiometryEnabled,
+        isRequired: !didFinishSetup && !isBiometryEnabled
+      ),
+      isFinishSetupAvailable: isFinishSetupAvailable
     )
+
     didUpdateFinishSetup?(model)
   }
 }
@@ -134,5 +165,17 @@ extension WalletBalanceController: WalletsStoreObserver {
       updateFinishSetup()
     default: break
     }
+  }
+}
+
+extension WalletBalanceController: SetupStoreObserver {
+  func didGetSetupStoreEvent(_ event: SetupStoreEvent) {
+    updateFinishSetup()
+  }
+}
+
+extension WalletBalanceController: SecurityStoreObserver {
+  func didGetSecurityStoreEvent(_ event: SecurityStoreEvent) {
+    updateFinishSetup()
   }
 }

@@ -35,7 +35,10 @@ public final class Assembly {
       repositoriesAssembly: repositoriesAssembly
     )
   }
-  private lazy var passcodeAssembly = PasscodeAssembly(repositoriesAssembly: repositoriesAssembly)
+  private lazy var passcodeAssembly = PasscodeAssembly(
+    repositoriesAssembly: repositoriesAssembly,
+    storesAssembly: storesAssembly
+  )
   
   private let dependencies: Dependencies
   

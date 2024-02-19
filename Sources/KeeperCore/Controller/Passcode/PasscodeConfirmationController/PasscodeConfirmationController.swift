@@ -4,9 +4,16 @@ import CoreComponents
 public final class PasscodeConfirmationController {
   
   private let passcodeRepository: PasscodeRepository
+  private let securityStore: SecurityStore
   
-  init(passcodeRepository: PasscodeRepository) {
+  init(passcodeRepository: PasscodeRepository,
+       securityStore: SecurityStore) {
     self.passcodeRepository = passcodeRepository
+    self.securityStore = securityStore
+  }
+  
+  public var isBiometryEnabled: Bool {
+    securityStore.isBiometryEnabled
   }
   
   public func validatePasscodeInput(_ passcodeInput: String) -> Bool {

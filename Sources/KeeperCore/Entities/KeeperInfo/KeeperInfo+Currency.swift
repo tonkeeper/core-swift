@@ -5,6 +5,7 @@ extension KeeperInfo {
       currentWallet: self.currentWallet,
       currency: currency,
       securitySettings: self.securitySettings,
+      isSetupFinished: self.isSetupFinished,
       assetsPolicy: self.assetsPolicy,
       appCollection: self.appCollection
     )
