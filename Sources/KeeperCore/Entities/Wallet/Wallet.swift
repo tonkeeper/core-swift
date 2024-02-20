@@ -146,24 +146,3 @@ extension Wallet {
     return true
   }
 }
-//
-//extension Wallet {
-//  public init(from decoder: Decoder) throws {
-//    let container = try decoder.container(keyedBy: Wallet.CodingKeys.self)
-//    
-//    self.identity = try container.decode(WalletIdentity.self, forKey: .identity)
-//    self.setupSettings = try container.decode(WalletSetupSettings.self, forKey: .setupSettings)
-//    self.notificationSettings = try container.decode(NotificationSettings.self, forKey: .notificationSettings)
-//    self.backupSettings = try container.decode(WalletBackupSettings.self, forKey: .backupSettings)
-//    self.addressBook = try container.decode([AddressBookEntry].self, forKey: .addressBook)
-//    
-//    if let metadata = try? container.decodeIfPresent(WalletMetaData.self, forKey: .metaData) {
-//      self.metaData = metadata
-//    } else {
-//      self.metaData = WalletMetaData(
-//        label: "Wallet",
-//        colorIdentifier: "",
-//        emoji: "")
-//    }
-//  }
-//}

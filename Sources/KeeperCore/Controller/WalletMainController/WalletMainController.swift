@@ -90,7 +90,11 @@ extension WalletMainController: BackgroundUpdateStoreObserver {
   public func didGetBackgroundUpdateStoreEvent(_ event: BackgroundUpdateStore.Event) {
     switch event {
     case .didUpdateState(let state):
-      break
+      switch state {
+      case .connected:
+        loadBalances()
+      default: break
+      }
     case .didReceiveUpdateEvent(let updateEvent):
       Task {
         await balanceStore.loadBalance(address: updateEvent.accountAddress)

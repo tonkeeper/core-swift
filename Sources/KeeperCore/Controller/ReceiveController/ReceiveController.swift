@@ -13,11 +13,24 @@ public final class ReceiveController {
   
   private let token: Token
   private let walletsStore: WalletsStore
+  private let deeplinkGenerator: DeeplinkGenerator
   
   init(token: Token,
-       walletsStore: WalletsStore) {
+       walletsStore: WalletsStore,
+       deeplinkGenerator: DeeplinkGenerator) {
     self.token = token
     self.walletsStore = walletsStore
+    self.deeplinkGenerator = deeplinkGenerator
+  }
+  
+  public func qrCodeString() -> String {
+    do {
+      return try deeplinkGenerator.generateTransferDeeplink(
+        with: walletsStore.activeWallet.address.toString(bounceable: false)
+      ).string
+    } catch {
+      return ""
+    }
   }
   
   public func createModel() {

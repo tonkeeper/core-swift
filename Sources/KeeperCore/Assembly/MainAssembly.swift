@@ -184,7 +184,8 @@ public final class MainAssembly {
   public func receiveController(token: Token) -> ReceiveController {
     ReceiveController(
       token: token,
-      walletsStore: walletAssembly.walletStore
+      walletsStore: walletAssembly.walletStore,
+      deeplinkGenerator: DeeplinkGenerator()
     )
   }
   
@@ -229,6 +230,15 @@ public final class MainAssembly {
   public func settingsSecurityController() -> SettingsSecurityController {
     SettingsSecurityController(
       securityStore: storesAssembly.securityStore
+    )
+  }
+  
+  public func scannerController() -> ScannerController {
+    ScannerController(
+      deeplinkParser: DefaultDeeplinkParser(
+        parsers: [TonDeeplinkParser(),
+                 TonConnectDeeplinkParser()]
+      )
     )
   }
 }
