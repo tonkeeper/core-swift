@@ -13,17 +13,23 @@ public final class WalletMainController {
   private let walletsStore: WalletsStore
   private let balanceStore: BalanceStore
   private let ratesStore: RatesStore
+  private let backgroundUpdateStore: BackgroundUpdateStore
   
   init(walletsStore: WalletsStore,
        balanceStore: BalanceStore,
-       ratesStore: RatesStore) {
+       ratesStore: RatesStore,
+       backgroundUpdateStore: BackgroundUpdateStore) {
     self.walletsStore = walletsStore
     self.balanceStore = balanceStore
     self.ratesStore = ratesStore
+    self.backgroundUpdateStore = backgroundUpdateStore
     
     self.walletsStore.addObserver(self)
     Task {
       await balanceStore.addObserver(self)
+    }
+    Task {
+      await backgroundUpdateStore.addObserver(self)
     }
   }
   
@@ -79,3 +85,17 @@ extension WalletMainController: BalanceStoreObserver {
     didReceiveBalanceUpdateEvent(event)
   }
 }
+
+extension WalletMainController: BackgroundUpdateStoreObserver {
+  public func didGetBackgroundUpdateStoreEvent(_ event: BackgroundUpdateStore.Event) {
+    switch event {
+    case .didUpdateState(let state):
+      break
+    case .didReceiveUpdateEvent(let updateEvent):
+      Task {
+        await balanceStore.loadBalance(address: updateEvent.accountAddress)
+      }
+    }
+  }
+}
+

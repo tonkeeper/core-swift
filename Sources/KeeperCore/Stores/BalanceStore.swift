@@ -1,7 +1,6 @@
 import Foundation
 import TonSwift
 
- 
 protocol BalanceStoreObserver: AnyObject {
   func didGetBalanceStoreEvent(_ event: BalanceStore.Event)
 }

@@ -4,9 +4,12 @@ import TonSwift
 public final class StoresAssembly {
   
   private let servicesAssembly: ServicesAssembly
+  private let apiAssembly: APIAssembly
   
-  init(servicesAssembly: ServicesAssembly) {
+  init(servicesAssembly: ServicesAssembly,
+       apiAssembly: APIAssembly) {
     self.servicesAssembly = servicesAssembly
+    self.apiAssembly = apiAssembly
   }
   
   private weak var _balanceStore: BalanceStore?
@@ -95,6 +98,19 @@ public final class StoresAssembly {
       let setupStore = SetupStore(setupService: servicesAssembly.setupService())
       _setupStore = setupStore
       return setupStore
+    }
+  }
+  
+  private weak var _backgroundUpdateStore: BackgroundUpdateStore?
+  var backgroundUpdateStore: BackgroundUpdateStore {
+    if let backgroundUpdateStore = _backgroundUpdateStore {
+      return backgroundUpdateStore
+    } else {
+      let backgroundUpdateStore = BackgroundUpdateStore(
+        streamingAPI: apiAssembly.streamingTonAPIClient()
+      )
+      _backgroundUpdateStore = backgroundUpdateStore
+      return backgroundUpdateStore
     }
   }
 }

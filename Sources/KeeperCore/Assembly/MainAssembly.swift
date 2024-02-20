@@ -43,7 +43,10 @@ public final class MainAssembly {
   public func mainController() -> MainController {
     MainController(
       walletsStore: walletAssembly.walletStore,
-      nftsStoreProvider: { [storesAssembly] wallet in storesAssembly.nftsStore(wallet: wallet) }
+      nftsStoreProvider: {
+        [storesAssembly] wallet in storesAssembly.nftsStore(wallet: wallet)
+      },
+      backgroundUpdateStore: storesAssembly.backgroundUpdateStore
     )
   }
   
@@ -51,7 +54,8 @@ public final class MainAssembly {
     WalletMainController(
       walletsStore: walletAssembly.walletStore,
       balanceStore: storesAssembly.balanceStore,
-      ratesStore: storesAssembly.ratesStore
+      ratesStore: storesAssembly.ratesStore,
+      backgroundUpdateStore: storesAssembly.backgroundUpdateStore
     )
   }
   
@@ -75,6 +79,7 @@ public final class MainAssembly {
       currencyStore: storesAssembly.currencyStore,
       securityStore: storesAssembly.securityStore,
       setupStore: storesAssembly.setupStore,
+      backgroundUpdateStore: storesAssembly.backgroundUpdateStore,
       walletBalanceMapper: walletBalanceMapper
     )
   }
@@ -88,7 +93,8 @@ public final class MainAssembly {
   }
   
   public func historyController() -> HistoryController {
-    HistoryController(walletsStore: walletAssembly.walletStore)
+    HistoryController(walletsStore: walletAssembly.walletStore,
+                      backgroundUpdateStore: storesAssembly.backgroundUpdateStore)
   }
   
   public func historyListController() -> HistoryListController {
@@ -194,7 +200,10 @@ public final class MainAssembly {
   }
   
   public func collectiblesController() -> CollectiblesController {
-    CollectiblesController(walletsStore: walletAssembly.walletStore)
+    CollectiblesController(
+      walletsStore: walletAssembly.walletStore,
+      backgroundUpdateStore: storesAssembly.backgroundUpdateStore
+    )
   }
   
   public func collectiblesListController(wallet: Wallet) -> CollectiblesListController {

@@ -26,7 +26,8 @@ public final class Assembly {
     tonkeeperAPIAssembly: tonkeeperApiAssembly
   )
   private lazy var storesAssembly = StoresAssembly(
-    servicesAssembly: servicesAssembly
+    servicesAssembly: servicesAssembly,
+    apiAssembly: apiAssembly
   )
   private lazy var formattersAssembly = FormattersAssembly()
   private var walletUpdateAssembly: WalletsUpdateAssembly {

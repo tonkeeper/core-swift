@@ -30,6 +30,9 @@ let package = Package(
             dependencies: [
               .product(name: "TonSwift", package: "ton-swift"),
               .product(name: "TonAPI", package: "ton-api-swift"),
+              .product(name: "TonStreamingAPI", package: "ton-api-swift"),
+              .product(name: "StreamURLSessionTransport", package: "ton-api-swift"),
+              .product(name: "EventSource", package: "ton-api-swift"),
               .target(name: "CoreComponents")
             ],
             path: "Sources/KeeperCore",

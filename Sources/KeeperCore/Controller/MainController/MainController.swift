@@ -7,15 +7,22 @@ public final class MainController {
   
   private let walletsStore: WalletsStore
   private let nftsStoreProvider: (Wallet) -> NftsStore
+  private let backgroundUpdateStore: BackgroundUpdateStore
   
   private var nftsStore: NftsStore?
   private var nftStateTask: Task<Void, Never>?
 
-  init(walletsStore: WalletsStore, nftsStoreProvider: @escaping (Wallet) -> NftsStore) {
+  init(walletsStore: WalletsStore, 
+       nftsStoreProvider: @escaping (Wallet) -> NftsStore,
+       backgroundUpdateStore: BackgroundUpdateStore) {
     self.walletsStore = walletsStore
     self.nftsStoreProvider = nftsStoreProvider
+    self.backgroundUpdateStore = backgroundUpdateStore
     
     walletsStore.addObserver(self)
+    Task {
+      await backgroundUpdateStore.addObserver(self)
+    }
   }
   
   public func loadNftsState() {
@@ -32,6 +39,18 @@ public final class MainController {
       }
     }
   }
+  
+  public func startBackgroundUpdate() {
+    Task {
+      await backgroundUpdateStore.start(addresses: walletsStore.wallets.compactMap { try? $0.address })
+    }
+  }
+  
+  public func stopBackgroundUpdate() {
+    Task {
+      await backgroundUpdateStore.stop()
+    }
+  }
 }
 
 extension MainController: WalletsStoreObserver {
@@ -40,6 +59,8 @@ extension MainController: WalletsStoreObserver {
     case .didUpdateActiveWallet:
       didUpdateNftsAvailability?(false)
       loadNftsState()
+    case .didUpdateWallets:
+      startBackgroundUpdate()
     default:
       break
     }
@@ -51,6 +72,20 @@ extension MainController: NftsStoreObserver {
     switch event {
     case .didUpdateNFTs(let nfts):
       didUpdateNftsAvailability?(!nfts.isEmpty)
+    }
+  }
+}
+
+extension MainController: BackgroundUpdateStoreObserver {
+  public func didGetBackgroundUpdateStoreEvent(_ event: BackgroundUpdateStore.Event) {
+    switch event {
+    case .didReceiveUpdateEvent(let event):
+      do {
+        guard try event.accountAddress == walletsStore.activeWallet.address else { return }
+        loadNftsState()
+      } catch {}
+    case .didUpdateState:
+      break
     }
   }
 }
