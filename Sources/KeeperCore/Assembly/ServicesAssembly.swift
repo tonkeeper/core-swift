@@ -5,13 +5,16 @@ public final class ServicesAssembly {
   private let repositoriesAssembly: RepositoriesAssembly
   private let apiAssembly: APIAssembly
   private let tonkeeperAPIAssembly: TonkeeperAPIAssembly
+  private let coreAssembly: CoreAssembly
   
   init(repositoriesAssembly: RepositoriesAssembly,
        apiAssembly: APIAssembly,
-       tonkeeperAPIAssembly: TonkeeperAPIAssembly) {
+       tonkeeperAPIAssembly: TonkeeperAPIAssembly,
+       coreAssembly: CoreAssembly) {
     self.repositoriesAssembly = repositoriesAssembly
     self.apiAssembly = apiAssembly
     self.tonkeeperAPIAssembly = tonkeeperAPIAssembly
+    self.coreAssembly = coreAssembly
   }
   
   func walletsService() -> WalletsService {
@@ -85,6 +88,15 @@ public final class ServicesAssembly {
   func setupService() -> SetupService {
     SetupServiceImplementation(
       keeperInfoRepository: repositoriesAssembly.keeperInfoRepository()
+    )
+  }
+  
+  func tonConnectService() -> TonConnectService {
+    TonConnectServiceImplementation(
+      urlSession: .shared,
+      apiClient: apiAssembly.tonConnectAPIClient(),
+      mnemonicRepository: repositoriesAssembly.mnemonicRepository(),
+      tonConnectAppsVault: coreAssembly.tonConnectAppsVault()
     )
   }
 }

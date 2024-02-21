@@ -46,7 +46,8 @@ public final class MainAssembly {
       nftsStoreProvider: {
         [storesAssembly] wallet in storesAssembly.nftsStore(wallet: wallet)
       },
-      backgroundUpdateStore: storesAssembly.backgroundUpdateStore
+      backgroundUpdateStore: storesAssembly.backgroundUpdateStore,
+      tonConnectService: servicesAssembly.tonConnectService()
     )
   }
   
@@ -239,6 +240,16 @@ public final class MainAssembly {
         parsers: [TonDeeplinkParser(),
                  TonConnectDeeplinkParser()]
       )
+    )
+  }
+  
+  public func tonConnectConnectController(parameters: TonConnectParameters,
+                                          manifest: TonConnectManifest) -> TonConnectConnectController {
+    TonConnectConnectController(
+      parameters: parameters,
+      manifest: manifest,
+      walletsStore: walletAssembly.walletStore,
+      tonConnectAppsStore: storesAssembly.tonConnectAppsStore
     )
   }
 }

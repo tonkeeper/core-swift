@@ -8,16 +8,19 @@ public final class MainController {
   private let walletsStore: WalletsStore
   private let nftsStoreProvider: (Wallet) -> NftsStore
   private let backgroundUpdateStore: BackgroundUpdateStore
+  private let tonConnectService: TonConnectService
   
   private var nftsStore: NftsStore?
   private var nftStateTask: Task<Void, Never>?
 
   init(walletsStore: WalletsStore, 
        nftsStoreProvider: @escaping (Wallet) -> NftsStore,
-       backgroundUpdateStore: BackgroundUpdateStore) {
+       backgroundUpdateStore: BackgroundUpdateStore,
+       tonConnectService: TonConnectService) {
     self.walletsStore = walletsStore
     self.nftsStoreProvider = nftsStoreProvider
     self.backgroundUpdateStore = backgroundUpdateStore
+    self.tonConnectService = tonConnectService
     
     walletsStore.addObserver(self)
     Task {
@@ -50,6 +53,10 @@ public final class MainController {
     Task {
       await backgroundUpdateStore.stop()
     }
+  }
+  
+  public func handleTonConnectDeeplink(_ deeplink: TonConnectDeeplink) async throws -> (TonConnectParameters, TonConnectManifest) {
+    try await tonConnectService.loadTonConnectConfiguration(with: deeplink)
   }
 }
 

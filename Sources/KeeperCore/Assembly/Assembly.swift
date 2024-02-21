@@ -23,11 +23,13 @@ public final class Assembly {
   private lazy var servicesAssembly = ServicesAssembly(
     repositoriesAssembly: repositoriesAssembly, 
     apiAssembly: apiAssembly,
-    tonkeeperAPIAssembly: tonkeeperApiAssembly
+    tonkeeperAPIAssembly: tonkeeperApiAssembly,
+    coreAssembly: coreAssembly
   )
   private lazy var storesAssembly = StoresAssembly(
     servicesAssembly: servicesAssembly,
-    apiAssembly: apiAssembly
+    apiAssembly: apiAssembly,
+    coreAssembly: coreAssembly
   )
   private lazy var formattersAssembly = FormattersAssembly()
   private var walletUpdateAssembly: WalletsUpdateAssembly {

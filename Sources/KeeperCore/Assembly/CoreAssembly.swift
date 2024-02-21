@@ -17,6 +17,10 @@ public struct CoreAssembly {
   func passcodeVault() -> PasscodeVault {
     PasscodeVault(keychainVault: keychainVault)
   }
+  
+  func tonConnectAppsVault() -> TonConnectAppsVault {
+    TonConnectAppsVault(keychainVault: keychainVault)
+  }
 
   func fileSystemVault<T, K>() -> FileSystemVault<T, K> {
     return FileSystemVault(fileManager: fileManager, directory: cacheURL)

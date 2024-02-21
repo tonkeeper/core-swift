@@ -5,11 +5,14 @@ public final class StoresAssembly {
   
   private let servicesAssembly: ServicesAssembly
   private let apiAssembly: APIAssembly
+  private let coreAssembly: CoreAssembly
   
   init(servicesAssembly: ServicesAssembly,
-       apiAssembly: APIAssembly) {
+       apiAssembly: APIAssembly, 
+       coreAssembly: CoreAssembly) {
     self.servicesAssembly = servicesAssembly
     self.apiAssembly = apiAssembly
+    self.coreAssembly = coreAssembly
   }
   
   private weak var _balanceStore: BalanceStore?
@@ -111,6 +114,19 @@ public final class StoresAssembly {
       )
       _backgroundUpdateStore = backgroundUpdateStore
       return backgroundUpdateStore
+    }
+  }
+  
+  private weak var _tonConnectAppsStore: TonConnectAppsStore?
+  var tonConnectAppsStore: TonConnectAppsStore {
+    if let tonConnectAppsStore = _tonConnectAppsStore {
+      return tonConnectAppsStore
+    } else {
+      let tonConnectAppsStore = TonConnectAppsStore(
+        tonConnectService: servicesAssembly.tonConnectService()
+      )
+      _tonConnectAppsStore = tonConnectAppsStore
+      return tonConnectAppsStore
     }
   }
 }

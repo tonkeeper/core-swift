@@ -18,7 +18,6 @@ struct FileSystemVault<T: KeyValueVaultValue>: StorableKeyValueVault, Vault {
     
     init(fileManager: FileManager,
          directory: URL) {
-        print(directory)
         self.fileManager = fileManager
         self.directory = directory
     }
