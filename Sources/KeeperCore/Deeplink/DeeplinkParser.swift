@@ -2,11 +2,11 @@ import Foundation
 import TonSwift
 
 enum DeeplinkParserError: Swift.Error {
-  case unsupportedDeeplink(string: String)
+  case unsupportedDeeplink(string: String?)
 }
 
 public protocol DeeplinkParser {
-  func parse(string: String) throws -> Deeplink
+  func parse(string: String?) throws -> Deeplink
 }
 
 public struct DefaultDeeplinkParser: DeeplinkParser {
@@ -17,7 +17,8 @@ public struct DefaultDeeplinkParser: DeeplinkParser {
     self.parsers = parsers
   }
   
-  public func parse(string: String) throws -> Deeplink {
+  public func parse(string: String?) throws -> Deeplink {
+    guard let string else { throw DeeplinkParserError.unsupportedDeeplink(string: string) }
     let deeplink = parsers
         .compactMap { handler -> Deeplink? in try? handler.parse(string: string) }
         .first
@@ -27,7 +28,8 @@ public struct DefaultDeeplinkParser: DeeplinkParser {
 }
 
 struct TonDeeplinkParser: DeeplinkParser {
-  func parse(string: String) throws -> Deeplink {
+  func parse(string: String?) throws -> Deeplink {
+    guard let string else { throw DeeplinkParserError.unsupportedDeeplink(string: string) }
     guard let url = URL(string: string),
           let scheme = url.scheme,
           let host = url.host,
@@ -50,7 +52,8 @@ struct TonDeeplinkParser: DeeplinkParser {
 }
 
 struct TonConnectDeeplinkParser: DeeplinkParser {
-  func parse(string: String) throws -> Deeplink {
+  func parse(string: String?) throws -> Deeplink {
+    guard let string else { throw DeeplinkParserError.unsupportedDeeplink(string: string) }
     if let deeplink = try? parseTonConnectDeeplink(string: string) {
       return deeplink
     }

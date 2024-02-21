@@ -9,6 +9,7 @@ public final class RootAssembly {
   private let walletsUpdateAssembly: WalletsUpdateAssembly
   private let configurationAssembly: ConfigurationAssembly
   private let passcodeAssembly: PasscodeAssembly
+  private let apiAssembly: APIAssembly
 
   init(repositoriesAssembly: RepositoriesAssembly,
        coreAssembly: CoreAssembly,
@@ -17,7 +18,8 @@ public final class RootAssembly {
        formattersAssembly: FormattersAssembly,
        walletsUpdateAssembly: WalletsUpdateAssembly,
        configurationAssembly: ConfigurationAssembly,
-       passcodeAssembly: PasscodeAssembly) {
+       passcodeAssembly: PasscodeAssembly,
+       apiAssembly: APIAssembly) {
     self.repositoriesAssembly = repositoriesAssembly
     self.coreAssembly = coreAssembly
     self.servicesAssembly = servicesAssembly
@@ -26,6 +28,7 @@ public final class RootAssembly {
     self.walletsUpdateAssembly = walletsUpdateAssembly
     self.configurationAssembly = configurationAssembly
     self.passcodeAssembly = passcodeAssembly
+    self.apiAssembly = apiAssembly
   }
   
   private var _rootController: RootController?
@@ -35,7 +38,11 @@ public final class RootAssembly {
     } else {
       let rootController = RootController(
         walletsService: servicesAssembly.walletsService(),
-        remoteConfigurationStore: configurationAssembly.remoteConfigurationStore
+        remoteConfigurationStore: configurationAssembly.remoteConfigurationStore,
+        deeplinkParser: DefaultDeeplinkParser(parsers: [
+          TonDeeplinkParser(),
+          TonConnectDeeplinkParser()
+        ])
       )
       self._rootController = rootController
       return rootController
@@ -56,6 +63,15 @@ public final class RootAssembly {
       walletUpdateAssembly: walletsUpdateAssembly,
       wallets: dependencies.wallets,
       activeWallet: dependencies.activeWallet)
+    let tonConnectAssembly = TonConnectAssembly(
+      repositoriesAssembly: repositoriesAssembly,
+      servicesAssembly: servicesAssembly,
+      storesAssembly: storesAssembly,
+      walletsAssembly: walletAssembly,
+      apiAssembly: apiAssembly,
+      coreAssembly: coreAssembly,
+      formattersAssembly: formattersAssembly
+    )
     return MainAssembly(
       repositoriesAssembly: repositoriesAssembly,
       walletAssembly: walletAssembly,
@@ -64,7 +80,8 @@ public final class RootAssembly {
       storesAssembly: storesAssembly,
       formattersAssembly: formattersAssembly,
       configurationAssembly: configurationAssembly,
-      passcodeAssembly: passcodeAssembly
+      passcodeAssembly: passcodeAssembly,
+      tonConnectAssembly: tonConnectAssembly
     )
   }
 }

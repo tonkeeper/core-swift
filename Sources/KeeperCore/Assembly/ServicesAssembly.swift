@@ -91,12 +91,7 @@ public final class ServicesAssembly {
     )
   }
   
-  func tonConnectService() -> TonConnectService {
-    TonConnectServiceImplementation(
-      urlSession: .shared,
-      apiClient: apiAssembly.tonConnectAPIClient(),
-      mnemonicRepository: repositoriesAssembly.mnemonicRepository(),
-      tonConnectAppsVault: coreAssembly.tonConnectAppsVault()
-    )
+  func sendService() -> SendService {
+    SendServiceImplementation(api: apiAssembly.api)
   }
 }

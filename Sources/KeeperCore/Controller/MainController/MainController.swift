@@ -4,11 +4,14 @@ import TonSwift
 public final class MainController {
   
   public var didUpdateNftsAvailability: ((Bool) -> Void)?
+  public var didReceiveTonConnectRequest: ((TonConnect.AppRequest, Wallet, TonConnectApp) -> Void)?
   
   private let walletsStore: WalletsStore
   private let nftsStoreProvider: (Wallet) -> NftsStore
   private let backgroundUpdateStore: BackgroundUpdateStore
+  private let tonConnectEventsStore: TonConnectEventsStore
   private let tonConnectService: TonConnectService
+  private let deeplinkParser: DeeplinkParser
   
   private var nftsStore: NftsStore?
   private var nftStateTask: Task<Void, Never>?
@@ -16,15 +19,22 @@ public final class MainController {
   init(walletsStore: WalletsStore, 
        nftsStoreProvider: @escaping (Wallet) -> NftsStore,
        backgroundUpdateStore: BackgroundUpdateStore,
-       tonConnectService: TonConnectService) {
+       tonConnectEventsStore: TonConnectEventsStore,
+       tonConnectService: TonConnectService,
+       deeplinkParser: DeeplinkParser) {
     self.walletsStore = walletsStore
     self.nftsStoreProvider = nftsStoreProvider
     self.backgroundUpdateStore = backgroundUpdateStore
+    self.tonConnectEventsStore = tonConnectEventsStore
     self.tonConnectService = tonConnectService
+    self.deeplinkParser = deeplinkParser
     
     walletsStore.addObserver(self)
     Task {
       await backgroundUpdateStore.addObserver(self)
+    }
+    Task {
+      await tonConnectEventsStore.addObserver(self)
     }
   }
   
@@ -47,16 +57,26 @@ public final class MainController {
     Task {
       await backgroundUpdateStore.start(addresses: walletsStore.wallets.compactMap { try? $0.address })
     }
+    Task {
+      await tonConnectEventsStore.start()
+    }
   }
   
   public func stopBackgroundUpdate() {
     Task {
       await backgroundUpdateStore.stop()
     }
+    Task {
+      await tonConnectEventsStore.stop()
+    }
   }
   
   public func handleTonConnectDeeplink(_ deeplink: TonConnectDeeplink) async throws -> (TonConnectParameters, TonConnectManifest) {
     try await tonConnectService.loadTonConnectConfiguration(with: deeplink)
+  }
+  
+  public func parseDeeplink(deeplink: String?) throws -> Deeplink {
+    try deeplinkParser.parse(string: deeplink)
   }
 }
 
@@ -93,6 +113,17 @@ extension MainController: BackgroundUpdateStoreObserver {
       } catch {}
     case .didUpdateState:
       break
+    }
+  }
+}
+
+extension MainController: TonConnectEventsStoreObserver {
+  public func didGetTonConnectEventsStoreEvent(_ event: TonConnectEventsStore.Event) {
+    switch event {
+    case .request(let request, let wallet, let app):
+      Task { @MainActor in
+        didReceiveTonConnectRequest?(request, wallet, app)
+      }
     }
   }
 }

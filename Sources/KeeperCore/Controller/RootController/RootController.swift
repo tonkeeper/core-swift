@@ -8,11 +8,14 @@ public final class RootController {
 
   private let walletsService: WalletsService
   private let remoteConfigurationStore: ConfigurationStore
+  private let deeplinkParser: DeeplinkParser
   
   init(walletsService: WalletsService,
-       remoteConfigurationStore: ConfigurationStore) {
+       remoteConfigurationStore: ConfigurationStore,
+       deeplinkParser: DeeplinkParser) {
     self.walletsService = walletsService
     self.remoteConfigurationStore = remoteConfigurationStore
+    self.deeplinkParser = deeplinkParser
   }
   
   public func getState() -> State {
@@ -29,5 +32,9 @@ public final class RootController {
     Task {
       try await remoteConfigurationStore.load()
     }
+  }
+  
+  public func parseDeeplink(string: String?) throws -> Deeplink {
+    try deeplinkParser.parse(string: string)
   }
 }

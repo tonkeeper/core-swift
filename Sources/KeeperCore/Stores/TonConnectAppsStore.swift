@@ -29,6 +29,20 @@ final class TonConnectAppsStore {
       notifyObservers(event:.didUpdateApps)
     }
   }
+  
+  func connectedApps(forWallet wallet: Wallet) throws -> TonConnectApps {
+    try tonConnectService.getConnectedApps(forWallet: wallet)
+  }
+  
+  func getLastEventId() -> String? {
+    try? tonConnectService.getLastEventId()
+  }
+  
+  func saveLastEventId(_ lastEventId: String?) {
+    guard let lastEventId else { return }
+    try? tonConnectService.saveLastEventId(lastEventId)
+  }
+  
   private var observers = [TonConnectAppsStoreObserverWrapper]()
   
   struct TonConnectAppsStoreObserverWrapper {

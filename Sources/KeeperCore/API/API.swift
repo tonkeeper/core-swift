@@ -98,28 +98,28 @@ extension API {
   }
 }
 
-//// MARK: - Wallet
-//
-//extension API {
-//  func getSeqno(address: Address) async throws -> Int {
-//    let response = try await tonAPIClient
-//      .getAccountSeqno(path: .init(account_id: address.toRaw()))
-//    return try response.ok.body.json.seqno
-//  }
-//  
-//  func emulateMessageWallet(boc: String) async throws -> Components.Schemas.MessageConsequences {
-//    let response = try await tonAPIClient
-//      .emulateMessageToWallet(body: .json(.init(boc: boc)))
-//    return try response.ok.body.json
-//  }
-//  
-//  func sendTransaction(boc: String) async throws {
-//    let response = try await tonAPIClient
-//      .sendBlockchainMessage(body: .json(.init(boc: boc)))
-//    _ = try response.ok
-//  }
-//}
-//
+// MARK: - Wallet
+
+extension API {
+  func getSeqno(address: Address) async throws -> Int {
+    let response = try await tonAPIClient
+      .getAccountSeqno(path: .init(account_id: address.toRaw()))
+    return try response.ok.body.json.seqno
+  }
+  
+  func emulateMessageWallet(boc: String) async throws -> Components.Schemas.MessageConsequences {
+    let response = try await tonAPIClient
+      .emulateMessageToWallet(body: .json(.init(boc: boc)))
+    return try response.ok.body.json
+  }
+  
+  func sendTransaction(boc: String) async throws {
+    let response = try await tonAPIClient
+      .sendBlockchainMessage(body: .json(.init(boc: boc)))
+    _ = try response.ok
+  }
+}
+
 // MARK: - NFTs
 
 extension API {

@@ -56,13 +56,16 @@ public final class Assembly {
 
 public extension Assembly {
   func rootAssembly() -> RootAssembly {
-    RootAssembly(repositoriesAssembly: repositoriesAssembly,
-                 coreAssembly: coreAssembly,
-                 servicesAssembly: servicesAssembly,
-                 storesAssembly: storesAssembly,
-                 formattersAssembly: formattersAssembly,
-                 walletsUpdateAssembly: walletUpdateAssembly,
-                 configurationAssembly: configurationAssembly,
-                 passcodeAssembly: passcodeAssembly)
+    RootAssembly(
+      repositoriesAssembly: repositoriesAssembly,
+      coreAssembly: coreAssembly,
+      servicesAssembly: servicesAssembly,
+      storesAssembly: storesAssembly,
+      formattersAssembly: formattersAssembly,
+      walletsUpdateAssembly: walletUpdateAssembly,
+      configurationAssembly: configurationAssembly,
+      passcodeAssembly: passcodeAssembly,
+      apiAssembly: apiAssembly
+    )
   }
 }

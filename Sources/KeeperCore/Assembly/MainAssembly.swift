@@ -21,6 +21,7 @@ public final class MainAssembly {
   let formattersAssembly: FormattersAssembly
   let configurationAssembly: ConfigurationAssembly
   public let passcodeAssembly: PasscodeAssembly
+  public let tonConnectAssembly: TonConnectAssembly
   
   init(repositoriesAssembly: RepositoriesAssembly,
        walletAssembly: WalletAssembly,
@@ -29,7 +30,8 @@ public final class MainAssembly {
        storesAssembly: StoresAssembly,
        formattersAssembly: FormattersAssembly,
        configurationAssembly: ConfigurationAssembly,
-       passcodeAssembly: PasscodeAssembly) {
+       passcodeAssembly: PasscodeAssembly,
+       tonConnectAssembly: TonConnectAssembly) {
     self.repositoriesAssembly = repositoriesAssembly
     self.walletAssembly = walletAssembly
     self.walletUpdateAssembly = walletUpdateAssembly
@@ -38,6 +40,7 @@ public final class MainAssembly {
     self.formattersAssembly = formattersAssembly
     self.configurationAssembly = configurationAssembly
     self.passcodeAssembly = passcodeAssembly
+    self.tonConnectAssembly = tonConnectAssembly
   }
   
   public func mainController() -> MainController {
@@ -47,7 +50,14 @@ public final class MainAssembly {
         [storesAssembly] wallet in storesAssembly.nftsStore(wallet: wallet)
       },
       backgroundUpdateStore: storesAssembly.backgroundUpdateStore,
-      tonConnectService: servicesAssembly.tonConnectService()
+      tonConnectEventsStore: tonConnectAssembly.tonConnectEventsStore,
+      tonConnectService: tonConnectAssembly.tonConnectService(),
+      deeplinkParser: DefaultDeeplinkParser(
+        parsers: [
+          TonConnectDeeplinkParser(),
+          TonDeeplinkParser()
+        ]
+      )
     )
   }
   
@@ -249,7 +259,7 @@ public final class MainAssembly {
       parameters: parameters,
       manifest: manifest,
       walletsStore: walletAssembly.walletStore,
-      tonConnectAppsStore: storesAssembly.tonConnectAppsStore
+      tonConnectAppsStore: tonConnectAssembly.tonConnectAppsStore
     )
   }
 }
