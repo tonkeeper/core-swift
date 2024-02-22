@@ -26,6 +26,7 @@ actor RatesStore {
     }
   }
   
+  nonisolated
   func getRates(jettons: [JettonInfo]) -> Rates {
     return ratesService.getRates(jettons: jettons)
   }

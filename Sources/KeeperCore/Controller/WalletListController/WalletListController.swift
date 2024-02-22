@@ -24,35 +24,45 @@ public final class WalletListController {
       didUpdateWallets?()
     }
   }
-  public var activeWalletIndex: Int {
+  public var activeWalletIndex: Int? {
     getActiveWalletIndex()
   }
+  public var isEditable: Bool {
+    configurator.isEditable
+  }
 
-  private let walletsStore: WalletsStore
-  private let walletsStoreUpdate: WalletsStoreUpdate
+  private let configurator: WalletListControllerConfigurator
   private let balanceStore: BalanceStore
   private let ratesStore: RatesStore
   private let currencyStore: CurrencyStore
   private let walletListMapper: WalletListMapper
   
-  init(walletsStore: WalletsStore,
-       walletsStoreUpdate: WalletsStoreUpdate,
+  init(configurator: WalletListControllerConfigurator,
        balanceStore: BalanceStore,
        ratesStore: RatesStore,
        currencyStore: CurrencyStore,
        walletListMapper: WalletListMapper) {
-    self.walletsStore = walletsStore
-    self.walletsStoreUpdate = walletsStoreUpdate
+    self.configurator = configurator
     self.balanceStore = balanceStore
     self.ratesStore = ratesStore
     self.currencyStore = currencyStore
     self.walletListMapper = walletListMapper
+    
+    configurator.didUpdateWallets = { [weak self] in
+      guard let self else { return }
+      Task {
+        self.walletsModels = await self.getWalletsModels()
+      }
+    }
+    
+    configurator.didUpdateSelectedWallet = { [weak self] in
+      self?.didUpdateActiveWallet?()
+    }
       
     Task {
       walletsModels = await getWalletsModels()
     }
     
-    walletsStore.addObserver(self)
     Task {
       await balanceStore.addObserver(self)
     }
@@ -63,11 +73,7 @@ public final class WalletListController {
 
   public func setWalletActive(with identifier: String) {
     guard let index = _walletsModels.firstIndex(where: { $0.identifier == identifier }) else { return }
-    do {
-      try walletsStoreUpdate.makeWalletActive(walletsStore.wallets[index])
-    } catch {
-      didUpdateActiveWallet?()
-    }
+    configurator.selectWallet(at: index)
   }
   
   public func moveWallet(fromIndex: Int, toIndex: Int) {
@@ -75,7 +81,7 @@ public final class WalletListController {
     let model = _walletsModels.remove(at: fromIndex)
     _walletsModels.insert(model, at: toIndex)
     do {
-      try walletsStoreUpdate.moveWallet(fromIndex: fromIndex, toIndex: toIndex)
+      try configurator.moveWallet(fromIndex: fromIndex, toIndex: toIndex)
     } catch {
       walletsModels = previousModels
     }
@@ -85,14 +91,14 @@ public final class WalletListController {
 private extension WalletListController {
   func getWalletsModels() async -> [WalletModel] {
     var models = [WalletModel]()
-    for wallet in walletsStore.wallets {
+    for wallet in configurator.getWallets() {
       await models.append(mapWalletModel(wallet: wallet))
     }
     return models
   }
   
-  func getActiveWalletIndex() -> Int {
-    walletsStore.wallets.firstIndex(where: { $0.identity == walletsStore.activeWallet.identity }) ?? 0
+  func getActiveWalletIndex() -> Int? {
+    configurator.getSelectedWalletIndex()
   }
   
   func mapWalletModel(wallet: Wallet) async -> WalletModel {
@@ -100,8 +106,8 @@ private extension WalletListController {
     
     let rates: Rates
     do {
-      let balance = try await balanceStore.getBalance(address: wallet.address).balance
-      rates = await ratesStore.getRates(jettons: balance.jettonsBalance.map { $0.amount.jettonInfo })
+      let balance = try balanceStore.getBalance(address: wallet.address).balance
+      rates = ratesStore.getRates(jettons: balance.jettonsBalance.map { $0.amount.jettonInfo })
       balanceString = walletListMapper.mapTotalBalance(balance: balance, rates: rates, currency: currencyStore.getActiveCurrency())
     } catch {
       rates = Rates(ton: [], jettonsRates: [])
@@ -114,21 +120,6 @@ private extension WalletListController {
       rates: rates
     )
     return model
-  }
-}
-
-extension WalletListController: WalletsStoreObserver {
-  func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
-    switch event {
-    case .didUpdateWallets:
-      Task {
-        walletsModels = await getWalletsModels()
-      }
-    case .didUpdateActiveWallet:
-      didUpdateActiveWallet?()
-    default:
-      break
-    }
   }
 }
 

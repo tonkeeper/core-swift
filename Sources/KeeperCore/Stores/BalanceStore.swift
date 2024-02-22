@@ -46,6 +46,7 @@ actor BalanceStore {
     }
   }
   
+  nonisolated
   func getBalance(address: Address) throws -> WalletBalance {
     return try balanceService.getBalance(address: address)
   }

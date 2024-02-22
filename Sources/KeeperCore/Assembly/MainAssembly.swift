@@ -70,10 +70,29 @@ public final class MainAssembly {
     )
   }
   
-  public func walletListController() -> WalletListController {
-    WalletListController(
+  public func walletStoreWalletListController() -> WalletListController {
+    let configurator = WalletStoreWalletListControllerConfigurator(
       walletsStore: walletAssembly.walletStore,
-      walletsStoreUpdate: walletUpdateAssembly.walletsStoreUpdate,
+      walletsStoreUpdate: walletUpdateAssembly.walletsStoreUpdate
+    )
+    return WalletListController(
+      configurator: configurator,
+      balanceStore: storesAssembly.balanceStore,
+      ratesStore: storesAssembly.ratesStore,
+      currencyStore: storesAssembly.currencyStore,
+      walletListMapper: walletListMapper
+    )
+  }
+  
+  public func walletSelectWalletLisController(selectedWallet: Wallet, 
+                                              didSelectWallet: ((Wallet) -> Void)?) -> WalletListController {
+    let configurator = WalletSelectWalletListControllerConfigurator(
+      selectedWallet: selectedWallet,
+      walletsStore: walletAssembly.walletStore
+    )
+    configurator.didSelectWallet = didSelectWallet
+    return WalletListController(
+      configurator: configurator,
       balanceStore: storesAssembly.balanceStore,
       ratesStore: storesAssembly.ratesStore,
       currencyStore: storesAssembly.currencyStore,
@@ -265,6 +284,16 @@ public final class MainAssembly {
 }
 
 private extension MainAssembly {
+  func walletListController(configurator: WalletStoreWalletListControllerConfigurator) -> WalletListController {
+    return WalletListController(
+      configurator: configurator,
+      balanceStore: storesAssembly.balanceStore,
+      ratesStore: storesAssembly.ratesStore,
+      currencyStore: storesAssembly.currencyStore,
+      walletListMapper: walletListMapper
+    )
+  }
+  
   var walletBalanceMapper: WalletBalanceMapper {
     WalletBalanceMapper(
       amountFormatter: formattersAssembly.amountFormatter,
