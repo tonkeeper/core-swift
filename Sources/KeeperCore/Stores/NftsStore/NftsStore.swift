@@ -72,7 +72,7 @@ private extension NftsStore {
   }
   
   func handleLoadedNFTs(_ nfts: [NFT]) {
-    self.nfts.append(contentsOf: nfts)
+    self.nfts = nfts
     self.notifyObservers(event: .didUpdateNFTs(self.nfts))
   }
 }
