@@ -25,8 +25,8 @@ public final class WalletBalanceController {
   }
   
   public var walletBalanceModel: WalletBalanceModel {
-    get async {
-      return await getWalletBalanceModel()
+    get {
+      return getWalletBalanceModel()
     }
   }
 
@@ -84,19 +84,19 @@ public final class WalletBalanceController {
 }
 
 private extension WalletBalanceController {
-  func getWalletBalanceModel() async -> WalletBalanceModel {
+  func getWalletBalanceModel() -> WalletBalanceModel {
     let currency = currencyStore.getActiveCurrency()
     let balanceModel: WalletBalanceModel
     do {
-      let walletBalance = try await balanceStore.getBalance(address: try wallet.address)
-      let rates = await ratesStore.getRates(jettons: walletBalance.balance.jettonsBalance.map { $0.amount.jettonInfo })
+      let walletBalance = try balanceStore.getBalance(address: try wallet.address)
+      let rates = ratesStore.getRates(jettons: walletBalance.balance.jettonsBalance.map { $0.amount.jettonInfo })
       balanceModel = walletBalanceMapper.mapBalance(
         walletBalance: walletBalance,
         rates: rates,
         currency: currency
       )
     } catch {
-      balanceModel = WalletBalanceModel(total: "-", items: [])
+      balanceModel = WalletBalanceModel(total: "-", tonItems: [], jettonsItems: [])
     }
     return balanceModel
   }

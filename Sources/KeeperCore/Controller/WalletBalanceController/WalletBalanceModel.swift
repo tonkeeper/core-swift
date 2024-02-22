@@ -2,7 +2,8 @@ import Foundation
 
 public struct WalletBalanceModel {
   public let total: String
-  public let items: [Item]
+  public let tonItems: [Item]
+  public let jettonsItems: [Item]
 }
 
 public extension WalletBalanceModel {

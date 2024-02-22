@@ -24,13 +24,19 @@ struct WalletBalanceMapper {
       currency: currency
     )
     
-    let items = mapItems(
-      walletBalance: walletBalance,
-      rates: rates,
+    let tonItem = mapTon(
+      tonBalance: walletBalance.balance.tonBalance,
+      tonRates: rates.ton,
       currency: currency
     )
     
-    return WalletBalanceModel(total: totalBalance, items: items)
+    let jettonItems = mapJettons(
+      jettonsBalance: walletBalance.balance.jettonsBalance,
+      jettonsRates: rates.jettonsRates,
+      currency: currency
+    )
+    
+    return WalletBalanceModel(total: totalBalance, tonItems: [tonItem], jettonsItems: jettonItems)
   }
   
   func mapTotalBalance(walletBalance: WalletBalance,
@@ -94,24 +100,6 @@ struct WalletBalanceMapper {
     )
                                        
     return formattedTotalAmount
-  }
-  
-  func mapItems(walletBalance: WalletBalance,
-                rates: Rates,
-                currency: Currency) -> [WalletBalanceModel.Item] {
-    let tonItem = mapTon(
-      tonBalance: walletBalance.balance.tonBalance,
-      tonRates: rates.ton,
-      currency: currency
-    )
-    
-    let jettonItems = mapJettons(
-      jettonsBalance: walletBalance.balance.jettonsBalance,
-      jettonsRates: rates.jettonsRates,
-      currency: currency
-    )
-    
-    return CollectionOfOne(tonItem) + jettonItems
   }
   
   func mapTon(tonBalance: TonBalance,
