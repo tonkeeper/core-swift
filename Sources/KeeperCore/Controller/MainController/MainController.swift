@@ -111,8 +111,13 @@ extension MainController: BackgroundUpdateStoreObserver {
         guard try event.accountAddress == walletsStore.activeWallet.address else { return }
         loadNftsState()
       } catch {}
-    case .didUpdateState:
-      break
+    case .didUpdateState(let state):
+      switch state {
+      case .connected:
+        loadNftsState()
+      default:
+        break
+      }
     }
   }
 }

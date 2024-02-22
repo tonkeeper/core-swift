@@ -26,10 +26,12 @@ protocol AccountNFTService {
 final class AccountNFTServiceImplementation: AccountNFTService {
   private let api: API
   private let accountNFTRepository: AccountNFTRepository
+  private let nftRepository: NFTRepository
   
-  init(api: API, accountNFTRepository: AccountNFTRepository) {
+  init(api: API, accountNFTRepository: AccountNFTRepository, nftRepository: NFTRepository) {
     self.api = api
     self.accountNFTRepository = accountNFTRepository
+    self.nftRepository = nftRepository
   }
   
   func getAccountNfts(accountAddress: Address) -> [NFT] {
@@ -60,6 +62,9 @@ final class AccountNFTServiceImplementation: AccountNFTService {
         offset: offset,
         isIndirectOwnership: isIndirectOwnership
       )
+      nfts.forEach {
+        try? nftRepository.saveNFT($0, key: $0.address.toRaw())
+      }
       try? accountNFTRepository.saveNfts(nfts, key: accountAddress.toRaw())
       return nfts
     } catch {

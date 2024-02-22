@@ -203,33 +203,32 @@ extension API {
   }
 }
 
-//// MARK: - DNS
-//
-//extension API {
-//  enum DNSError: Swift.Error {
-//    case noWalletData
-//  }
-//  
-//  func resolveDomainName(_ domainName: String) async throws -> Recipient {
-//    let response = try await tonAPIClient.dnsResolve(path: .init(domain_name: domainName))
-//    let entity = try response.ok.body.json
-//    guard let wallet = entity.wallet else {
-//      throw DNSError.noWalletData
-//    }
-//    
-//    let address = try Address.parse(wallet.address)
-//    let friendlyAddress = FriendlyAddress(address: address, bounceable: !wallet.is_wallet)
-//    return Recipient(address: .friendly(friendlyAddress), domain: domainName)
-//  }
-//  
-//  func getDomainExpirationDate(_ domainName: String) async throws -> Date? {
-//    let response = try await tonAPIClient.getDnsInfo(path: .init(domain_name: domainName))
-//    let entity = try response.ok.body.json
-//    guard let expiringAt = entity.expiring_at else { return nil }
-//    return Date(timeIntervalSince1970: TimeInterval(integerLiteral: Int64(expiringAt)))
-//  }
-//}
-//
+// MARK: - DNS
+
+extension API {
+  enum DNSError: Swift.Error {
+    case noWalletData
+  }
+  
+  func resolveDomainName(_ domainName: String) async throws -> FriendlyAddress {
+    let response = try await tonAPIClient.dnsResolve(path: .init(domain_name: domainName))
+    let entity = try response.ok.body.json
+    guard let wallet = entity.wallet else {
+      throw DNSError.noWalletData
+    }
+    
+    let address = try Address.parse(wallet.address)
+    return FriendlyAddress(address: address, bounceable: !wallet.is_wallet)
+  }
+  
+  func getDomainExpirationDate(_ domainName: String) async throws -> Date? {
+    let response = try await tonAPIClient.getDnsInfo(path: .init(domain_name: domainName))
+    let entity = try response.ok.body.json
+    guard let expiringAt = entity.expiring_at else { return nil }
+    return Date(timeIntervalSince1970: TimeInterval(integerLiteral: Int64(expiringAt)))
+  }
+}
+
 //// MARK: - Time
 //
 //extension API {

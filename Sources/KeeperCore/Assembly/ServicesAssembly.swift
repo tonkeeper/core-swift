@@ -71,7 +71,8 @@ public final class ServicesAssembly {
   func accountNftService() -> AccountNFTService {
     AccountNFTServiceImplementation(
       api: apiAssembly.api,
-      accountNFTRepository: repositoriesAssembly.accountsNftRepository()
+      accountNFTRepository: repositoriesAssembly.accountsNftRepository(),
+      nftRepository: repositoriesAssembly.nftRepository()
     )
   }
   
@@ -93,5 +94,9 @@ public final class ServicesAssembly {
   
   func sendService() -> SendService {
     SendServiceImplementation(api: apiAssembly.api)
+  }
+  
+  func dnsService() -> DNSService {
+    DNSServiceImplementation(api: apiAssembly.api)
   }
 }

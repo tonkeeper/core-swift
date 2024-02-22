@@ -241,6 +241,16 @@ public final class MainAssembly {
     CollectiblesListController(nftsStore: storesAssembly.nftsStore(wallet: wallet))
   }
   
+  public func collectibleDetailsController(address: Address) -> CollectibleDetailsController {
+    CollectibleDetailsController(
+      collectibleAddress: address,
+      walletsStore: walletAssembly.walletStore,
+      nftService: servicesAssembly.nftService(),
+      dnsService: servicesAssembly.dnsService(),
+      collectibleDetailsMapper: CollectibleDetailsMapper(dateFormatter: formattersAssembly.dateFormatter)
+    )
+  }
+  
   public func recoveryPhraseController(wallet: Wallet) -> RecoveryPhraseController {
     RecoveryPhraseController(
       wallet: wallet,

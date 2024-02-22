@@ -54,6 +54,10 @@ public actor CollectiblesListController {
   public func setDidSendEventHandler(_ didSendEvent: ((Event) -> Void)?) {
     self.didSendEvent = didSendEvent
   }
+  
+  public func modelAt(index: Int) -> NFTModel {
+    models[index]
+  }
 }
 
 private extension CollectiblesListController {
