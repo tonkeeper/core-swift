@@ -56,10 +56,12 @@ final class WalletStoreWalletListControllerConfigurator: WalletListControllerCon
 extension WalletStoreWalletListControllerConfigurator: WalletsStoreObserver {
   func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
     switch event {
-    case .didUpdateWallets:
-      didUpdateWallets?()
     case .didUpdateActiveWallet:
       didUpdateSelectedWallet?()
+    case .didUpdateWalletsOrder:
+      didUpdateWallets?()
+    case .didAddWallets:
+      didUpdateWallets?()
     default:
       break
     }
@@ -107,7 +109,9 @@ final class WalletSelectWalletListControllerConfigurator: WalletListControllerCo
 extension WalletSelectWalletListControllerConfigurator: WalletsStoreObserver {
   func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
     switch event {
-    case .didUpdateWallets:
+    case .didAddWallets:
+      didUpdateWallets?()
+    case .didUpdateWalletsOrder:
       didUpdateWallets?()
     case .didUpdateActiveWallet:
       didUpdateSelectedWallet?()

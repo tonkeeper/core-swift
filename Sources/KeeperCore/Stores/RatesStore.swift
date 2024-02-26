@@ -7,8 +7,10 @@ protocol RatesStoreObserver: AnyObject {
 actor RatesStore {
   
   enum Event {
-    case updateRates
+    case updateRates(rates: Rates, wallet: Wallet)
   }
+  
+  private var tasksInProgress = [Wallet: Task<(), Never>]()
   
   private let ratesService: RatesService
   
@@ -16,14 +18,27 @@ actor RatesStore {
     self.ratesService = ratesService
   }
   
-  func loadRates(jettons: [JettonInfo]) {
-    Task {
-      _ = try await ratesService.loadRates(
-        jettons: jettons,
-        currencies: Currency.allCases
-      )
-      notifyObservers(event: .updateRates)
+  func loadRates(jettons: [JettonInfo], wallet: Wallet) {
+    if let taskInProgress = tasksInProgress[wallet] {
+      taskInProgress.cancel()
+      tasksInProgress[wallet] = nil
     }
+    
+    let task = Task {
+      let rates: Rates
+      do {
+        rates = try await ratesService.loadRates(
+          jettons: jettons,
+          currencies: Currency.allCases
+        )
+      } catch {
+        rates = Rates(ton: [], jettonsRates: [])
+      }
+      guard !Task.isCancelled else { return }
+      notifyObservers(event: .updateRates(rates: rates, wallet: wallet))
+      tasksInProgress[wallet] = nil
+    }
+    tasksInProgress[wallet] = task
   }
   
   nonisolated

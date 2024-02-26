@@ -74,7 +74,13 @@ public final class SettingsController {
 
 extension SettingsController: WalletsStoreObserver {
   func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
-    didUpdateActiveWallet?()
+    switch event {
+    case .didUpdateWalletMetadata(let wallet):
+      guard wallet == walletsStore.activeWallet else { return }
+      didUpdateActiveWallet?()
+    default:
+      break
+    }
   }
 }
 

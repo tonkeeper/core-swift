@@ -63,21 +63,11 @@ private extension BackupController {
 extension BackupController: WalletsStoreObserver {
   func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
     switch event {
-    case .didUpdateWalletBackupState(let walletId):
-      guard let wallet = walletsStore.wallets.first(where: { $0.identity == walletId }) else { return }
+    case .didUpdateWalletBackupState(let wallet):
+      guard let wallet = walletsStore.wallets.first(where: { $0.identity == wallet.identity }) else { return }
       self.wallet = wallet
     default:
       break
     }
   }
 }
-
-//extension BackupController: BackupStoreObserver {
-//  func didGetBackupStoreEvent(_ event: BackupStoreEvent) {
-//    switch event {
-//    case .didBackup(let walletId):
-//      guard walletId == wallet.identity else { return }
-//      didUpdateBackupState?()
-//    }
-//  }
-//}

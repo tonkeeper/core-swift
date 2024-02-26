@@ -2,9 +2,10 @@ import Foundation
 import CoreComponents
 
 enum WalletsStoreUpdateEvent {
-  case didMakeWalletActive(walletId: WalletIdentity)
-  case didUpdateWallets
-  case didUpdateWallet(walletId: WalletIdentity)
+  case didAddWallets([Wallet])
+  case didUpdateActiveWallet
+  case didUpdateWalletMetadata(Wallet, WalletMetaData)
+  case didUpdateWalletsOrder
 }
 
 protocol WalletsStoreUpdateObserver: AnyObject {
@@ -20,22 +21,22 @@ final class WalletsStoreUpdate {
   
   func addWallets(_ wallets: [Wallet]) throws {
     try walletsService.addWallets(wallets)
-    notifyObservers(event: .didUpdateWallets)
+    notifyObservers(event: .didAddWallets(wallets))
   }
 
   func makeWalletActive(_ wallet: Wallet) throws {
     try walletsService.setWalletActive(wallet)
-    notifyObservers(event: .didMakeWalletActive(walletId: wallet.identity))
+    notifyObservers(event: .didUpdateActiveWallet)
   }
 
   func moveWallet(fromIndex: Int, toIndex: Int) throws {
     try walletsService.moveWallet(fromIndex: fromIndex, toIndex: toIndex)
-    notifyObservers(event: .didUpdateWallets)
+    notifyObservers(event: .didUpdateWalletsOrder)
   }
   
   func updateWallet(_ wallet: Wallet, metaData: WalletMetaData) throws {
     try walletsService.updateWallet(wallet: wallet, metaData: metaData)
-    notifyObservers(event: .didUpdateWallet(walletId: wallet.identity))
+    notifyObservers(event: .didUpdateWalletMetadata(wallet, metaData))
   }
 
   private var observers = [WalletsStoreUpdateObserverWrapper]()

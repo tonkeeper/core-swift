@@ -1,5 +1,6 @@
 import Foundation
 import TonSwift
+import BigInt
 
 protocol BalanceService {
   func loadWalletBalance(address: Address) async throws -> WalletBalance

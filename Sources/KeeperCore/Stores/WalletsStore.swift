@@ -2,10 +2,11 @@ import Foundation
 import CoreComponents
 
 enum WalletsStoreEvent {
-  case didUpdateWallets
+  case didAddWallets([Wallet])
   case didUpdateActiveWallet
-  case didUpdateWalletMetaData(walletId: WalletIdentity)
-  case didUpdateWalletBackupState(walletId: WalletIdentity)
+  case didUpdateWalletMetadata(Wallet)
+  case didUpdateWalletsOrder
+  case didUpdateWalletBackupState(Wallet)
 }
 
 protocol WalletsStoreObserver: AnyObject {
@@ -61,32 +62,46 @@ private extension WalletsStore {
 extension WalletsStore: WalletsStoreUpdateObserver {
   func didGetWalletsStoreUpdateEvent(_ event: WalletsStoreUpdateEvent) {
     switch event {
-    case .didMakeWalletActive:
+    case .didAddWallets(let addedWallets):
+      do {
+        let wallets = try walletsService.getWallets()
+        let activeWallet = try walletsService.getActiveWallet()
+        self.wallets = wallets
+        self.activeWallet = activeWallet
+        notifyObservers(event: .didAddWallets(addedWallets))
+      } catch {
+        print("Log: failed to update WalletsStore after add wallets: \(addedWallets), error: \(error)")
+      }
+    case .didUpdateActiveWallet:
       do {
         self.activeWallet = try walletsService.getActiveWallet()
         notifyObservers(event: .didUpdateActiveWallet)
       } catch {
-        print("Log: failed to update WalletsStore after change active wallet, error: \(error)")
+        print("Log: failed to update WalletsStore after active wallet update, error: \(error)")
       }
-    case .didUpdateWallets:
+    case .didUpdateWalletMetadata(let wallet, _):
       do {
         let wallets = try walletsService.getWallets()
         let activeWallet = try walletsService.getActiveWallet()
         self.wallets = wallets
         self.activeWallet = activeWallet
-        notifyObservers(event: .didUpdateWallets)
+        guard let updatedWallet = self.wallets.first(where: { $0.identity == wallet.identity }) else {
+          print("Log: Failed to get updated wallet after update wallets metadata \(wallet)")
+          return
+        }
+        notifyObservers(event: .didUpdateWalletMetadata(updatedWallet))
       } catch {
-        print("Log: failed to update WalletsStore after update wallets, error: \(error)")
+        print("Log: failed to update WalletsStore after update wallets metadata \(wallet), error: \(error)")
       }
-    case .didUpdateWallet(let walletId):
+    case .didUpdateWalletsOrder:
       do {
         let wallets = try walletsService.getWallets()
         let activeWallet = try walletsService.getActiveWallet()
         self.wallets = wallets
         self.activeWallet = activeWallet
-        notifyObservers(event: .didUpdateWalletMetaData(walletId: walletId))
+        notifyObservers(event: .didUpdateWalletsOrder)
       } catch {
-        print("Log: failed to update WalletsStore after update wallet with \(walletId), error: \(error)")
+        print("Log: failed to update WalletsStore after update wallets order, error: \(error)")
       }
     }
   }
@@ -95,15 +110,19 @@ extension WalletsStore: WalletsStoreUpdateObserver {
 extension WalletsStore: BackupStoreObserver {
   func didGetBackupStoreEvent(_ event: BackupStoreEvent) {
     switch event {
-    case .didBackup(let walletId):
+    case .didBackup(let wallet):
       do {
         let wallets = try walletsService.getWallets()
         let activeWallet = try walletsService.getActiveWallet()
         self.wallets = wallets
         self.activeWallet = activeWallet
-        notifyObservers(event: .didUpdateWalletBackupState(walletId: walletId))
+        guard let updatedWallet = self.wallets.first(where: { $0.identity == wallet.identity }) else {
+          print("Log: Failed to get updated wallet after wallet backup \(wallet)")
+          return
+        }
+        notifyObservers(event: .didUpdateWalletBackupState(updatedWallet))
       } catch {
-        print("Log: Failed to update WalletsStore wallet after wallet backup \(walletId), error: \(error)")
+        print("Log: Failed to update WalletsStore wallet after wallet backup \(wallet), error: \(error)")
       }
     }
   }

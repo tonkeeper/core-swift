@@ -15,15 +15,18 @@ struct WalletBalanceMapper {
     self.rateConverter = rateConverter
   }
   
+  func mapTotalBalance(_ totalBalance: TotalBalance, currency: Currency) -> String {
+    amountFormatter.formatAmountWithoutFractionIfThousand(
+      totalBalance.amount,
+      fractionDigits: totalBalance.fractionalDigits,
+      maximumFractionDigits: 2,
+      currency: currency
+    )
+  }
+  
   func mapBalance(walletBalance: WalletBalance,
                   rates: Rates,
                   currency: Currency) -> WalletBalanceModel {
-    let totalBalance = mapTotalBalance(
-      walletBalance: walletBalance,
-      rates: rates,
-      currency: currency
-    )
-    
     let tonItem = mapTon(
       tonBalance: walletBalance.balance.tonBalance,
       tonRates: rates.ton,
@@ -36,70 +39,7 @@ struct WalletBalanceMapper {
       currency: currency
     )
     
-    return WalletBalanceModel(total: totalBalance, tonItems: [tonItem], jettonsItems: jettonItems)
-  }
-  
-  func mapTotalBalance(walletBalance: WalletBalance,
-                       rates: Rates,
-                       currency: Currency) -> String {
-    struct Item {
-      let amount: BigUInt
-      let fractionDigits: Int
-    }
-    
-    var items = [Item]()
-    var maximumFractionDigits = 0
-    
-    // TON
-    if let tonRate = rates.ton.first(where: { $0.currency == currency }) {
-      let converted = rateConverter.convert(
-        amount: walletBalance.balance.tonBalance.amount,
-        amountFractionLength: TonInfo.fractionDigits,
-        rate: tonRate
-      )
-      items.append(Item(amount: converted.amount, fractionDigits: converted.fractionLength))
-      maximumFractionDigits = converted.fractionLength
-    }
-    
-    // Jettons
-    for jettonBalance in walletBalance.balance.jettonsBalance {
-      guard let jettonRates = rates.jettonsRates
-        .first(where: { $0.jettonInfo == jettonBalance.amount.jettonInfo })?
-        .rates
-        .first(where: { $0.currency == currency })
-         else {
-        continue
-      }
-      
-      let converted = rateConverter.convert(
-        amount: jettonBalance.amount.quantity,
-        amountFractionLength: jettonBalance.amount.jettonInfo.fractionDigits,
-        rate: jettonRates
-      )
-      items.append(Item(amount: converted.amount, fractionDigits: converted.fractionLength))
-      maximumFractionDigits = max(converted.fractionLength, maximumFractionDigits)
-    }
-    
-    var totalSum = BigUInt("0")
-    for item in items {
-      if item.fractionDigits < maximumFractionDigits {
-        let countToExtend = maximumFractionDigits - item.fractionDigits
-        let amountToMultiply = BigUInt(stringLiteral: "1" + String(repeating: "0", count: countToExtend))
-        let extendedAmount = item.amount * amountToMultiply
-        totalSum += extendedAmount
-      } else {
-        totalSum += item.amount
-      }
-    }
-    
-    let formattedTotalAmount = amountFormatter.formatAmountWithoutFractionIfThousand(
-      totalSum,
-      fractionDigits: maximumFractionDigits,
-      maximumFractionDigits: 2,
-      currency: currency
-    )
-                                       
-    return formattedTotalAmount
+    return WalletBalanceModel(tonItems: [tonItem], jettonsItems: jettonItems)
   }
   
   func mapTon(tonBalance: TonBalance,

@@ -7,11 +7,11 @@ protocol BalanceStoreObserver: AnyObject {
 
 actor BalanceStore {
   public struct Event {
-    public let address: Address
+    public let wallet: Wallet
     public let result: Result<WalletBalance, Swift.Error>
   }
   
-  private var tasksInProgress = [Address: Task<(), Never>]()
+  private var tasksInProgress = [Wallet: Task<(), Swift.Error>]()
   
   private let balanceService: BalanceService
   
@@ -19,36 +19,35 @@ actor BalanceStore {
     self.balanceService = balanceService
   }
   
-  func loadBalance(address: Address) {
-    if let taskInProgress = tasksInProgress[address] {
+  func loadBalance(wallet: Wallet) {
+    if let taskInProgress = tasksInProgress[wallet] {
       taskInProgress.cancel()
-      tasksInProgress[address] = nil
+      tasksInProgress[wallet] = nil
     }
     
     let task = Task {
+      let address = try wallet.address
       let event: Event
       do {
         let walletBalance = try await balanceService.loadWalletBalance(address: address)
-        event = Event(address: address, result: .success(walletBalance))
+        event = Event(wallet: wallet, result: .success(walletBalance))
       } catch {
-        event = Event(address: address, result: .failure(error))
+        event = Event(wallet: wallet, result: .failure(error))
       }
       guard !Task.isCancelled else { return }
       notifyObservers(event: event)
-      tasksInProgress[address] = nil
+      tasksInProgress[wallet] = nil
     }
-    tasksInProgress[address] = task
+    tasksInProgress[wallet] = task
   }
   
-  func loadBalances(addresses: [Address]) {
-    addresses.forEach { address in
-      loadBalance(address: address)
-    }
+  func loadBalances(wallets: [Wallet]) {
+    wallets.forEach { loadBalance(wallet: $0) }
   }
   
   nonisolated
-  func getBalance(address: Address) throws -> WalletBalance {
-    return try balanceService.getBalance(address: address)
+  func getBalance(wallet: Wallet) throws -> WalletBalance {
+    return try balanceService.getBalance(address: wallet.address)
   }
     
   struct BalanceStoreObserverWrapper {

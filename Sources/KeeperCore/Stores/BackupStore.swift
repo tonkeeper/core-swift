@@ -1,7 +1,7 @@
 import Foundation
 
 enum BackupStoreEvent {
-  case didBackup(walletId: WalletIdentity)
+  case didBackup(wallet: Wallet)
 }
 
 protocol BackupStoreObserver: AnyObject {
@@ -20,7 +20,7 @@ final class BackupStore {
       wallet: wallet,
       setupSettings: WalletSetupSettings(backupDate: Date())
     )
-    notifyObservers(event: .didBackup(walletId: wallet.identity))
+    notifyObservers(event: .didBackup(wallet: wallet))
   }
   
   private var observers = [BackupStoreObserverWrapper]()

@@ -116,4 +116,20 @@ public final class StoresAssembly {
       return backgroundUpdateStore
     }
   }
+  
+  private weak var _totalBalanceStore: TotalBalanceStore?
+  var totalBalanceStore: TotalBalanceStore {
+    if let totalBalanceStore = _totalBalanceStore {
+      return totalBalanceStore
+    } else {
+      let totalBalanceStore = TotalBalanceStore(
+        balanceStore: balanceStore,
+        currencyStore: currencyStore,
+        ratesStore: ratesStore,
+        totalBalanceService: servicesAssembly.totalBalanceService()
+      )
+      _totalBalanceStore = totalBalanceStore
+      return totalBalanceStore
+    }
+  }
 }

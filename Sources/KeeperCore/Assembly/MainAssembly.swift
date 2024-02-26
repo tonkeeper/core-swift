@@ -66,7 +66,8 @@ public final class MainAssembly {
       walletsStore: walletAssembly.walletStore,
       balanceStore: storesAssembly.balanceStore,
       ratesStore: storesAssembly.ratesStore,
-      backgroundUpdateStore: storesAssembly.backgroundUpdateStore
+      backgroundUpdateStore: storesAssembly.backgroundUpdateStore,
+      totalBalanceStore: storesAssembly.totalBalanceStore
     )
   }
   
@@ -77,7 +78,7 @@ public final class MainAssembly {
     )
     return WalletListController(
       configurator: configurator,
-      balanceStore: storesAssembly.balanceStore,
+      totalBalanceStore: storesAssembly.totalBalanceStore,
       ratesStore: storesAssembly.ratesStore,
       currencyStore: storesAssembly.currencyStore,
       walletListMapper: walletListMapper
@@ -93,7 +94,7 @@ public final class MainAssembly {
     configurator.didSelectWallet = didSelectWallet
     return WalletListController(
       configurator: configurator,
-      balanceStore: storesAssembly.balanceStore,
+      totalBalanceStore: storesAssembly.totalBalanceStore,
       ratesStore: storesAssembly.ratesStore,
       currencyStore: storesAssembly.currencyStore,
       walletListMapper: walletListMapper
@@ -105,6 +106,7 @@ public final class MainAssembly {
       wallet: wallet,
       walletsStore: walletAssembly.walletStore,
       balanceStore: storesAssembly.balanceStore,
+      totalBalanceStore: storesAssembly.totalBalanceStore,
       ratesStore: storesAssembly.ratesStore,
       currencyStore: storesAssembly.currencyStore,
       securityStore: storesAssembly.securityStore,
@@ -297,7 +299,7 @@ private extension MainAssembly {
   func walletListController(configurator: WalletStoreWalletListControllerConfigurator) -> WalletListController {
     return WalletListController(
       configurator: configurator,
-      balanceStore: storesAssembly.balanceStore,
+      totalBalanceStore: storesAssembly.totalBalanceStore,
       ratesStore: storesAssembly.ratesStore,
       currencyStore: storesAssembly.currencyStore,
       walletListMapper: walletListMapper

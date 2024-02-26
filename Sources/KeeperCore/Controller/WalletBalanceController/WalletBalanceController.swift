@@ -3,6 +3,7 @@ import Foundation
 public final class WalletBalanceController {
   
   public var didUpdateBalance: (() -> Void)?
+  public var didUpdateTotalBalance: (() -> Void)?
   public var didUpdateFinishSetup: ((WalletBalanceSetupModel) -> Void)?
   public var didUpdateBackgroundUpdateState: ((BackgroundUpdateStore.State) -> Void)?
   
@@ -29,10 +30,20 @@ public final class WalletBalanceController {
       return getWalletBalanceModel()
     }
   }
+  
+  public var totalBalanceFormatted: String {
+    let currency = currencyStore.getActiveCurrency()
+    return walletBalanceMapper.mapTotalBalance(totalBalanceStore.getTotalBalance(
+      wallet: wallet,
+      currency: currency),
+      currency: currency
+    )
+  }
 
   private var wallet: Wallet
   private let walletsStore: WalletsStore
   private let balanceStore: BalanceStore
+  private let totalBalanceStore: TotalBalanceStore
   private let ratesStore: RatesStore
   private let currencyStore: CurrencyStore
   private let securityStore: SecurityStore
@@ -43,6 +54,7 @@ public final class WalletBalanceController {
   init(wallet: Wallet,
        walletsStore: WalletsStore,
        balanceStore: BalanceStore,
+       totalBalanceStore: TotalBalanceStore,
        ratesStore: RatesStore,
        currencyStore: CurrencyStore,
        securityStore: SecurityStore,
@@ -52,6 +64,7 @@ public final class WalletBalanceController {
     self.wallet = wallet
     self.walletsStore = walletsStore
     self.balanceStore = balanceStore
+    self.totalBalanceStore = totalBalanceStore
     self.ratesStore = ratesStore
     self.currencyStore = currencyStore
     self.securityStore = securityStore
@@ -64,9 +77,6 @@ public final class WalletBalanceController {
   public func loadBalance() {
     updateFinishSetup()
     updateBalance()
-    Task {
-      try await self.balanceStore.loadBalance(address: self.wallet.address)
-    }
   }
   
   public func finishSetup() {
@@ -88,7 +98,7 @@ private extension WalletBalanceController {
     let currency = currencyStore.getActiveCurrency()
     let balanceModel: WalletBalanceModel
     do {
-      let walletBalance = try balanceStore.getBalance(address: try wallet.address)
+      let walletBalance = try balanceStore.getBalance(wallet: wallet)
       let rates = ratesStore.getRates(jettons: walletBalance.balance.jettonsBalance.map { $0.amount.jettonInfo })
       balanceModel = walletBalanceMapper.mapBalance(
         walletBalance: walletBalance,
@@ -96,13 +106,12 @@ private extension WalletBalanceController {
         currency: currency
       )
     } catch {
-      balanceModel = WalletBalanceModel(total: "-", tonItems: [], jettonsItems: [])
+      balanceModel = WalletBalanceModel(tonItems: [], jettonsItems: [])
     }
     return balanceModel
   }
   
   func didReceiveBalanceUpdateEvent(_ event: BalanceStore.Event) {
-    guard let address = try? wallet.address, event.address == address else { return }
     switch event.result {
     case .success:
       updateBalance()
@@ -125,6 +134,7 @@ private extension WalletBalanceController {
     walletsStore.addObserver(self)
     setupStore.addObserver(self)
     securityStore.addObserver(self)
+    totalBalanceStore.addObserver(self)
     Task {
       await balanceStore.addObserver(self)
     }
@@ -179,12 +189,11 @@ extension WalletBalanceController: CurrencyStoreObserver {
 extension WalletBalanceController: WalletsStoreObserver {
   func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
     switch event {
-    case .didUpdateWalletBackupState(let walletId):
-      guard walletId == self.wallet.identity,
-            let wallet = walletsStore.wallets.first(where: { $0.identity == walletId }) else { return }
+    case .didUpdateWalletBackupState(let wallet):
       self.wallet = wallet
       updateFinishSetup()
-    default: break
+    default:
+      break
     }
   }
 }
@@ -208,6 +217,16 @@ extension WalletBalanceController: BackgroundUpdateStoreObserver {
       didUpdateBackgroundUpdateState?(state)
     case .didReceiveUpdateEvent:
       break
+    }
+  }
+}
+
+extension WalletBalanceController: TotalBalanceStoreObserver {
+  func didGetTotalBalanceStoreEvent(_ event: TotalBalanceStore.Event) {
+    switch event {
+    case .didUpdateTotalBalance(let wallet, _):
+      guard wallet == self.wallet else { return }
+      didUpdateTotalBalance?()
     }
   }
 }

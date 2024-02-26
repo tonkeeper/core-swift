@@ -36,6 +36,13 @@ public final class ServicesAssembly {
     JettonBalanceServiceImplementation(api: apiAssembly.api)
   }
   
+  func totalBalanceService() -> TotalBalanceService {
+    TotalBalanceServiceImplementation(
+      totalBalanceRepository: repositoriesAssembly.totalBalanceRepository(),
+      rateConverter: RateConverter()
+    )
+  }
+  
   func activeWalletsService() -> ActiveWalletsService {
     ActiveWalletsServiceImplementation(api: apiAssembly.api,
                                        jettonsBalanceService: jettonsBalanceService())

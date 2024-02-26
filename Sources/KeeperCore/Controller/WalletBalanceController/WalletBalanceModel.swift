@@ -1,7 +1,6 @@
 import Foundation
 
 public struct WalletBalanceModel {
-  public let total: String
   public let tonItems: [Item]
   public let jettonsItems: [Item]
 }

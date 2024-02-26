@@ -86,7 +86,7 @@ extension MainController: WalletsStoreObserver {
     case .didUpdateActiveWallet:
       didUpdateNftsAvailability?(false)
       loadNftsState()
-    case .didUpdateWallets:
+    case .didAddWallets:
       startBackgroundUpdate()
     default:
       break

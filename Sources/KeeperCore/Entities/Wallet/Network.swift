@@ -1,7 +1,7 @@
 import Foundation
 import TonSwift
 
-public enum Network: Int16 {
+public enum Network: Int16, Hashable {
   case mainnet = -239
   case testnet = -3
 }

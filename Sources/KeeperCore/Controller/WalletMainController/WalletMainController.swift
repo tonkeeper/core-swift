@@ -14,15 +14,20 @@ public final class WalletMainController {
   private let balanceStore: BalanceStore
   private let ratesStore: RatesStore
   private let backgroundUpdateStore: BackgroundUpdateStore
+  private let totalBalanceStore: TotalBalanceStore
   
   init(walletsStore: WalletsStore,
        balanceStore: BalanceStore,
        ratesStore: RatesStore,
-       backgroundUpdateStore: BackgroundUpdateStore) {
+       backgroundUpdateStore: BackgroundUpdateStore,
+       totalBalanceStore: TotalBalanceStore) {
     self.walletsStore = walletsStore
     self.balanceStore = balanceStore
     self.ratesStore = ratesStore
     self.backgroundUpdateStore = backgroundUpdateStore
+    self.totalBalanceStore = totalBalanceStore
+    
+    self.totalBalanceStore.wallets = walletsStore.wallets
     
     self.walletsStore.addObserver(self)
     Task {
@@ -46,8 +51,7 @@ public final class WalletMainController {
   
   public func loadBalances() {
     Task {
-      let addresses = self.walletsStore.wallets.compactMap { try? $0.address }
-      await self.balanceStore.loadBalances(addresses: addresses)
+      await balanceStore.loadBalances(wallets: walletsStore.wallets)
     }
   }
 }
@@ -56,7 +60,10 @@ private extension WalletMainController {
   func didReceiveBalanceUpdateEvent(_ event: BalanceStore.Event) {
     guard let balance = try? event.result.get() else { return }
     Task {
-      await ratesStore.loadRates(jettons: balance.balance.jettonsBalance.map { $0.amount.jettonInfo })
+      await ratesStore.loadRates(
+        jettons: balance.balance.jettonsBalance.map { $0.amount.jettonInfo },
+        wallet: event.wallet
+      )
     }
   }
   
@@ -68,12 +75,15 @@ private extension WalletMainController {
 extension WalletMainController: WalletsStoreObserver {
   func didGetWalletsStoreEvent(_ event: WalletsStoreEvent) {
     switch event {
-    case .didUpdateActiveWallet:
-      handleActiveWalletUpdate()
-    case .didUpdateWalletMetaData(let walletId):
-      if walletsStore.activeWallet.identity == walletId {
-        didUpdateActiveWalletMetaData?()
+    case .didAddWallets(let addedWallets):
+      Task {
+        await balanceStore.loadBalances(wallets: addedWallets)
       }
+    case .didUpdateActiveWallet:
+      didUpdateActiveWallet?()
+    case .didUpdateWalletMetadata(let wallet):
+      guard walletsStore.activeWallet.identity == wallet.identity else { return }
+      didUpdateActiveWalletMetaData?()
     default:
       break
     }
@@ -97,9 +107,9 @@ extension WalletMainController: BackgroundUpdateStoreObserver {
       }
     case .didReceiveUpdateEvent(let updateEvent):
       Task {
-        await balanceStore.loadBalance(address: updateEvent.accountAddress)
+        guard let wallet = walletsStore.wallets.first(where: { (try? $0.address) == updateEvent.accountAddress }) else { return }
+        await balanceStore.loadBalance(wallet: wallet)
       }
     }
   }
 }
-

@@ -32,45 +32,40 @@ public final class WalletListController {
   }
 
   private let configurator: WalletListControllerConfigurator
-  private let balanceStore: BalanceStore
+  private let totalBalanceStore: TotalBalanceStore
   private let ratesStore: RatesStore
   private let currencyStore: CurrencyStore
   private let walletListMapper: WalletListMapper
   
   init(configurator: WalletListControllerConfigurator,
-       balanceStore: BalanceStore,
+       totalBalanceStore: TotalBalanceStore,
        ratesStore: RatesStore,
        currencyStore: CurrencyStore,
        walletListMapper: WalletListMapper) {
     self.configurator = configurator
-    self.balanceStore = balanceStore
+    self.totalBalanceStore = totalBalanceStore
     self.ratesStore = ratesStore
     self.currencyStore = currencyStore
     self.walletListMapper = walletListMapper
     
     configurator.didUpdateWallets = { [weak self] in
       guard let self else { return }
-      Task {
-        self.walletsModels = await self.getWalletsModels()
-      }
+        self.walletsModels = self.getWalletsModels()
     }
     
     configurator.didUpdateSelectedWallet = { [weak self] in
       self?.didUpdateActiveWallet?()
     }
-      
-    Task {
-      walletsModels = await getWalletsModels()
-    }
     
-    Task {
-      await balanceStore.addObserver(self)
-    }
+    totalBalanceStore.addObserver(self)
+    
+    walletsModels = getWalletsModels()
+    
     Task {
       await ratesStore.addObserver(self)
     }
   }
-
+  
   public func setWalletActive(with identifier: String) {
     guard let index = _walletsModels.firstIndex(where: { $0.identifier == identifier }) else { return }
     configurator.selectWallet(at: index)
@@ -89,11 +84,13 @@ public final class WalletListController {
 }
 
 private extension WalletListController {
-  func getWalletsModels() async -> [WalletModel] {
+  func getWalletsModels() -> [WalletModel] {
+    let date = Date()
     var models = [WalletModel]()
     for wallet in configurator.getWallets() {
-      await models.append(mapWalletModel(wallet: wallet))
+      models.append(mapWalletModel(wallet: wallet))
     }
+    print(Date().timeIntervalSince(date))
     return models
   }
   
@@ -101,33 +98,14 @@ private extension WalletListController {
     configurator.getSelectedWalletIndex()
   }
   
-  func mapWalletModel(wallet: Wallet) async -> WalletModel {
-    let balanceString: String
-    
-    let rates: Rates
-    do {
-      let balance = try balanceStore.getBalance(address: wallet.address).balance
-      rates = ratesStore.getRates(jettons: balance.jettonsBalance.map { $0.amount.jettonInfo })
-      balanceString = walletListMapper.mapTotalBalance(balance: balance, rates: rates, currency: currencyStore.getActiveCurrency())
-    } catch {
-      rates = Rates(ton: [], jettonsRates: [])
-      balanceString = "-"
-    }
-    
+  func mapWalletModel(wallet: Wallet) -> WalletModel {
+    let totalBalance = totalBalanceStore.getTotalBalance(wallet: wallet, currency: .USD)
+    let balanceString = walletListMapper.mapTotalBalance(totalBalance, currency: .USD)
     let model = walletListMapper.mapWalletModel(
       wallet: wallet,
-      balance: balanceString,
-      rates: rates
+      balance: balanceString
     )
     return model
-  }
-}
-
-extension WalletListController: BalanceStoreObserver {
-  func didGetBalanceStoreEvent(_ event: BalanceStore.Event) {
-    Task {
-      walletsModels = await getWalletsModels()
-    }
   }
 }
 
@@ -136,7 +114,18 @@ extension WalletListController: RatesStoreObserver {
     switch event {
     case .updateRates:
       Task {
-        walletsModels = await getWalletsModels()
+        walletsModels = getWalletsModels()
+      }
+    }
+  }
+}
+
+extension WalletListController: TotalBalanceStoreObserver {
+  func didGetTotalBalanceStoreEvent(_ event: TotalBalanceStore.Event) {
+    switch event {
+    case .didUpdateTotalBalance:
+      Task {
+        walletsModels = getWalletsModels()
       }
     }
   }

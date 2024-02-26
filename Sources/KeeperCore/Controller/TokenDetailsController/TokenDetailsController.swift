@@ -40,17 +40,16 @@ public final class TokenDetailsController {
   public func reloadTokenModel() {
     let wallet = walletsStore.activeWallet
     Task {
-      let address = try wallet.address
       let balance: Balance
       do {
-        balance = try await balanceStore.getBalance(address: address).balance
+        balance = try balanceStore.getBalance(wallet: wallet).balance
       } catch {
         balance = Balance(
           tonBalance: TonBalance(amount: 0),
           jettonsBalance: []
         )
       }
-      let rates = await ratesStore.getRates(jettons: balance.jettonsBalance.map { $0.amount.jettonInfo })
+      let rates = ratesStore.getRates(jettons: balance.jettonsBalance.map { $0.amount.jettonInfo })
       let model = configurator.getTokenModel(balance: balance, rates: rates, currency: currencyStore.getActiveCurrency())
       didUpdateTokenModel?(model)
     }
