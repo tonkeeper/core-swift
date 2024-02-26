@@ -4,11 +4,14 @@ public final class WalletsUpdateAssembly {
   
   private let servicesAssembly: ServicesAssembly
   private let repositoriesAssembly: RepositoriesAssembly
+  private let formattersAssembly: FormattersAssembly
   
   init(servicesAssembly: ServicesAssembly,
-       repositoriesAssembly: RepositoriesAssembly) {
+       repositoriesAssembly: RepositoriesAssembly,
+       formattersAssembly: FormattersAssembly) {
     self.servicesAssembly = servicesAssembly
     self.repositoriesAssembly = repositoriesAssembly
+    self.formattersAssembly = formattersAssembly
   }
   
   lazy var walletsStoreUpdate: WalletsStoreUpdate = {
@@ -31,6 +34,9 @@ public final class WalletsUpdateAssembly {
   }
   
   public func chooseWalletController(activeWalletModels: [ActiveWalletModel]) -> ChooseWalletsController {
-    ChooseWalletsController(activeWalletModels: activeWalletModels)
+    ChooseWalletsController(
+      activeWalletModels: activeWalletModels,
+      amountFormatter: formattersAssembly.amountFormatter
+    )
   }
 }

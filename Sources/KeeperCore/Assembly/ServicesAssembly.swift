@@ -44,8 +44,11 @@ public final class ServicesAssembly {
   }
   
   func activeWalletsService() -> ActiveWalletsService {
-    ActiveWalletsServiceImplementation(api: apiAssembly.api,
-                                       jettonsBalanceService: jettonsBalanceService())
+    ActiveWalletsServiceImplementation(
+      api: apiAssembly.api,
+      jettonsBalanceService: jettonsBalanceService(),
+      accountNFTService: accountNftService()
+    )
   }
   
   func ratesService() -> RatesService {

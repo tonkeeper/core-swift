@@ -35,7 +35,8 @@ public final class Assembly {
   private var walletUpdateAssembly: WalletsUpdateAssembly {
     WalletsUpdateAssembly(
       servicesAssembly: servicesAssembly,
-      repositoriesAssembly: repositoriesAssembly
+      repositoriesAssembly: repositoriesAssembly,
+      formattersAssembly: formattersAssembly
     )
   }
   private lazy var passcodeAssembly = PasscodeAssembly(

@@ -7,6 +7,7 @@ public struct ActiveWalletModel {
   public let address: Address
   public let isActive: Bool
   public let balance: Balance
+  public let nfts: [NFT]
 }
 
 protocol ActiveWalletsService {
@@ -16,11 +17,15 @@ protocol ActiveWalletsService {
 final class ActiveWalletsServiceImplementation: ActiveWalletsService {
   private let api: API
   private let jettonsBalanceService: JettonBalanceService
+  private let accountNFTService: AccountNFTService
+  
   
   init(api: API,
-       jettonsBalanceService: JettonBalanceService) {
+       jettonsBalanceService: JettonBalanceService,
+       accountNFTService: AccountNFTService) {
     self.api = api
     self.jettonsBalanceService = jettonsBalanceService
+    self.accountNFTService = accountNFTService
   }
   
   func loadActiveWallets(mnemonic: CoreComponents.Mnemonic) async throws -> [ActiveWalletModel] {
@@ -38,17 +43,21 @@ final class ActiveWalletsServiceImplementation: ActiveWalletsService {
         taskGroup.addTask {
           async let accountTask = self.api.getAccountInfo(address: address.toRaw())
           async let jettonsBalanceTask = self.jettonsBalanceService.loadJettonsBalance(address: address)
+          async let nftsTask = self.accountNFTService.loadAccountNFTs(accountAddress: address, collectionAddress: nil, limit: 5, offset: 0, isIndirectOwnership: true)
           
           let isActive: Bool
           let balance: Balance
+          let nfts: [NFT]
           do {
             let account = try await accountTask
-            let jettonsBalance = try await jettonsBalanceTask
+            let jettonsBalance = (try? await jettonsBalanceTask) ?? []
+            nfts = (try? await nftsTask) ?? []
             let tonBalance = TonBalance(amount: account.balance)
             balance = Balance(tonBalance: tonBalance, jettonsBalance: jettonsBalance)
             isActive = account.status == "active" || !balance.isEmpty
           } catch {
             isActive = revision == .currentVersion
+            nfts = []
             balance = Balance(
               tonBalance: TonBalance(amount: 0),
               jettonsBalance: []
@@ -59,7 +68,8 @@ final class ActiveWalletsServiceImplementation: ActiveWalletsService {
             revision: revision,
             address: address,
             isActive: isActive,
-            balance: balance)
+            balance: balance,
+            nfts: nfts)
         }
       }
       

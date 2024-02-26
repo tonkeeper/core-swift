@@ -1,5 +1,6 @@
 import Foundation
 import TonSwift
+import BigInt
 
 public final class ChooseWalletsController {
   public struct WalletModel: Equatable {
@@ -14,10 +15,13 @@ public final class ChooseWalletsController {
   }
   
   private let activeWalletModels: [ActiveWalletModel]
+  private let amountFormatter: AmountFormatter
   
-  init(activeWalletModels: [ActiveWalletModel]) {
+  init(activeWalletModels: [ActiveWalletModel],
+       amountFormatter: AmountFormatter) {
     self.activeWalletModels = activeWalletModels
       .sorted(by: { $0.revision > $1.revision })
+    self.amountFormatter = amountFormatter
   }
   
   public func revisions(indexes: [Int]) -> [WalletContractVersion] {
@@ -35,11 +39,22 @@ private extension ChooseWalletsController {
   }
   
   func mapActiveWallet(_ activeWallet: ActiveWalletModel) -> WalletModel {
+    let tonAmount = amountFormatter.formatAmount(
+      BigUInt(
+        integerLiteral: UInt64(activeWallet.balance.tonBalance.amount)
+      ),
+      fractionDigits: TonInfo.fractionDigits,
+      maximumFractionDigits: 2,
+      currency: .TON
+    )
     let identifier = activeWallet.address.toRaw()
     let address = activeWallet.address.toShortString(bounceable: false)
-    var subtitle = "\(activeWallet.revision.rawValue) · 0 TON"
+    var subtitle = "\(activeWallet.revision.rawValue) · \(tonAmount)"
     if !activeWallet.balance.jettonsBalance.isEmpty {
       subtitle.append(", tokens")
+    }
+    if !activeWallet.nfts.isEmpty {
+      subtitle.append(", NFTs")
     }
     
     let isSelected = activeWallet.revision == .currentVersion || !activeWallet.balance.isEmpty
