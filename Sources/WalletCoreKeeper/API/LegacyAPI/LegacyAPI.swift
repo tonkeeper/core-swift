@@ -13,7 +13,7 @@ protocol LegacyAPI {
                            chainName: String,
                            platform: String) async throws -> RemoteConfiguration
     func loadChart(period: Period) async throws -> [Coordinate]
-    func loadFiatMethods() async throws -> FiatMethods
+    func loadFiatMethods(platform: String, countryCode: String?) async throws -> FiatMethods
 }
 
 struct LegacyAPIImplementation: LegacyAPI {
@@ -73,7 +73,7 @@ extension LegacyAPIImplementation {
         return entity.coordinates
     }
     
-    func loadFiatMethods() async throws -> FiatMethods {
+    func loadFiatMethods(platform: String, countryCode: String?) async throws -> FiatMethods {
         let url = host.appendingPathComponent("/fiat/methods")
         guard var components = URLComponents(
             url: url,
@@ -83,8 +83,13 @@ extension LegacyAPIImplementation {
         components.queryItems = [
             .init(name: "lang", value: "en"),
             .init(name: "build", value: "3.4.0"),
-            .init(name: "chainName", value: "mainnet")
+            .init(name: "chainName", value: "mainnet"),
+            .init(name: "platform", value: platform),
         ]
+        if let countryCode = countryCode {
+            components.queryItems?.append(URLQueryItem(name: "countryCode", value: countryCode))
+        }
+        
         guard let url = components.url else { throw Error.incorrectURL }
         let (data, _) = try await urlSession.data(from: url)
         let entity = try JSONDecoder().decode(FiatMethodsResponse.self, from: data)

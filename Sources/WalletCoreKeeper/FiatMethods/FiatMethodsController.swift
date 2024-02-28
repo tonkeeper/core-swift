@@ -12,6 +12,7 @@ import WalletCoreCore
 
 public actor FiatMethodsController {
     private let fiatMethodsService: FiatMethodsService
+    private let locationService: LocationService
     private let walletProvider: WalletProvider
     private let configurationController: ConfigurationController
     
@@ -19,9 +20,11 @@ public actor FiatMethodsController {
     
     init(fiatMethodsService: FiatMethodsService,
          walletProvider: WalletProvider,
+         locationService: LocationService,
          configurationController: ConfigurationController) {
         self.fiatMethodsService = fiatMethodsService
         self.walletProvider = walletProvider
+        self.locationService = locationService
         self.configurationController = configurationController
     }
     
@@ -31,10 +34,12 @@ public actor FiatMethodsController {
         return sectionsModels
     }
     
-    public func loadFiatMethods() async throws -> [[FiatMethodViewModel]] {
-        let fiatMethods = try await fiatMethodsService.loadFiatMethods()
-        sectionsModels = mapFiatMethods(fiatMethods: fiatMethods)
-        return sectionsModels
+    public func loadFiatMethods(isMarketRegionPickerAvailable: Bool) async throws -> [[FiatMethodViewModel]] {
+        if !isMarketRegionPickerAvailable {
+            return try await loadFiatMethodsByLocationRequired()
+        } else {
+            return try await loadDefaultFiatMethods()
+        }
     }
     
     public func urlForMethod(_ method: FiatMethodViewModel) async -> URL? {
@@ -107,5 +112,23 @@ private extension FiatMethodsController {
         let mercuryoSecret = await configurationController.configuration.mercuryoSecret ?? ""
         guard let signature = (walletAddress + mercuryoSecret).data(using: .utf8)?.sha256().hexString() else { return }
         urlString += "&signature=\(signature)"
+    }
+    
+    func loadFiatMethodsByLocationRequired() async throws -> [[FiatMethodViewModel]] {
+        do {
+            let countryCode = try await locationService.getCountryCodeByIp()
+            let fiatMethods = try await fiatMethodsService.loadFiatMethods(countryCode: countryCode)
+            sectionsModels = mapFiatMethods(fiatMethods: fiatMethods)
+            return sectionsModels
+        } catch {
+            return []
+        }
+    }
+    
+    func loadDefaultFiatMethods() async throws -> [[FiatMethodViewModel]] {
+        let countryCode = try? await locationService.getCountryCodeByIp()
+        let fiatMethods = try await fiatMethodsService.loadFiatMethods(countryCode: countryCode)
+        sectionsModels = mapFiatMethods(fiatMethods: fiatMethods)
+        return sectionsModels
     }
 }

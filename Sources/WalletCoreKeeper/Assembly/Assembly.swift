@@ -296,6 +296,7 @@ public extension Assembly {
         FiatMethodsController(
             fiatMethodsService: servicesAssembly.fiatMethodsService,
             walletProvider: coreAssembly.walletProvider,
+            locationService: servicesAssembly.locationService,
             configurationController: configurationAssembly.configurationController()
         )
     }

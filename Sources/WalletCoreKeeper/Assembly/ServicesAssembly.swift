@@ -89,6 +89,7 @@ final class ServicesAssembly {
     var fiatMethodsService: FiatMethodsService {
         FiatMethodsServiceImplementation(
             api: legacyApiAssembly.legacyAPI,
+            locationAPI: apiAssembly.locationAPI(),
             localRepository: localRepository(cacheURL: cacheURL)
         )
     }
@@ -100,6 +101,12 @@ final class ServicesAssembly {
     lazy var transactionsUpdateService: TransactionsUpdateService = {
         TransactionsUpdateServiceImplementation(streamingAPI: apiAssembly.streamingTonAPIClient())
     }()
+    
+    var locationService: LocationService {
+        LocationServiceImplementation(
+            locationAPI: apiAssembly.locationAPI()
+        )
+    }
 }
 
 private extension ServicesAssembly {
