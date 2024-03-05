@@ -76,7 +76,7 @@ private extension CollectibleDetailsController {
   func getDNSLinkedAddress(nft: NFT) async throws -> FriendlyAddress? {
     guard let dns = nft.dns else { return nil }
     let linkedAddress = try await dnsService.resolveDomainName(dns)
-    return linkedAddress
+    return linkedAddress.friendlyAddress
   }
   
   func getDNSExpirationDate(nft: NFT) async throws -> Date? {
