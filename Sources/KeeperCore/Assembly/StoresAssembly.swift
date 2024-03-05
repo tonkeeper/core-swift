@@ -132,4 +132,17 @@ public final class StoresAssembly {
       return totalBalanceStore
     }
   }
+  
+  private weak var _knownAccountsStore: KnownAccountsStore?
+  var knownAccountsStore: KnownAccountsStore {
+    if let knownAccountsStore = _knownAccountsStore {
+      return knownAccountsStore
+    } else {
+      let knownAccountsStore = KnownAccountsStore(
+        knownAccountsService: servicesAssembly.knownAccountsService()
+      )
+      _knownAccountsStore = knownAccountsStore
+      return knownAccountsStore
+    }
+  }
 }

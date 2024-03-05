@@ -39,6 +39,7 @@ public final class RootAssembly {
       let rootController = RootController(
         walletsService: servicesAssembly.walletsService(),
         remoteConfigurationStore: configurationAssembly.remoteConfigurationStore,
+        knownAccountsStore: storesAssembly.knownAccountsStore,
         deeplinkParser: DefaultDeeplinkParser(parsers: [
           TonDeeplinkParser(),
           TonConnectDeeplinkParser()

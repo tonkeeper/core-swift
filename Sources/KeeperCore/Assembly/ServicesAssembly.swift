@@ -109,4 +109,11 @@ public final class ServicesAssembly {
   func dnsService() -> DNSService {
     DNSServiceImplementation(api: apiAssembly.api)
   }
+  
+  func knownAccountsService() -> KnownAccountsService {
+    KnownAccountsServiceImplementation(
+      session: .shared,
+      knownAccountsRepository: repositoriesAssembly.knownAccountsRepository()
+    )
+  }
 }

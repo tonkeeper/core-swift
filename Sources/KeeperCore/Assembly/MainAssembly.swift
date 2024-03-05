@@ -1,5 +1,6 @@
 import Foundation
 import TonSwift
+import BigInt
 
 public final class MainAssembly {
   
@@ -291,6 +292,48 @@ public final class MainAssembly {
       manifest: manifest,
       walletsStore: walletAssembly.walletStore,
       tonConnectAppsStore: tonConnectAssembly.tonConnectAppsStore
+    )
+  }
+  
+  public func sendController(token: Token) -> SendController {
+    SendController(
+      token: token,
+      walletsStore: walletAssembly.walletStore,
+      balanceStore: storesAssembly.balanceStore,
+      knownAccountsStore: storesAssembly.knownAccountsStore,
+      dnsService: servicesAssembly.dnsService(),
+      amountFormatter: formattersAssembly.amountFormatter
+    )
+  }
+  
+  public func sendRecipientController(recipient: Recipient?) -> SendRecipientController {
+    SendRecipientController(
+      recipient: recipient,
+      knownAccountsStore: storesAssembly.knownAccountsStore,
+      dnsService: servicesAssembly.dnsService()
+    )
+  }
+  
+  public func sendAmountController(token: Token,
+                                   tokenAmount: BigUInt,
+                                   wallet: Wallet) -> SendAmountController {
+    SendAmountController(
+      token: token,
+      tokenAmount: tokenAmount,
+      wallet: wallet,
+      balanceStore: storesAssembly.balanceStore,
+      ratesStore: storesAssembly.ratesStore,
+      currencyStore: storesAssembly.currencyStore,
+      rateConverter: RateConverter(),
+      amountFormatter: formattersAssembly.amountFormatter
+    )
+  }
+  
+  public func sendCommentController(isCommentRequired: Bool,
+                                    comment: String?) -> SendCommentController {
+    SendCommentController(
+      isCommentRequired: isCommentRequired,
+      comment: comment
     )
   }
 }

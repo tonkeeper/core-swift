@@ -44,4 +44,8 @@ public final class RepositoriesAssembly {
   func passcodeRepository() -> PasscodeRepository {
     PasscodeRepositoryImplementation(passcodeVault: coreAssembly.passcodeVault())
   }
+  
+  func knownAccountsRepository() -> KnownAccountsRepository {
+    KnownAccountsRepositoryImplementation(fileSystemVault: coreAssembly.fileSystemVault())
+  }
 }
