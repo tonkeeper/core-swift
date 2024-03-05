@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Token {
+public enum Token: Equatable {
   case ton
   case jetton(JettonInfo)
 }
