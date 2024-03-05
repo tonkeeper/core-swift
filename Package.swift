@@ -37,7 +37,10 @@ let package = Package(
               .target(name: "CoreComponents")
             ],
             path: "Sources/KeeperCore",
-            resources: [.copy("PackageResources/DefaultRemoteConfiguration.json")]),
+            resources: [
+              .copy("PackageResources/DefaultRemoteConfiguration.json"),
+              .copy("PackageResources/known_accounts.json")
+            ]),
     .testTarget(name: "KeeperCoreTests",
                 dependencies: [
                   "KeeperCore"
