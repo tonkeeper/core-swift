@@ -2,15 +2,6 @@ import Foundation
 import TonSwift
 
 public actor CollectiblesListController {
-  
-  public struct NFTModel {
-    public let address: Address
-    public let name: String?
-    public let collectionName: String?
-    public let imageUrl: URL?
-    public let isOnSale: Bool
-  }
-  
   public enum Event {
     case updateNFTs(nfts: [NFTModel])
   }
@@ -63,24 +54,7 @@ public actor CollectiblesListController {
 private extension CollectiblesListController {
   nonisolated
   func mapNfts(_ nfts: [NFT]) -> [NFTModel] {
-    nfts.map { mapNft($0) }
-  }
-  
-  nonisolated
-  func mapNft(_ nft: NFT) -> NFTModel {
-    let name = nft.name ?? nft.address.toString(bounceable: true)
-    let collectionName: String?
-    if let collection = nft.collection {
-      collectionName = (collection.name == nil || collection.name?.isEmpty == true) ? "Unnamed collection" : collection.name
-    } else {
-      collectionName = "Unnamed collection"
-    }
-
-    return NFTModel(address: nft.address,
-                    name: name,
-                    collectionName: collectionName,
-                    imageUrl: nft.preview.size500,
-                    isOnSale: nft.sale != nil)
+    nfts.map { NFTModel(nft: $0) }
   }
   
   func handleUpdatedNfts(_ nfts: [NFT]) {

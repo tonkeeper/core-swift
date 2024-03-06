@@ -5,6 +5,7 @@ public final class CollectibleDetailsController {
     
   public var didUpdateModel: ((CollectibleDetailsModel) -> Void)?
   
+  public var nft: NFT?
   public let collectibleAddress: Address
   private let walletsStore: WalletsStore
   private let nftService: NFTService
@@ -21,6 +22,9 @@ public final class CollectibleDetailsController {
     self.nftService = nftService
     self.dnsService = dnsService
     self.collectibleDetailsMapper = collectibleDetailsMapper
+    if let nft = try? nftService.getNFT(address: collectibleAddress) {
+      self.nft = nft
+    }
   }
   
   public func prepareCollectibleDetails() throws {

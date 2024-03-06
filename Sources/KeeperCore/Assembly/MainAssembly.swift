@@ -295,9 +295,9 @@ public final class MainAssembly {
     )
   }
   
-  public func sendController(token: Token) -> SendController {
+  public func sendController(sendItem: SendItem) -> SendController {
     SendController(
-      token: token,
+      sendItem: sendItem,
       walletsStore: walletAssembly.walletStore,
       balanceStore: storesAssembly.balanceStore,
       knownAccountsStore: storesAssembly.knownAccountsStore,
@@ -333,6 +333,14 @@ public final class MainAssembly {
                                     comment: String?) -> SendCommentController {
     SendCommentController(
       isCommentRequired: isCommentRequired,
+      comment: comment
+    )
+  }
+  
+  public func sendConfirmationController(recipient: Recipient, sendItem: SendItem, comment: String?) -> SendConfirmationController {
+    SendConfirmationController(
+      recipient: recipient,
+      sendItem: sendItem,
       comment: comment
     )
   }
