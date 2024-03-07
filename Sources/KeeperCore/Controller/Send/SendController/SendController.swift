@@ -16,6 +16,7 @@ public final class SendController {
   struct SendWallet {
     let wallet: Wallet
     let balance: Balance?
+    let activeToken: Token
   }
   
   enum SendRecipient {
@@ -56,6 +57,7 @@ public final class SendController {
     didSet {
       checkIfSendEnable()
       didUpdateSendItem?()
+      reloadWallets()
     }
   }
   
@@ -74,8 +76,10 @@ public final class SendController {
   
   private var isResolvingRecipient = false
   
-  private var fromWallets: [Wallet]
+  private var fromWallets = [Wallet]()
   private var toWallets = [Wallet]()
+  
+  private var fromWalletsTokens = [Wallet: Token]()
 
   // MARK: - Dependencies
 
@@ -99,8 +103,6 @@ public final class SendController {
     self.knownAccountsStore = knownAccountsStore
     self.dnsService = dnsService
     self.amountFormatter = amountFormatter
-    
-    self.fromWallets = walletsStore.wallets
     self.selectedFromWallet = walletsStore.activeWallet
   }
   
@@ -121,19 +123,19 @@ public final class SendController {
           recipientAddress: .friendly(
             friendlyAddress
           ),
-          isKnownAccount: knownAccounts.contains(where: { $0.address == friendlyAddress.address })
+          isMemoRequired: knownAccounts.first(where: { $0.address == friendlyAddress.address })?.requireMemo ?? false
         )
       } else if let rawAddress = try? Address.parse(input) {
         inputRecipient = Recipient(
           recipientAddress: .raw(
             rawAddress
           ),
-          isKnownAccount: knownAccounts.contains(where: { $0.address == rawAddress })
+          isMemoRequired: knownAccounts.first(where: { $0.address == rawAddress })?.requireMemo ?? false
         )
       } else if let domain = try? await dnsService.resolveDomainName(input) {
         inputRecipient = Recipient(
           recipientAddress: .domain(domain),
-          isKnownAccount: knownAccounts.contains(where: { $0.address == domain.friendlyAddress.address })
+          isMemoRequired: knownAccounts.first(where: { $0.address == domain.friendlyAddress.address })?.requireMemo ?? false
         )
       } else {
         inputRecipient = nil
@@ -212,7 +214,7 @@ public final class SendController {
     guard toWallets.count > index else { return }
     do {
       let address = try toWallets[index].address.toFriendly(bounceable: false)
-      selectedRecipient = Recipient(recipientAddress: .friendly(address), isKnownAccount: false)
+      selectedRecipient = Recipient(recipientAddress: .friendly(address), isMemoRequired: false)
     } catch {
       selectedRecipient = nil
     }
@@ -236,12 +238,20 @@ private extension SendController {
     switch sendItem {
     case .nft:
       fromWallets = [walletsStore.activeWallet]
-    case .token:
-      fromWallets = walletsStore.wallets
+    case .token(let token, _):
+      fromWallets = walletsStore.wallets.filter { wallet in
+        switch token {
+        case .ton:
+          return true
+        case .jetton(let jettonItem):
+          let balance = (try? balanceStore.getBalance(wallet: wallet))?.balance ?? Balance(tonBalance: TonBalance(amount: 0), jettonsBalance: [])
+          return balance.jettonsBalance.contains(where: { $0.item.jettonInfo == jettonItem.jettonInfo })
+        }
+      }
     }
-    
-    selectedFromWallet = walletsStore.activeWallet
-    
+    guard !fromWallets.isEmpty else { return }
+    selectedFromWallet = fromWallets.first(where: { $0 == selectedFromWallet }) ?? fromWallets[0]
+
     let models = fromWallets.map { wallet in
       let balance: Balance?
       let isTokenPickerRequired: Bool
@@ -310,7 +320,7 @@ private extension SendController {
     
     let isCommentValid: Bool = {
       guard let selectedRecipient else { return false }
-      return !selectedRecipient.isKnownAccount || !(comment ?? "").isEmpty
+      return !selectedRecipient.isMemoRequired || !(comment ?? "").isEmpty
     }()
     
     let isValid = isRecipientValid && isSendItemValid && isCommentValid

@@ -30,14 +30,14 @@ public final class SendAmountController {
     }
   }
   
-  var token: Token
+  public private(set) var token: Token
   var currency: Currency
   var tokenAmount: BigUInt {
     didSet {
       didUpdateTokenAmount()
     }
   }
-  private let wallet: Wallet
+  public let wallet: Wallet
   private let balanceStore: BalanceStore
   private let ratesStore: RatesStore
   private let currencyStore: CurrencyStore
@@ -62,6 +62,12 @@ public final class SendAmountController {
     self.amountFormatter = amountFormatter
     
     self.currency = currencyStore.getActiveCurrency()
+  }
+  
+  public func setToken(_ token: Token) {
+    self.token = token
+    self.tokenAmount = 0
+    start()
   }
   
   public func getToken() -> Token {

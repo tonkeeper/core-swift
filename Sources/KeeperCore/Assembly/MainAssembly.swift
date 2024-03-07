@@ -354,6 +354,15 @@ public final class MainAssembly {
       amountFormatter: formattersAssembly.amountFormatter
     )
   }
+  
+  public func tokenPickerController(wallet: Wallet, selectedToken: Token) -> TokenPickerController {
+    TokenPickerController(
+      wallet: wallet,
+      selectedToken: selectedToken,
+      balanceStore: storesAssembly.balanceStore,
+      amountFormatter: formattersAssembly.amountFormatter
+    )
+  }
 }
 
 private extension MainAssembly {

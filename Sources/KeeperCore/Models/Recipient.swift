@@ -51,5 +51,5 @@ public struct Recipient {
   }
   
   public let recipientAddress: RecipientAddress
-  public let isKnownAccount: Bool
+  public let isMemoRequired: Bool
 }

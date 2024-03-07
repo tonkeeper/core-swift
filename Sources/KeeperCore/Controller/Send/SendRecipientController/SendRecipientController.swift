@@ -74,7 +74,7 @@ public final class SendRecipientController {
           recipientAddress: .friendly(
             friendlyAddress
           ),
-          isKnownAccount: knownAccounts.contains(where: { $0.address == friendlyAddress.address })
+          isMemoRequired: knownAccounts.first(where: { $0.address == friendlyAddress.address })?.requireMemo ?? false
         )
         isValid = true
       } else if let rawAddress = try? Address.parse(input) {
@@ -82,13 +82,13 @@ public final class SendRecipientController {
           recipientAddress: .raw(
             rawAddress
           ),
-          isKnownAccount: knownAccounts.contains(where: { $0.address == rawAddress })
+          isMemoRequired: knownAccounts.first(where: { $0.address == rawAddress })?.requireMemo ?? false
         )
         isValid = true
       } else if let domain = try? await dnsService.resolveDomainName(input) {
         inputRecipient = Recipient(
           recipientAddress: .domain(domain),
-          isKnownAccount: knownAccounts.contains(where: { $0.address == domain.friendlyAddress.address })
+          isMemoRequired: knownAccounts.first(where: { $0.address == domain.friendlyAddress.address })?.requireMemo ?? false
         )
         isValid = true
       } else {

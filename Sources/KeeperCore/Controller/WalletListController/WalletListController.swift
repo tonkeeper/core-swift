@@ -90,7 +90,6 @@ private extension WalletListController {
     for wallet in configurator.getWallets() {
       models.append(mapWalletModel(wallet: wallet))
     }
-    print(Date().timeIntervalSince(date))
     return models
   }
   
