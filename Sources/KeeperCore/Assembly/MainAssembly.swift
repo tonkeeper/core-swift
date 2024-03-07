@@ -162,11 +162,11 @@ public final class MainAssembly {
     )
   }
   
-  public func jettonEventsHistoryListController(jettonInfo: JettonInfo) -> HistoryListController {
+  public func jettonEventsHistoryListController(jettonItem: JettonItem) -> HistoryListController {
     HistoryListController(
       paginatorProvider: { [servicesAssembly]
         address, didSendEvent in
-        let loader = HistoryListJettonEventsLoader(jettonInfo: jettonInfo,
+        let loader = HistoryListJettonEventsLoader(jettonInfo: jettonItem.jettonInfo,
           historyService: servicesAssembly.historyService()
         )
         return HistoryListPaginator(loader: loader, address: address, didSendEvent: didSendEvent)
@@ -191,9 +191,9 @@ public final class MainAssembly {
     )
   }
   
-  public func jettonTokenDetailsController(jettonInfo: JettonInfo) -> TokenDetailsController {
+  public func jettonTokenDetailsController(jettonItem: JettonItem) -> TokenDetailsController {
     let configurator = JettonTokenDetailsControllerConfigurator(
-      jettonInfo: jettonInfo,
+      jettonItem: jettonItem,
       mapper: tokenDetailsMapper
     )
     return TokenDetailsController(
@@ -337,11 +337,21 @@ public final class MainAssembly {
     )
   }
   
-  public func sendConfirmationController(recipient: Recipient, sendItem: SendItem, comment: String?) -> SendConfirmationController {
+  public func sendConfirmationController(wallet: Wallet,
+                                         recipient: Recipient,
+                                         sendItem: SendItem,
+                                         comment: String?) -> SendConfirmationController {
     SendConfirmationController(
+      wallet: wallet,
       recipient: recipient,
       sendItem: sendItem,
-      comment: comment
+      comment: comment,
+      sendService: servicesAssembly.sendService(),
+      balanceStore: storesAssembly.balanceStore,
+      ratesStore: storesAssembly.ratesStore,
+      currencyStore: storesAssembly.currencyStore,
+      mnemonicRepository: repositoriesAssembly.mnemonicRepository(),
+      amountFormatter: formattersAssembly.amountFormatter
     )
   }
 }

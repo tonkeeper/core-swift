@@ -47,7 +47,6 @@ public final class SendController {
   
   public private(set) var inputRecipient: Recipient? {
     didSet {
-      selectedRecipient = inputRecipient
       checkIfSendEnable()
       didUpdateInputRecipient?(getInputRecipientModel())
     }
@@ -77,9 +76,6 @@ public final class SendController {
   
   private var fromWallets: [Wallet]
   private var toWallets = [Wallet]()
-//  private var s
-//  private var selectedRecipient: SendRecipient = .inputRecipient
-  
 
   // MARK: - Dependencies
 
@@ -187,12 +183,12 @@ public final class SendController {
           maximumFractionDigits: TonInfo.fractionDigits,
           symbol: TonInfo.symbol
         )
-      case .jetton(let jettonInfo):
+      case .jetton(let jettonItem):
         value = amountFormatter.formatAmount(
           amount,
-          fractionDigits: jettonInfo.fractionDigits,
-          maximumFractionDigits: jettonInfo.fractionDigits,
-          symbol: jettonInfo.symbol
+          fractionDigits: jettonItem.jettonInfo.fractionDigits,
+          maximumFractionDigits: jettonItem.jettonInfo.fractionDigits,
+          symbol: jettonItem.jettonInfo.symbol
         )
       }
       return .token(value: value)
@@ -237,7 +233,13 @@ private extension SendController {
   }
 
   func reloadFromWallets() {
-    fromWallets = walletsStore.wallets
+    switch sendItem {
+    case .nft:
+      fromWallets = [walletsStore.activeWallet]
+    case .token:
+      fromWallets = walletsStore.wallets
+    }
+    
     selectedFromWallet = walletsStore.activeWallet
     
     let models = fromWallets.map { wallet in
@@ -261,7 +263,7 @@ private extension SendController {
   }
   
   func reloadToWallets() {
-    toWallets = fromWallets.filter { $0 != selectedFromWallet }
+    toWallets = walletsStore.wallets.filter { $0 != selectedFromWallet }
     
     let models = toWallets.map { wallet in
       let balance: Balance?
@@ -289,6 +291,7 @@ private extension SendController {
       case .nft:
         return true
       case .token(let token, let amount):
+        guard !amount.isZero else { return false }
         let balance: Balance
         do {
           balance = try balanceStore.getBalance(wallet: selectedFromWallet).balance
@@ -298,8 +301,8 @@ private extension SendController {
         switch token {
         case .ton:
           return BigUInt(balance.tonBalance.amount) >= amount
-        case .jetton(let jettonInfo):
-          let jettonBalance = balance.jettonsBalance.first(where: { $0.amount.jettonInfo == jettonInfo })?.amount.quantity ?? 0
+        case .jetton(let jettonItem):
+          let jettonBalance = balance.jettonsBalance.first(where: { $0.item.jettonInfo == jettonItem.jettonInfo })?.quantity ?? 0
           return jettonBalance >= amount
         }
       }
@@ -336,21 +339,21 @@ private extension SendController {
           maximumFractionDigits: 2,
           symbol: TonInfo.symbol
         )
-        isPickerEnabled = !balance.jettonsBalance.isEmpty
-      case .jetton(let jettonInfo):
+        isPickerEnabled = !balance.jettonsBalance.isEmpty && isTokenPickerRequired
+      case .jetton(let jettonItem):
         let amount: BigUInt
-        if let jettonBalance = balance.jettonsBalance.first(where: { $0.amount.jettonInfo == jettonInfo }) {
-          amount = jettonBalance.amount.quantity
+        if let jettonBalance = balance.jettonsBalance.first(where: { $0.item.jettonInfo == jettonItem.jettonInfo }) {
+          amount = jettonBalance.quantity
         } else {
           amount = 0
         }
         balanceValue = amountFormatter.formatAmount(
           amount,
-          fractionDigits: jettonInfo.fractionDigits,
+          fractionDigits: jettonItem.jettonInfo.fractionDigits,
           maximumFractionDigits: 2,
-          symbol: jettonInfo.symbol
+          symbol: jettonItem.jettonInfo.symbol
         )
-        isPickerEnabled = true
+        isPickerEnabled = isTokenPickerRequired
       }
       
     }

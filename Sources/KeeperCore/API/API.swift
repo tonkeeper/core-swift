@@ -30,10 +30,8 @@ extension API {
           let quantity = BigUInt(stringLiteral: jetton.balance)
           let walletAddress = try Address.parse(jetton.wallet_address.address)
           let jettonInfo = try JettonInfo(jettonPreview: jetton.jetton)
-          let jettonAmount = JettonAmount(jettonInfo: jettonInfo,
-                                          quantity: quantity)
-          let jettonBalance = JettonBalance(walletAddress: walletAddress,
-                                            amount: jettonAmount)
+          let jettonItem = JettonItem(jettonInfo: jettonInfo, walletAddress: walletAddress)
+          let jettonBalance = JettonBalance(item: jettonItem, quantity: quantity)
           return jettonBalance
         } catch {
           return nil

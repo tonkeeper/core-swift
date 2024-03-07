@@ -12,4 +12,8 @@ public struct WalletMetaData: Codable {
     self.colorIdentifier = colorIdentifier
     self.emoji = emoji
   }
+  
+  public var emojiLabel: String {
+    "\(emoji)\(label)"
+  }
 }

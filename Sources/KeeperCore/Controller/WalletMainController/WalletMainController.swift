@@ -61,7 +61,7 @@ private extension WalletMainController {
     guard let balance = try? event.result.get() else { return }
     Task {
       await ratesStore.loadRates(
-        jettons: balance.balance.jettonsBalance.map { $0.amount.jettonInfo },
+        jettons: balance.balance.jettonsBalance.map { $0.item.jettonInfo },
         wallet: event.wallet
       )
     }

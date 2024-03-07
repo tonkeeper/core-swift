@@ -1,6 +1,7 @@
 import Foundation
+import TonSwift
 
-public enum Token: Equatable {
+public enum SendToken: Equatable {
   case ton
   case jetton(JettonItem)
 }

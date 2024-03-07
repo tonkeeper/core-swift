@@ -73,7 +73,7 @@ private extension TonConnectConfirmationController {
     )
     
     let currency = currencyStore.getActiveCurrency()
-    let rates = await ratesStore.getRates(jettons: []).ton.first(where: { $0.currency == currency })
+    let rates = ratesStore.getRates(jettons: []).ton.first(where: { $0.currency == currency })
     let transactionInfo = try await sendService.loadTransactionInfo(boc: boc)
     let event = try AccountEvent(accountEvent: transactionInfo.event)
     let nfts = try await loadEventNFTs(event: event)

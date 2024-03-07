@@ -185,8 +185,8 @@ private extension SendAmountController {
       switch token {
       case .ton:
         didUpdateMaximumFractionDigits?(TonInfo.fractionDigits)
-      case .jetton(let jettonInfo):
-        didUpdateMaximumFractionDigits?(jettonInfo.fractionDigits)
+      case .jetton(let jettonItem):
+        didUpdateMaximumFractionDigits?(jettonItem.jettonInfo.fractionDigits)
       }
     } else {
       didUpdateMaximumFractionDigits?(2)
@@ -198,8 +198,8 @@ private extension SendAmountController {
     switch token {
     case .ton:
       rates = ratesStore.getRates(jettons: []).ton
-    case .jetton(let jettonInfo):
-      rates = ratesStore.getRates(jettons: [jettonInfo]).jettonsRates.first(where: { $0.jettonInfo == jettonInfo })?.rates ?? []
+    case .jetton(let jettonItem):
+      rates = ratesStore.getRates(jettons: [jettonItem.jettonInfo]).jettonsRates.first(where: { $0.jettonInfo == jettonItem.jettonInfo })?.rates ?? []
     }
     self.rate = rates.first(where: { $0.currency == currency })
   }
@@ -249,8 +249,8 @@ private extension SendAmountController {
     switch token {
     case .ton:
       return BigUInt(balance.tonBalance.amount) >= tokenAmount
-    case .jetton(let jettonInfo):
-      let jettonBalanceAmount = balance.jettonsBalance.first(where: { $0.amount.jettonInfo == jettonInfo })?.amount.quantity ?? 0
+    case .jetton(let jettonItem):
+      let jettonBalanceAmount = balance.jettonsBalance.first(where: { $0.item.jettonInfo == jettonItem.jettonInfo })?.quantity ?? 0
       return jettonBalanceAmount >= tokenAmount
     }
   }
@@ -264,10 +264,10 @@ private extension SendAmountController {
       amount = BigUInt(balance.tonBalance.amount)
       tokenSymbol = TonInfo.symbol
       fractionalDigits = TonInfo.fractionDigits
-    case .jetton(let jettonInfo):
-      amount = balance.jettonsBalance.first(where: { $0.amount.jettonInfo == jettonInfo })?.amount.quantity ?? 0
-      tokenSymbol = jettonInfo.symbol
-      fractionalDigits = jettonInfo.fractionDigits
+    case .jetton(let jettonItem):
+      amount = balance.jettonsBalance.first(where: { $0.item.jettonInfo == jettonItem.jettonInfo })?.quantity ?? 0
+      tokenSymbol = jettonItem.jettonInfo.symbol
+      fractionalDigits = jettonItem.jettonInfo.fractionDigits
     }
     
     if amount >= tokenAmount {
@@ -296,9 +296,9 @@ private extension SendAmountController {
       switch token {
       case .ton:
         tokenAmount = BigUInt(balance.tonBalance.amount)
-      case .jetton(let jettonInfo):
-        let jettonBalance = balance.jettonsBalance.first(where: { $0.amount.jettonInfo == jettonInfo })
-        tokenAmount = jettonBalance?.amount.quantity ?? 0
+      case .jetton(let jettonItem):
+        let jettonBalance = balance.jettonsBalance.first(where: { $0.item.jettonInfo == jettonItem.jettonInfo })
+        tokenAmount = jettonBalance?.quantity ?? 0
       }
     } else {
       tokenAmount = 0
@@ -312,8 +312,8 @@ private extension SendAmountController {
     switch token {
     case .ton:
       return TonInfo.symbol
-    case .jetton(let jettonInfo):
-      return jettonInfo.symbol ?? ""
+    case .jetton(let jettonItem):
+      return jettonItem.jettonInfo.symbol ?? ""
     }
   }
   
@@ -321,8 +321,8 @@ private extension SendAmountController {
     switch token {
     case .ton:
       return TonInfo.fractionDigits
-    case .jetton(let jettonInfo):
-      return jettonInfo.fractionDigits
+    case .jetton(let jettonItem):
+      return jettonItem.jettonInfo.fractionDigits
     }
   }
   

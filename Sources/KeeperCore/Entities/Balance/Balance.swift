@@ -18,13 +18,13 @@ public struct TonBalance: Codable {
 }
 
 public struct JettonBalance: Codable {
-  public let walletAddress: Address
-  public let amount: JettonAmount
+  public let item: JettonItem
+  public let quantity: BigUInt
 }
 
-public struct JettonAmount: Codable {
+public struct JettonItem: Codable, Equatable {
   public let jettonInfo: JettonInfo
-  public let quantity: BigUInt
+  public let walletAddress: Address
 }
 
 public struct TonInfo {

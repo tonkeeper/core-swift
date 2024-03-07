@@ -53,7 +53,7 @@ final class TotalBalanceStore {
     let currency = currencyStore.getActiveCurrency()
     do {
       let balance = try balanceStore.getBalance(wallet: wallet)
-      let rates = ratesStore.getRates(jettons: balance.balance.jettonsBalance.map { $0.amount.jettonInfo })
+      let rates = ratesStore.getRates(jettons: balance.balance.jettonsBalance.map { $0.item.jettonInfo })
       let totalBalance = totalBalanceService.calculateTotalBalance(
         balance: balance.balance,
         currency: currency,

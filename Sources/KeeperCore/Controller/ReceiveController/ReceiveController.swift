@@ -43,10 +43,10 @@ public final class ReceiveController {
       tokenName = TonInfo.name
       descriptionTokenName = "\(TonInfo.name) \(TonInfo.symbol)"
       image = .ton
-    case .jetton(let jettonInfo):
-      tokenName = jettonInfo.symbol ?? jettonInfo.name
-      descriptionTokenName = jettonInfo.symbol ?? jettonInfo.name
-      image = .url(jettonInfo.imageURL)
+    case .jetton(let jettonItem):
+      tokenName = jettonItem.jettonInfo.symbol ?? jettonItem.jettonInfo.name
+      descriptionTokenName = jettonItem.jettonInfo.symbol ?? jettonItem.jettonInfo.name
+      image = .url(jettonItem.jettonInfo.imageURL)
     }
     
     didUpdateModel?(

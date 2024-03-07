@@ -99,7 +99,7 @@ private extension WalletBalanceController {
     let balanceModel: WalletBalanceModel
     do {
       let walletBalance = try balanceStore.getBalance(wallet: wallet)
-      let rates = ratesStore.getRates(jettons: walletBalance.balance.jettonsBalance.map { $0.amount.jettonInfo })
+      let rates = ratesStore.getRates(jettons: walletBalance.balance.jettonsBalance.map { $0.item.jettonInfo })
       balanceModel = walletBalanceMapper.mapBalance(
         walletBalance: walletBalance,
         rates: rates,

@@ -55,7 +55,7 @@ final class TotalBalanceServiceImplementation: TotalBalanceService {
     // Jettons
     for jettonBalance in balance.jettonsBalance {
       guard let jettonRates = rates.jettonsRates
-        .first(where: { $0.jettonInfo == jettonBalance.amount.jettonInfo })?
+        .first(where: { $0.jettonInfo == jettonBalance.item.jettonInfo })?
         .rates
         .first(where: { $0.currency == currency })
          else {
@@ -63,8 +63,8 @@ final class TotalBalanceServiceImplementation: TotalBalanceService {
       }
       
       let converted = rateConverter.convert(
-        amount: jettonBalance.amount.quantity,
-        amountFractionLength: jettonBalance.amount.jettonInfo.fractionDigits,
+        amount: jettonBalance.quantity,
+        amountFractionLength: jettonBalance.item.jettonInfo.fractionDigits,
         rate: jettonRates
       )
       items.append(Item(amount: converted.amount, fractionDigits: converted.fractionLength))

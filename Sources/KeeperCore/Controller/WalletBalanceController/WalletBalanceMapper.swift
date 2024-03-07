@@ -90,21 +90,21 @@ struct WalletBalanceMapper {
                   jettonsRates: [Rates.JettonRate],
                   currency: Currency) -> [WalletBalanceModel.Item] {
     return jettonsBalance.map { jettonBalance in
-      let jettonRates = jettonsRates.first(where: { $0.jettonInfo == jettonBalance.amount.jettonInfo })
+      let jettonRates = jettonsRates.first(where: { $0.jettonInfo == jettonBalance.item.jettonInfo })
       return mapJetton(
-        jettonAmount: jettonBalance.amount,
+        jettonBalance: jettonBalance,
         jettonRates: jettonRates,
         currency: currency
       )
     }
   }
   
-  func mapJetton(jettonAmount: JettonAmount,
+  func mapJetton(jettonBalance: JettonBalance,
                  jettonRates: Rates.JettonRate?,
                  currency: Currency) -> WalletBalanceModel.Item {
     let amount = amountFormatter.formatAmount(
-      jettonAmount.quantity,
-      fractionDigits: jettonAmount.jettonInfo.fractionDigits,
+      jettonBalance.quantity,
+      fractionDigits: jettonBalance.item.jettonInfo.fractionDigits,
       maximumFractionDigits: 2
     )
     
@@ -113,8 +113,8 @@ struct WalletBalanceMapper {
     var diff: String?
     if let rate = jettonRates?.rates.first(where: { $0.currency == currency }) {
       let converted = rateConverter.convert(
-        amount: jettonAmount.quantity,
-        amountFractionLength: jettonAmount.jettonInfo.fractionDigits,
+        amount: jettonBalance.quantity,
+        amountFractionLength: jettonBalance.item.jettonInfo.fractionDigits,
         rate: rate
       )
       convertedAmount = amountFormatter.formatAmount(
@@ -130,15 +130,15 @@ struct WalletBalanceMapper {
       diff = rate.diff24h == "0" ? nil : rate.diff24h
     }
     return WalletBalanceModel.Item(
-      identifier: jettonAmount.jettonInfo.address.toRaw(),
-      token: .jetton(jettonAmount.jettonInfo),
-      image: .url(jettonAmount.jettonInfo.imageURL),
-      title: jettonAmount.jettonInfo.symbol ?? jettonAmount.jettonInfo.name,
+      identifier: jettonBalance.item.jettonInfo.address.toRaw(),
+      token: .jetton(jettonBalance.item),
+      image: .url(jettonBalance.item.jettonInfo.imageURL),
+      title: jettonBalance.item.jettonInfo.symbol ?? jettonBalance.item.jettonInfo.name,
       price: price,
       rateDiff: diff,
       amount: amount,
       convertedAmount: convertedAmount,
-      verification: jettonAmount.jettonInfo.verification
+      verification: jettonBalance.item.jettonInfo.verification
     )
   }
 }

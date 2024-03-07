@@ -68,6 +68,7 @@ actor HistoryListPaginator {
     case .isLoading:
       return
     case .idle:
+      guard nextFrom != 0 else { return }
       didSendEvent?(.startPageLoading)
       do {
         let nextEvents = try await loadNextEvents()

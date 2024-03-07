@@ -49,7 +49,7 @@ public final class TokenDetailsController {
           jettonsBalance: []
         )
       }
-      let rates = ratesStore.getRates(jettons: balance.jettonsBalance.map { $0.amount.jettonInfo })
+      let rates = ratesStore.getRates(jettons: balance.jettonsBalance.map { $0.item.jettonInfo })
       let model = configurator.getTokenModel(balance: balance, rates: rates, currency: currencyStore.getActiveCurrency())
       didUpdateTokenModel?(model)
     }
