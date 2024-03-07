@@ -155,6 +155,39 @@ extension API {
   }
 }
 
+// MARK: - Jettons
+
+extension API {
+  func resolveJetton(address: Address) async throws -> JettonInfo {
+    let response = try await tonAPIClient.getJettonInfo(
+      Operations.getJettonInfo.Input(
+        path: Operations.getJettonInfo.Input.Path(
+          account_id: address.toRaw()
+        )
+      )
+    )
+    let entity = try response.ok.body.json
+    let verification: JettonInfo.Verification
+    switch entity.verification {
+    case .none:
+      verification = .none
+    case .blacklist:
+      verification = .blacklist
+    case .whitelist:
+      verification = .whitelist
+    }
+    
+    return JettonInfo(
+      address: try Address.parse(entity.metadata.address),
+      fractionDigits: Int(entity.metadata.decimals) ?? 0,
+      name: entity.metadata.name,
+      symbol: entity.metadata.symbol,
+      verification: verification,
+      imageURL: URL(string: entity.metadata.image ?? "")
+    )
+  }
+}
+
 // MARK: - Rates
 
 extension API {

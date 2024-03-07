@@ -37,12 +37,20 @@ struct TonDeeplinkParser: DeeplinkParser {
       throw DeeplinkParserError.unsupportedDeeplink(string: string)
     }
     
+    let components = URLComponents(url: url, resolvingAgainstBaseURL: true)
+    
     switch scheme {
     case "ton":
       switch host {
       case "transfer":
         let address = url.lastPathComponent
-        return .ton(.transfer(recipient: address))
+        var jettonAddress: Address?
+        if let jettonParameter = components?.queryItems?.first(where: { $0.name == "jetton" })?.value,
+           let address = try? Address.parse(jettonParameter){
+          jettonAddress = address
+        }
+        
+        return .ton(.transfer(recipient: address, jettonAddress: jettonAddress))
       default:
         throw DeeplinkParserError.unsupportedDeeplink(string: string)
       }

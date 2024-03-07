@@ -10,8 +10,13 @@ public final class MainController {
   private let nftsStoreProvider: (Wallet) -> NftsStore
   private let backgroundUpdateStore: BackgroundUpdateStore
   private let tonConnectEventsStore: TonConnectEventsStore
+  private let knownAccountsStore: KnownAccountsStore
+  private let balanceStore: BalanceStore
+  private let dnsService: DNSService
   private let tonConnectService: TonConnectService
   private let deeplinkParser: DeeplinkParser
+  // TODO: wrap to service
+  private let api: API
   
   private var nftsStore: NftsStore?
   private var nftStateTask: Task<Void, Never>?
@@ -20,14 +25,22 @@ public final class MainController {
        nftsStoreProvider: @escaping (Wallet) -> NftsStore,
        backgroundUpdateStore: BackgroundUpdateStore,
        tonConnectEventsStore: TonConnectEventsStore,
+       knownAccountsStore: KnownAccountsStore,
+       balanceStore: BalanceStore,
+       dnsService: DNSService,
        tonConnectService: TonConnectService,
-       deeplinkParser: DeeplinkParser) {
+       deeplinkParser: DeeplinkParser,
+       api: API) {
     self.walletsStore = walletsStore
     self.nftsStoreProvider = nftsStoreProvider
     self.backgroundUpdateStore = backgroundUpdateStore
     self.tonConnectEventsStore = tonConnectEventsStore
+    self.knownAccountsStore = knownAccountsStore
+    self.balanceStore = balanceStore
+    self.dnsService = dnsService
     self.tonConnectService = tonConnectService
     self.deeplinkParser = deeplinkParser
+    self.api = api
     
     walletsStore.addObserver(self)
     Task {
@@ -77,6 +90,52 @@ public final class MainController {
   
   public func parseDeeplink(deeplink: String?) throws -> Deeplink {
     try deeplinkParser.parse(string: deeplink)
+  }
+  
+  public func resolveRecipient(_ recipient: String) async -> Recipient? {
+    let inputRecipient: Recipient?
+    let knownAccounts = (try? await knownAccountsStore.getKnownAccounts()) ?? []
+    if let friendlyAddress = try? FriendlyAddress(string: recipient) {
+      inputRecipient = Recipient(
+        recipientAddress: .friendly(
+          friendlyAddress
+        ),
+        isMemoRequired: knownAccounts.first(where: { $0.address == friendlyAddress.address })?.requireMemo ?? false
+      )
+    } else if let rawAddress = try? Address.parse(recipient) {
+      inputRecipient = Recipient(
+        recipientAddress: .raw(
+          rawAddress
+        ),
+        isMemoRequired: knownAccounts.first(where: { $0.address == rawAddress })?.requireMemo ?? false
+      )
+    } else if let domain = try? await dnsService.resolveDomainName(recipient) {
+      inputRecipient = Recipient(
+        recipientAddress: .domain(domain),
+        isMemoRequired: knownAccounts.first(where: { $0.address == domain.friendlyAddress.address })?.requireMemo ?? false
+      )
+    } else {
+      inputRecipient = nil
+    }
+    return inputRecipient
+  }
+  
+  public func resolveJetton(jettonAddress: Address) async -> JettonItem? {
+    do {
+      let jettonInfo = try await api.resolveJetton(address: jettonAddress)
+      for wallet in walletsStore.wallets {
+        guard let balance = try? balanceStore.getBalance(wallet: walletsStore.activeWallet).balance else {
+          continue
+        }
+        guard let jettonItem =  balance.jettonsBalance.first(where: { $0.item.jettonInfo == jettonInfo })?.item else {
+          continue
+        }
+        return jettonItem
+      }
+      return nil
+    } catch {
+      return nil
+    }
   }
 }
 

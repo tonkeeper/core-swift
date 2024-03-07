@@ -24,9 +24,16 @@ public final class ReceiveController {
   }
   
   public func qrCodeString() -> String {
+    let jettonAddress: Address?
+    switch token {
+    case .ton:
+      jettonAddress = nil
+    case .jetton(let jettonItem):
+      jettonAddress = jettonItem.jettonInfo.address
+    }
     do {
       return try deeplinkGenerator.generateTransferDeeplink(
-        with: walletsStore.activeWallet.address.toString(bounceable: false)
+        with: walletsStore.activeWallet.address.toString(bounceable: false), jettonAddress: jettonAddress
       ).string
     } catch {
       return ""

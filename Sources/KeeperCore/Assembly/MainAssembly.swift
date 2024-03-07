@@ -23,6 +23,7 @@ public final class MainAssembly {
   let configurationAssembly: ConfigurationAssembly
   public let passcodeAssembly: PasscodeAssembly
   public let tonConnectAssembly: TonConnectAssembly
+  let apiAssembly: APIAssembly
   
   init(repositoriesAssembly: RepositoriesAssembly,
        walletAssembly: WalletAssembly,
@@ -32,7 +33,8 @@ public final class MainAssembly {
        formattersAssembly: FormattersAssembly,
        configurationAssembly: ConfigurationAssembly,
        passcodeAssembly: PasscodeAssembly,
-       tonConnectAssembly: TonConnectAssembly) {
+       tonConnectAssembly: TonConnectAssembly,
+       apiAssembly: APIAssembly) {
     self.repositoriesAssembly = repositoriesAssembly
     self.walletAssembly = walletAssembly
     self.walletUpdateAssembly = walletUpdateAssembly
@@ -42,6 +44,7 @@ public final class MainAssembly {
     self.configurationAssembly = configurationAssembly
     self.passcodeAssembly = passcodeAssembly
     self.tonConnectAssembly = tonConnectAssembly
+    self.apiAssembly = apiAssembly
   }
   
   public func mainController() -> MainController {
@@ -52,13 +55,17 @@ public final class MainAssembly {
       },
       backgroundUpdateStore: storesAssembly.backgroundUpdateStore,
       tonConnectEventsStore: tonConnectAssembly.tonConnectEventsStore,
+      knownAccountsStore: storesAssembly.knownAccountsStore,
+      balanceStore: storesAssembly.balanceStore,
+      dnsService: servicesAssembly.dnsService(),
       tonConnectService: tonConnectAssembly.tonConnectService(),
       deeplinkParser: DefaultDeeplinkParser(
         parsers: [
           TonConnectDeeplinkParser(),
           TonDeeplinkParser()
         ]
-      )
+      ),
+      api: apiAssembly.api
     )
   }
   
@@ -295,9 +302,10 @@ public final class MainAssembly {
     )
   }
   
-  public func sendController(sendItem: SendItem) -> SendController {
+  public func sendController(sendItem: SendItem, recipient: Recipient? = nil) -> SendController {
     SendController(
       sendItem: sendItem,
+      recipient: recipient,
       walletsStore: walletAssembly.walletStore,
       balanceStore: storesAssembly.balanceStore,
       knownAccountsStore: storesAssembly.knownAccountsStore,

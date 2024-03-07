@@ -95,6 +95,7 @@ public final class SendController {
   // MARK: - Init
   
   init(sendItem: SendItem,
+       recipient: Recipient?,
        walletsStore: WalletsStore,
        balanceStore: BalanceStore,
        knownAccountsStore: KnownAccountsStore,
@@ -107,6 +108,10 @@ public final class SendController {
     self.dnsService = dnsService
     self.amountFormatter = amountFormatter
     self.selectedFromWallet = walletsStore.activeWallet
+    
+    if let recipient {
+      inputRecipient = recipient
+    }
   }
   
   public func start() {

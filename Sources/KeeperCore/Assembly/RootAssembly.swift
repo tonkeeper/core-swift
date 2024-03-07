@@ -82,7 +82,8 @@ public final class RootAssembly {
       formattersAssembly: formattersAssembly,
       configurationAssembly: configurationAssembly,
       passcodeAssembly: passcodeAssembly,
-      tonConnectAssembly: tonConnectAssembly
+      tonConnectAssembly: tonConnectAssembly,
+      apiAssembly: apiAssembly
     )
   }
 }
