@@ -89,14 +89,26 @@ struct WalletBalanceMapper {
   func mapJettons(jettonsBalance: [JettonBalance],
                   jettonsRates: [Rates.JettonRate],
                   currency: Currency) -> [WalletBalanceModel.Item] {
-    return jettonsBalance.map { jettonBalance in
-      let jettonRates = jettonsRates.first(where: { $0.jettonInfo == jettonBalance.item.jettonInfo })
-      return mapJetton(
-        jettonBalance: jettonBalance,
-        jettonRates: jettonRates,
-        currency: currency
-      )
+    var unverified = [JettonBalance]()
+    var verified = [JettonBalance]()
+    for jettonBalance in jettonsBalance {
+      switch jettonBalance.item.jettonInfo.verification {
+      case .whitelist:
+        verified.append(jettonBalance)
+      default:
+        unverified.append(jettonBalance)
+      }
     }
+    
+    return (verified + unverified)
+      .map { jettonBalance in
+        let jettonRates = jettonsRates.first(where: { $0.jettonInfo == jettonBalance.item.jettonInfo })
+        return mapJetton(
+          jettonBalance: jettonBalance,
+          jettonRates: jettonRates,
+          currency: currency
+        )
+      }
   }
   
   func mapJetton(jettonBalance: JettonBalance,
