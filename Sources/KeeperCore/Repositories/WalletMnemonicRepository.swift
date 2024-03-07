@@ -16,7 +16,7 @@ public protocol WalletMnemonicRepository {
 extension MnemonicVault: WalletMnemonicRepository {
   public func getMnemonic(forWallet wallet: Wallet) throws -> CoreComponents.Mnemonic {
     do {
-      let walletKey = try wallet.identity.id().string
+      let walletKey = try wallet.identity.identifier().string
       return try loadValue(key: walletKey)
     } catch is TonSwift.TonError {
       throw WalletMnemonicRepositoryError.incorrectWalletIdentity(wallet: wallet)
@@ -30,7 +30,7 @@ extension MnemonicVault: WalletMnemonicRepository {
   public func saveMnemonic(_ mnemonic: CoreComponents.Mnemonic,
                            forWallet wallet: Wallet) throws {
     do {
-      let walletKey = try wallet.identity.id().string
+      let walletKey = try wallet.identity.identifier().string
       try saveValue(mnemonic, for: walletKey)
     } catch is TonSwift.TonError {
       throw WalletMnemonicRepositoryError.incorrectWalletIdentity(wallet: wallet)

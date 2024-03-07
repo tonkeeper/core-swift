@@ -1,7 +1,7 @@
 import Foundation
 import TonSwift
 
-public struct Wallet: Codable, Hashable {
+public struct Wallet: Codable, Hashable, Identifiable {
   /// Unique internal ID for this wallet
   public let identity: WalletIdentity
   
@@ -48,7 +48,11 @@ public struct Wallet: Codable, Hashable {
   }
   
   public func hash(into hasher: inout Hasher) {
-    hasher.combine(try? identity.id())
+    hasher.combine(try? identity.identifier())
+  }
+  
+  public var id: String {
+    identity.id
   }
 }
 

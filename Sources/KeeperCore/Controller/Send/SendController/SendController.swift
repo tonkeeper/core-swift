@@ -368,7 +368,7 @@ private extension SendController {
       
     }
     return SendWalletModel(
-      id: UUID().uuidString,
+      id: wallet.id,
       name: name,
       balance: balanceValue,
       isPickerEnabled: isPickerEnabled

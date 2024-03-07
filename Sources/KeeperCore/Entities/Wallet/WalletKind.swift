@@ -1,7 +1,7 @@
 import Foundation
 import TonSwift
 
-public enum WalletKind: Codable, Equatable {
+public enum WalletKind: Codable, Equatable, Identifiable {
   case Regular(TonSwift.PublicKey, WalletContractVersion)
   case Lockup(TonSwift.PublicKey, LockupConfig)
   case Watchonly(ResolvableAddress)
@@ -18,6 +18,19 @@ public enum WalletKind: Codable, Equatable {
     case (.External(let lpk, let lv), .External(let rpk, let rv)):
       return lpk == rpk && lv == rv
     default: return false
+    }
+  }
+  
+  public var id: String {
+    switch self {
+    case .Regular(let publicKey, let walletContractVersion):
+      return publicKey.hexString + walletContractVersion.rawValue
+    case .Lockup(let publicKey, let lockupConfig):
+      return publicKey.hexString
+    case .Watchonly(let resolvableAddress):
+      return String(resolvableAddress.hashValue)
+    case .External(let publicKey, let walletContractVersion):
+      return publicKey.hexString + walletContractVersion.rawValue
     }
   }
 }
