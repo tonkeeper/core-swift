@@ -1,8 +1,8 @@
 import Foundation
 import TonSwift
 
-public struct Recipient {
-  public enum RecipientAddress {
+public struct Recipient: Equatable {
+  public enum RecipientAddress: Equatable {
     case friendly(FriendlyAddress)
     case raw(Address)
     case domain(Domain)

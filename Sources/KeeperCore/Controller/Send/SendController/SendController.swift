@@ -48,8 +48,11 @@ public final class SendController {
   
   public private(set) var inputRecipient: Recipient? {
     didSet {
-      checkIfSendEnable()
       didUpdateInputRecipient?(getInputRecipientModel())
+      if inputRecipient != oldValue {
+        self.selectedRecipient = inputRecipient
+      }
+      checkIfSendEnable()
     }
   }
 
@@ -368,7 +371,7 @@ private extension SendController {
       
     }
     return SendWalletModel(
-      id: wallet.id,
+      id: UUID().uuidString,
       name: name,
       balance: balanceValue,
       isPickerEnabled: isPickerEnabled
