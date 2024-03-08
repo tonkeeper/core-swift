@@ -128,8 +128,7 @@ private extension FiatMethodsController {
     }
     
     func loadDefaultFiatMethods() async throws -> [[FiatMethodViewModel]] {
-        let countryCode = try? await locationService.getCountryCodeByIp()
-        let fiatMethods = try await fiatMethodsService.loadFiatMethods(countryCode: countryCode)
+        let fiatMethods = try await fiatMethodsService.loadFiatMethods(countryCode: nil)
         sectionsModels = mapFiatMethods(fiatMethods: fiatMethods)
         return sectionsModels
     }
