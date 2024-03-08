@@ -70,5 +70,5 @@ private extension String {
     static let lang = "en"
     static let build = "3.0.0"
     static let chainName = "mainnet"
-    static let platform = "ios"
+    static let platform = "ios_x"
 }

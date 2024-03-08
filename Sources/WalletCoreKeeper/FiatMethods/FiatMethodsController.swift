@@ -56,8 +56,8 @@ public actor FiatMethodsController {
 
 private extension FiatMethodsController {
     func mapFiatMethods(fiatMethods: FiatMethods) -> [[FiatMethodViewModel]] {
-        let sections = fiatMethods.categories.map { category in
-            category.items.compactMap { item -> FiatMethodViewModel? in
+        let sections = fiatMethods.categories.compactMap { category -> [FiatMethodViewModel]? in
+            let models = category.items.compactMap { item -> FiatMethodViewModel? in
                 guard fiatMethods.defaultLayout.methods.contains(item.id) else { return nil }
                 return FiatMethodViewModel(
                     id: item.id,
@@ -69,6 +69,8 @@ private extension FiatMethodsController {
                     infoButtons: item.infoButtons.map { .init(title: $0.title, url: $0.url) }
                 )
             }
+            guard !models.isEmpty else { return nil }
+            return models
         }
         return sections
     }
