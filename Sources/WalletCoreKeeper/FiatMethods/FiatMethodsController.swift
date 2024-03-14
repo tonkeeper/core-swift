@@ -58,7 +58,7 @@ private extension FiatMethodsController {
     func mapFiatMethods(fiatMethods: FiatMethods) -> [[FiatMethodViewModel]] {
         let sections = fiatMethods.categories.compactMap { category -> [FiatMethodViewModel]? in
             let models = category.items.compactMap { item -> FiatMethodViewModel? in
-                guard fiatMethods.defaultLayout.methods.contains(item.id) else { return nil }
+                guard availableFiatMethods.contains(item.id) else { return nil }
                 return FiatMethodViewModel(
                     id: item.id,
                     title: item.title,
@@ -90,7 +90,7 @@ private extension FiatMethodsController {
         
         let currTo: String
         switch item.id {
-        case "neocrypto":
+        case "neocrypto", "moonpay":
             currTo = "TON"
         case "mercuryo":
             await handleUrlForMercuryo(urlString: &urlString, walletAddress: addressString)
@@ -131,5 +131,9 @@ private extension FiatMethodsController {
         let fiatMethods = try await fiatMethodsService.loadFiatMethods(countryCode: nil)
         sectionsModels = mapFiatMethods(fiatMethods: fiatMethods)
         return sectionsModels
+    }
+    
+    private var availableFiatMethods: [FiatMethodItem.ID] {
+        ["mercuryo", "neocrypto", "moonpay"]
     }
 }
