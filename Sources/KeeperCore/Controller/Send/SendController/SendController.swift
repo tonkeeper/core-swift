@@ -27,6 +27,7 @@ public final class SendController {
   public struct SendWalletModel {
     public let id: String
     public let name: String
+    public let tintColor: WalletTintColor
     public let balance: String?
     public let isPickerEnabled: Bool
   }
@@ -281,7 +282,7 @@ private extension SendController {
   }
   
   func reloadToWallets() {
-    toWallets = walletsStore.wallets.filter { $0 != selectedFromWallet }
+    toWallets = walletsStore.wallets
     
     let models = toWallets.map { wallet in
       let balance: Balance?
@@ -378,6 +379,7 @@ private extension SendController {
     return SendWalletModel(
       id: UUID().uuidString,
       name: name,
+      tintColor: wallet.metaData.tintColor,
       balance: balanceValue,
       isPickerEnabled: isPickerEnabled
     )

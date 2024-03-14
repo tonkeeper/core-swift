@@ -3,20 +3,19 @@ import CoreComponents
 
 public final class WalletListController {
   
-  public struct WalletModel: Equatable {
-    public let identifier: String
-    public let name: String
-    public let tag: String?
-    public let emoji: String
-    public let colorIdentifier: String
+  public struct ListModel: Equatable {
+    public var identifier: String {
+      walletModel.identifier
+    }
+    public let walletModel: WalletModel
     public let balance: String
   }
   
   public var didUpdateWallets: (() -> Void)?
   public var didUpdateActiveWallet: (() -> Void)?
   
-  private var _walletsModels = [WalletModel]()
-  public private(set) var walletsModels: [WalletModel] {
+  private var _walletsModels = [ListModel]()
+  public private(set) var walletsModels: [ListModel] {
     get { _walletsModels }
     set {
       guard _walletsModels != newValue else { return }
@@ -84,9 +83,8 @@ public final class WalletListController {
 }
 
 private extension WalletListController {
-  func getWalletsModels() -> [WalletModel] {
-    let date = Date()
-    var models = [WalletModel]()
+  func getWalletsModels() -> [ListModel] {
+    var models = [ListModel]()
     for wallet in configurator.getWallets() {
       models.append(mapWalletModel(wallet: wallet))
     }
@@ -97,7 +95,7 @@ private extension WalletListController {
     configurator.getSelectedWalletIndex()
   }
   
-  func mapWalletModel(wallet: Wallet) -> WalletModel {
+  func mapWalletModel(wallet: Wallet) -> ListModel {
     let totalBalance = totalBalanceStore.getTotalBalance(wallet: wallet, currency: .USD)
     let balanceString = walletListMapper.mapTotalBalance(totalBalance, currency: .USD)
     let model = walletListMapper.mapWalletModel(

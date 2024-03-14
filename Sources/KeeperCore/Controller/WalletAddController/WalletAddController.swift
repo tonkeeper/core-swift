@@ -48,7 +48,7 @@ public final class WalletAddController {
       let label = addPostfix ? "\(metaData.label) \(revision.rawValue)" : metaData.label
       let revisionMetaData = WalletMetaData(
         label: label,
-        colorIdentifier: metaData.colorIdentifier,
+        tintColor: metaData.tintColor,
         emoji: metaData.emoji
       )
       

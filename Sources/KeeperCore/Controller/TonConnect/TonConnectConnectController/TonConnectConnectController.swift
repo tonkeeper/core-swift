@@ -5,7 +5,7 @@ public struct TonConnectConnectModel {
     public let name: String
     public let address: String?
     public let emoji: String
-    public let colorIdentifier: String
+    public let tintColor: WalletTintColor
   }
   
   public let name: String
@@ -43,7 +43,7 @@ public final class TonConnectConnectController {
         name: selectedWallet.metaData.label,
         address: try? selectedWallet.address.toShortString(bounceable: false),
         emoji: selectedWallet.metaData.emoji,
-        colorIdentifier: selectedWallet.metaData.colorIdentifier
+        tintColor: selectedWallet.metaData.tintColor
       ),
       appImageURL: manifest.iconUrl
     )

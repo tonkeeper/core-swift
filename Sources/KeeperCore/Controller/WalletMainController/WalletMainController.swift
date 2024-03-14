@@ -5,11 +5,6 @@ public final class WalletMainController {
   public var didUpdateActiveWallet: (() -> Void)?
   public var didUpdateActiveWalletMetaData: (() -> Void)?
   
-  public struct WalletModel {
-    public let name: String
-    public let colorIdentifier: String
-  }
-  
   private let walletsStore: WalletsStore
   private let balanceStore: BalanceStore
   private let ratesStore: RatesStore
@@ -40,9 +35,7 @@ public final class WalletMainController {
   
   public func getActiveWalletModel() -> WalletModel {
     let activeWallet = walletsStore.activeWallet
-    let model = WalletModel(name: activeWallet.metaData.emoji + " " + activeWallet.metaData.label,
-                            colorIdentifier: activeWallet.metaData.colorIdentifier)
-    return model
+    return activeWallet.model
   }
   
   public func getActiveWallet() -> Wallet {

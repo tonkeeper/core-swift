@@ -53,7 +53,7 @@ public struct KeeperInfoMigration {
         ),
         metaData: WalletMetaData(
           label: "Wallet",
-          colorIdentifier: "Color15",
+          tintColor: .steelGray,
           emoji: "👽"
         ),
         setupSettings: WalletSetupSettings(backupDate: nil),

@@ -186,7 +186,7 @@ private extension SendConfirmationController {
       image: image,
       titleType: titleType,
       descriptionType: descriptionType,
-      wallet: wallet.metaData.emojiLabel,
+      wallet: wallet.model.emojiLabel,
       recipientAddress: recipient.recipientAddress.shortAddressString,
       recipientName: recipient.recipientAddress.name,
       amount: formattedAmount,

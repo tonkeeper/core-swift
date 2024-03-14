@@ -16,39 +16,9 @@ struct WalletListMapper {
   }
   
   func mapWalletModel(wallet: Wallet,
-                      balance: String) -> WalletListController.WalletModel {
-    let identifier = (try? wallet.identity.identifier().string) ?? UUID().uuidString
-    let name = {
-      wallet.metaData.label.isEmpty ? "Wallet" : wallet.metaData.label
-    }()
-    let tag: String? = {
-      if wallet.isRegular {
-        switch wallet.isTestnet {
-        case true: return "TESTNET"
-        case false: return nil
-        }
-      }
-      if wallet.isWatchonly {
-        return "WATCH ONLY"
-      }
-      if wallet.isExternal {
-        return "EXTERNAL"
-      }
-      return nil
-    }()
-    let emoji: String = {
-      wallet.metaData.emoji.isEmpty ? "😀" : wallet.metaData.emoji
-    }()
-    let colorIdentifier: String = {
-      wallet.metaData.colorIdentifier.isEmpty ? "Color1" : wallet.metaData.colorIdentifier
-    }()
-    
-    return WalletListController.WalletModel(
-      identifier: identifier,
-      name: name,
-      tag: tag,
-      emoji: emoji,
-      colorIdentifier: colorIdentifier,
+                      balance: String) -> WalletListController.ListModel {
+    return WalletListController.ListModel(
+      walletModel: wallet.model,
       balance: balance
     )
   }

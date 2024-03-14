@@ -5,12 +5,6 @@ public final class SettingsController {
   public var didUpdateActiveWallet: (() -> Void)?
   public var didUpdateActiveCurrency: (() -> Void)?
   
-  public struct WalletModel {
-    public let title: String
-    public let emoji: String
-    public let colorIdentifier: String
-  }
-  
   private let walletsStore: WalletsStore
   private let currencyStore: CurrencyStore
   private let configurationStore: ConfigurationStore
@@ -31,11 +25,7 @@ public final class SettingsController {
   
   public func activeWalletModel() -> WalletModel {
     let wallet = walletsStore.activeWallet
-    return WalletModel(
-      title: wallet.metaData.label,
-      emoji: wallet.metaData.emoji,
-      colorIdentifier: wallet.metaData.colorIdentifier
-    )
+    return wallet.model
   }
   
   public func activeCurrency() -> Currency {
